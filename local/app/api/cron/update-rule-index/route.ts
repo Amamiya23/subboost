@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireLocalCronAuth } from "@local/lib/cron-auth";
-import { refreshRuleIndex } from "@local/lib/rule-catalog";
+import { runUpdateRuleIndexJob } from "@local/lib/cron-jobs";
 
 export async function POST(request: NextRequest) {
   const authError = requireLocalCronAuth(request);
   if (authError) return authError;
 
   const force = new URL(request.url).searchParams.get("force") === "1";
-  const result = await refreshRuleIndex({ force });
+  const result = await runUpdateRuleIndexJob(force);
 
   if (result.status === "unavailable") {
     return NextResponse.json(

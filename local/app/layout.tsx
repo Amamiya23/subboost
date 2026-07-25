@@ -38,8 +38,8 @@ export const viewport = {
   themeColor: SUBBOOST_THEME_COLOR,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const { buildVersion } = resolveAppVersionInfo({ env: process.env, cwd: process.cwd() });
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { buildVersion } = await resolveAppVersionInfo({ env: process.env, cwd: process.cwd() });
 
   return (
     <html lang="zh-CN" className="dark">

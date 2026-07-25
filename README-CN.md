@@ -37,6 +37,7 @@
 - 在线入口：[无需部署 - 直接使用的公益服务](https://subboost.org)
 - 部署文档：[一键部署 - 拉取镜像构建，速度快配置要求低](https://docs.subboost.org/deploy/one-click)
 - 部署文档：[高级部署 - 编译源码构建，速度慢配置要求高](https://docs.subboost.org/deploy/advanced)
+- 部署文档：[Cloudflare Workers - 基于 D1 的边缘部署](./docs/deploy/cloudflare-workers.md)
 - 配置教程：[草履虫也能学会的 Clash 配置：UI 界面一键配置精确分流、链式代理](https://ryanvan.com/t/topic/59?u=ryan)
 
 ## 开发说明

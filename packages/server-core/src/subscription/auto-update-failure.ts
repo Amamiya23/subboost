@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
 import { safeParseJsonObject } from "@subboost/core/json";
+import { sha256Hex } from "../crypto/hash";
 
 // Product-neutral failure policy shared by server adapters.
 export const AUTO_UPDATE_EXTERNAL_FAILURE_THRESHOLD = 3;
@@ -56,16 +56,16 @@ function normalizePositiveInteger(value: unknown): number | null {
   return value;
 }
 
-function sourceStateKey(source: AutoUpdateFailureSourceLike): string {
+async function sourceStateKey(source: AutoUpdateFailureSourceLike): Promise<string> {
   const id = normalizeText(source.id);
   if (id) return id;
   return sourceFingerprint(source);
 }
 
-function sourceFingerprint(source: AutoUpdateFailureSourceLike): string {
+async function sourceFingerprint(source: AutoUpdateFailureSourceLike): Promise<string> {
   const type = normalizeText(source.type);
   const content = normalizeText(source.content);
-  return createHash("sha256").update(`${type}\n${content}`).digest("hex").slice(0, 32);
+  return (await sha256Hex(`${type}\n${content}`)).slice(0, 32);
 }
 
 export function parseAutoUpdateFailureSourceState(raw: string | null | undefined): AutoUpdateFailureSourceState {
@@ -175,17 +175,17 @@ export function classifyStableExternalAutoUpdateFailure(
   return { isStableExternalFailure: false, reason: "失败原因不满足稳定外部失败口径" };
 }
 
-export function updateAutoUpdateFailureSourceState(params: {
+export async function updateAutoUpdateFailureSourceState(params: {
   previousStateRaw: string | null | undefined;
   sources: AutoUpdateFailureSourceLike[];
   failedSources: AutoUpdateFailureSourceLike[];
   failedAt: Date;
   threshold?: number;
-}): AutoUpdateFailureSourceStateUpdate {
+}): Promise<AutoUpdateFailureSourceStateUpdate> {
   const previousState = parseAutoUpdateFailureSourceState(params.previousStateRaw);
   const failedBySourceId = new Map<string, AutoUpdateFailureSourceLike>();
   for (const source of params.failedSources) {
-    failedBySourceId.set(sourceStateKey(source), source);
+    failedBySourceId.set(await sourceStateKey(source), source);
   }
 
   const nextState: AutoUpdateFailureSourceState = {};
@@ -193,7 +193,7 @@ export function updateAutoUpdateFailureSourceState(params: {
   const failedAtIso = params.failedAt.toISOString();
 
   for (const source of params.sources) {
-    const sourceId = sourceStateKey(source);
+    const sourceId = await sourceStateKey(source);
     const failedSource = failedBySourceId.get(sourceId);
     if (!failedSource) continue;
 
@@ -208,7 +208,7 @@ export function updateAutoUpdateFailureSourceState(params: {
       continue;
     }
 
-    const fingerprint = sourceFingerprint(source);
+    const fingerprint = await sourceFingerprint(source);
     const previous = previousState[sourceId];
     const previousCount = previous?.fingerprint === fingerprint ? previous.count : 0;
     const count = previousCount + 1;

@@ -35,6 +35,9 @@ const mocks = vi.hoisted(() => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
+    subscriptionAutoUpdateState: {
+      upsert: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
 }));
@@ -64,8 +67,8 @@ vi.mock("@subboost/server-core/subscription", async (importOriginal) => {
 });
 
 vi.mock("./crypto", () => ({
-  encryptJson: (value: unknown) => JSON.stringify(value),
-  decryptJson: (value: string | null | undefined, fallback: unknown) => {
+  encryptJson: async (value: unknown) => JSON.stringify(value),
+  decryptJson: async (value: string | null | undefined, fallback: unknown) => {
     if (!value) return fallback;
     try {
       return JSON.parse(value);
@@ -73,7 +76,7 @@ vi.mock("./crypto", () => ({
       return fallback;
     }
   },
-  decryptJsonObject: (value: string | null | undefined) => {
+  decryptJsonObject: async (value: string | null | undefined) => {
     if (!value) return {};
     try {
       const parsed = JSON.parse(value);
@@ -165,12 +168,7 @@ describe("local subscription service", () => {
     mocks.prisma.subscription.findUnique.mockResolvedValue(row());
     mocks.prisma.subscription.update.mockResolvedValue(row({ name: "Updated" }));
     mocks.prisma.subscription.delete.mockResolvedValue(row());
-    mocks.prisma.$transaction.mockImplementation(async (callback) =>
-      callback({
-        subscription: { update: vi.fn() },
-        subscriptionAutoUpdateState: { upsert: vi.fn() },
-      })
-    );
+    mocks.prisma.$transaction.mockImplementation(async (operations) => Promise.all(operations));
     mocks.importSourceUrlDirect.mockResolvedValue({
       ok: true,
       parsedNodes: [node("Imported")],
@@ -180,8 +178,8 @@ describe("local subscription service", () => {
     mocks.fetchSourceUserInfoHeadersDirect.mockResolvedValue({ "subscription-userinfo": "upload=1; total=2048" });
   });
 
-  it("formats subscription summaries and details from encrypted fields", () => {
-    const summary = formatSubscription(row());
+  it("formats subscription summaries and details from encrypted fields", async () => {
+    const summary = await formatSubscription(row());
     expect(summary).toMatchObject({
       id: "sub-1",
       name: "Saved",
@@ -199,7 +197,7 @@ describe("local subscription service", () => {
       },
     });
 
-    expect(formatSubscriptionDetail(row())).toMatchObject({
+    expect(await formatSubscriptionDetail(row())).toMatchObject({
       urls: ["https://example.com/sub"],
       nodes: [expect.objectContaining({ name: "Node" })],
       config: expect.objectContaining({ smartNodeMatchingEnabled: false }),
@@ -207,7 +205,7 @@ describe("local subscription service", () => {
     });
 
     expect(
-      formatSubscription(
+      await formatSubscription(
         row({
           encryptedUrls: "not json",
           encryptedNodes: "not json",

@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model LocalAdmin {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastLoginAt  DateTime?
+
+  subscriptions Subscription[]
+  templates      LocalTemplate[]
+}
+
+model LocalTemplate {
+  id              String   @id @default(cuid())
+  ownerId         String
+  name            String
+  description     String?
+  encryptedConfig String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  owner LocalAdmin @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@index([updatedAt])
+}
+
+model Subscription {
+  id                            String    @id @default(cuid())
+  ownerId                       String
+  name                          String
+  token                         String    @unique @default(cuid())
+  isPrimary                     Boolean   @default(false)
+  encryptedUrls                 String
+  encryptedNodes                String
+  encryptedConfig               String
+  encryptedSubscriptionInfo     String?
+  autoUpdateInterval            Int?
+  cacheExpiresAt                DateTime?
+  lastAccessedAt                DateTime?
+  lastUpdatedAt                 DateTime?
+  createdAt                     DateTime  @default(now())
+  updatedAt                     DateTime  @updatedAt
+
+  owner           LocalAdmin                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  autoUpdateState SubscriptionAutoUpdateState?
+
+  @@index([ownerId])
+  @@index([lastUpdatedAt])
+}
+
+model SubscriptionAutoUpdateState {
+  subscriptionId           String    @id
+  externalFailureCount     Int       @default(0)
+  failureSourceState       String?
+  lastFailedAt             DateTime?
+  lastAttemptedAt          DateTime?
+  disabledAt               DateTime?
+  disabledReason           String?
+  disabledPreviousInterval Int?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}

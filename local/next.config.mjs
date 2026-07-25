@@ -5,6 +5,7 @@ const nextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.resolve(process.cwd(), ".."),
   transpilePackages: ["@subboost/core", "@subboost/server-core", "@subboost/ui", "@subboost/config"],
+  serverExternalPackages: ["@prisma/client", ".prisma/client"],
   webpack(config) {
     config.resolve.alias["@"] = path.resolve(process.cwd(), "src");
     config.resolve.alias["@local"] = path.resolve(process.cwd(), "src");

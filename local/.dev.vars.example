@@ -1,0 +1,4 @@
+ENCRYPTION_KEY=subboost-local-dev-encryption-key-0001
+JWT_SECRET=subboost-local-dev-jwt-secret-00000001
+APP_URL=http://127.0.0.1:8787
+CRON_SECRET=local-dev-cron-secret

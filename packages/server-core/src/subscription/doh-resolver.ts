@@ -1,4 +1,4 @@
-import { isIP } from "node:net";
+import { getIpVersion } from "./ip-address";
 
 const DEFAULT_DOH_ENDPOINTS = [
   "https://doh.pub/dns-query",
@@ -44,7 +44,8 @@ function queryTypeToCode(type: DohQueryType): number {
 
 function encodeDnsQuestion(hostname: string, type: DohQueryType): Uint8Array {
   const labels = normalizeHostname(hostname).split(".").filter(Boolean);
-  const questionLength = labels.reduce((sum, label) => sum + 1 + Buffer.byteLength(label), 1);
+  const encodedLabels = labels.map((label) => new TextEncoder().encode(label));
+  const questionLength = encodedLabels.reduce((sum, label) => sum + 1 + label.byteLength, 1);
   const out = new Uint8Array(12 + questionLength + 4);
   const view = new DataView(out.buffer);
 
@@ -53,8 +54,7 @@ function encodeDnsQuestion(hostname: string, type: DohQueryType): Uint8Array {
   view.setUint16(4, 1);
 
   let offset = 12;
-  for (const label of labels) {
-    const bytes = new TextEncoder().encode(label);
+  for (const bytes of encodedLabels) {
     out[offset] = bytes.length;
     offset += 1;
     out.set(bytes, offset);
@@ -126,7 +126,7 @@ function parseDnsResponseAddresses(message: Uint8Array): string[] {
     }
     if (klass === DNS_CLASS_IN && type === DNS_TYPE_AAAA && dataLength === 16) {
       const ip = parseIpv6(data);
-      if (isIP(ip)) out.add(ip);
+      if (getIpVersion(ip)) out.add(ip);
     }
     offset += dataLength;
   }
@@ -179,7 +179,7 @@ async function resolveEndpointAddresses(
     });
     if (response.statusCode < 200 || response.statusCode >= 300) continue;
     for (const address of parseDnsResponseAddresses(response.body)) {
-      if (isIP(address)) out.add(address);
+      if (getIpVersion(address)) out.add(address);
     }
   }
   return Array.from(out);

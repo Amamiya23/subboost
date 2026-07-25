@@ -37,6 +37,7 @@
 - Online entry: [No deployment required - direct access to the public service](https://subboost.org)
 - Deployment docs: [One-click deployment - pulls an image to build, faster with lower requirements](https://docs.subboost.org/deploy/one-click)
 - Deployment docs: [Advanced deployment - compiles from source, slower with higher requirements](https://docs.subboost.org/deploy/advanced)
+- Deployment docs: [Cloudflare Workers - D1-backed edge deployment](./docs/deploy/cloudflare-workers.md)
 - Configuration guide: [Clash configuration simple enough for a paramecium: configure precise routing and chained proxies from the UI in one click](https://ryanvan.com/t/topic/59?u=ryan)
 
 ## Development Notes

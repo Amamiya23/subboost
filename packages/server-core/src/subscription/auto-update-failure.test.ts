@@ -109,13 +109,13 @@ describe("classifyStableExternalAutoUpdateFailure", () => {
 });
 
 describe("updateAutoUpdateFailureSourceState", () => {
-  it("increments stable failures, resets changed fingerprints, and disables at threshold", () => {
+  it("increments stable failures, resets changed fingerprints, and disables at threshold", async () => {
     const failedAt = new Date("2026-06-01T00:00:00.000Z");
     const sources = [
       { id: "source-a", type: "url", content: "https://example.com/a" },
       { id: "source-b", type: "url", content: "https://example.com/b" },
     ];
-    const previous = updateAutoUpdateFailureSourceState({
+    const previous = await updateAutoUpdateFailureSourceState({
       previousStateRaw: null,
       sources,
       failedSources: [{ ...sources[0], errorMessage: "HTTP 403", httpStatus: 403 }],
@@ -125,7 +125,7 @@ describe("updateAutoUpdateFailureSourceState", () => {
     expect(previous.maxFailureCount).toBe(1);
     expect(previous.shouldDisableAutoUpdate).toBe(false);
 
-    const second = updateAutoUpdateFailureSourceState({
+    const second = await updateAutoUpdateFailureSourceState({
       previousStateRaw: previous.serializedSourceState,
       sources,
       failedSources: [
@@ -153,7 +153,7 @@ describe("updateAutoUpdateFailureSourceState", () => {
     expect(second.disableSource?.sourceId).toBe("source-a");
     expect(second.shouldDisableAutoUpdate).toBe(true);
 
-    const changedFingerprint = updateAutoUpdateFailureSourceState({
+    const changedFingerprint = await updateAutoUpdateFailureSourceState({
       previousStateRaw: second.serializedSourceState,
       sources: [{ id: "source-a", type: "url", content: "https://example.com/new-a" }],
       failedSources: [{ id: "source-a", type: "url", content: "https://example.com/new-a", errorMessage: "HTTP 403" }],
@@ -165,8 +165,8 @@ describe("updateAutoUpdateFailureSourceState", () => {
     expect(changedFingerprint.shouldDisableAutoUpdate).toBe(false);
   });
 
-  it("uses a fingerprint as the source key when an id is missing", () => {
-    const result = updateAutoUpdateFailureSourceState({
+  it("uses a fingerprint as the source key when an id is missing", async () => {
+    const result = await updateAutoUpdateFailureSourceState({
       previousStateRaw: null,
       sources: [{ type: "url", content: "https://example.com/no-id" }],
       failedAt: new Date("2026-06-01T00:00:00.000Z"),

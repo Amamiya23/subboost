@@ -4,7 +4,7 @@ import {
   decryptEncryptedFieldV2,
   encryptEncryptedFieldV2,
   isV2EncryptedField,
-} from "./encrypted-field";
+} from "./encrypted-field-v2";
 
 const masterKey = "unit-test-encryption-key-32-bytes-minimum";
 

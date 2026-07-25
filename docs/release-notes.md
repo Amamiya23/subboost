@@ -16,6 +16,7 @@ SubBoost v2.6.0 改进了高级代理组的成员管理，并增强多种订阅�
 
 ### 升级说明
 
+- Cloudflare Workers 部署使用 D1 和 Web Crypto v3 加密格式。它是全新部署路径，不提供现有 PostgreSQL 或 v2 密文字段的数据迁移。不要将此版本直接指向现有数据库；请使用新的 D1 或重置现有加密订阅、模板和配置数据。
 - 建议升级前备份 `/opt/subboost/.env` 和数据库，方便需要时回滚。
 - 现有 v2.5.1 自部署实例可以继续使用 `subboost update` 更新。
 - 本次升级不要求手动迁移数据库，也不要求新增环境变量；只有需要修改默认备份保留数量时，才需要设置 `SUBBOOST_BACKUP_RETENTION_COUNT`。
@@ -37,6 +38,7 @@ SubBoost v2.6.0 improves member management for advanced proxy groups and expands
 
 ### Upgrade Notes
 
+- Cloudflare Workers uses D1 and the Web Crypto v3 encryption format. This is a fresh deployment path and does not migrate an existing PostgreSQL database or v2 encrypted fields. Do not point this version at an existing database; use a new D1 database or reset encrypted subscriptions, templates, and configuration data first.
 - Back up `/opt/subboost/.env` and the database before upgrading so rollback is easier if needed.
 - Existing v2.5.1 self-hosted installations can continue to update with `subboost update`.
 - This upgrade does not require a manual database migration or a new environment variable. Set `SUBBOOST_BACKUP_RETENTION_COUNT` only if you want to change the default backup retention count.

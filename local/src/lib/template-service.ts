@@ -65,8 +65,8 @@ function builtinSummaries(): LocalTemplateSummary[] {
   }));
 }
 
-function formatLocalTemplate(row: LocalTemplateRow): LocalTemplateSummary {
-  const config = decryptJsonObject(row.encryptedConfig);
+async function formatLocalTemplate(row: LocalTemplateRow): Promise<LocalTemplateSummary> {
+  const config = await decryptJsonObject(row.encryptedConfig);
   const proxyGroupCount = Array.isArray(config.enabledProxyGroups) ? config.enabledProxyGroups.length : null;
   const ruleCount = Array.isArray(config.ruleOrder) ? config.ruleOrder.length : null;
   return {
@@ -103,7 +103,7 @@ export async function listTemplates(
     where: { ownerId, ...(ids.length > 0 ? { id: { in: ids } } : {}) },
     orderBy: { updatedAt: "desc" },
   });
-  return rows.map(formatLocalTemplate);
+  return Promise.all(rows.map(formatLocalTemplate));
 }
 
 export async function getTemplateDetail(ownerId: string | null, id: string): Promise<LocalTemplateDetail | null> {
@@ -127,7 +127,7 @@ export async function getTemplateDetail(ownerId: string | null, id: string): Pro
     name: row.name,
     description: row.description || "",
     kind: "config",
-    config: decryptJsonObject(row.encryptedConfig) as SubBoostTemplateConfig,
+    config: (await decryptJsonObject(row.encryptedConfig)) as SubBoostTemplateConfig,
   };
 }
 
@@ -146,7 +146,7 @@ export async function createTemplate(ownerId: string, body: unknown): Promise<Lo
       ownerId,
       name,
       description: asString(payload.description).slice(0, 500),
-      encryptedConfig: encryptJson(validated.config),
+      encryptedConfig: await encryptJson(validated.config),
     },
   });
   return formatLocalTemplate(row);

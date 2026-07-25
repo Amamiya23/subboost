@@ -1,4 +1,4 @@
-import { isIP } from "node:net";
+import { getIpVersion } from "./ip-address";
 
 function ipv4ToInt(ip: string): number | null {
   const parts = ip.split(".");
@@ -107,14 +107,14 @@ function isPrivateOrReservedIPv6(ip: string): boolean {
 }
 
 export function isPrivateOrReservedIp(hostname: string): boolean {
-  const version = isIP(hostname);
+  const version = getIpVersion(hostname);
   if (version === 4) return isPrivateOrReservedIPv4(hostname);
   if (version === 6) return isPrivateOrReservedIPv6(hostname);
   return false;
 }
 
 export function isBenchmarkReservedIp(hostname: string): boolean {
-  const version = isIP(hostname);
+  const version = getIpVersion(hostname);
   if (version === 4) return isBenchmarkReservedIPv4(hostname);
   return false;
 }

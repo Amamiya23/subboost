@@ -57,17 +57,17 @@ export function createResetSubscriptionAutoUpdateState(): SubscriptionAutoUpdate
   };
 }
 
-export function resolveAutomaticRefreshFailureAnalysis(params: {
+export async function resolveAutomaticRefreshFailureAnalysis(params: {
   currentState: Pick<SubscriptionAutoUpdateStateFields, "failureSourceState">;
   snapshot: RefreshNodeSnapshotResult;
   failedAt: Date;
-}): AutomaticRefreshFailureAnalysis {
+}): Promise<AutomaticRefreshFailureAnalysis> {
   const refreshableSources = params.snapshot.savedSources.filter(
     (source) => !(source.type === "url" && source.useProxyProviders === true)
   );
   const failureState =
     params.snapshot.failedSourceCount > 0
-      ? updateAutoUpdateFailureSourceState({
+      ? await updateAutoUpdateFailureSourceState({
           previousStateRaw: params.currentState.failureSourceState,
           sources: refreshableSources,
           failedSources: params.snapshot.failedSources,
@@ -129,4 +129,3 @@ export function buildAutomaticRefreshUnexpectedFailureState(attemptedAt: Date): 
     disabledPreviousInterval: null,
   };
 }
-

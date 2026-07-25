@@ -45,7 +45,7 @@ function buildFallbackPayload(currentVersion: string): LatestReleasePayload {
 }
 
 export async function GET() {
-  const { releaseVersion: currentVersion } = resolveAppVersionInfo({
+  const { releaseVersion: currentVersion } = await resolveAppVersionInfo({
     env: process.env,
     cwd: process.cwd(),
   });

@@ -40,7 +40,7 @@ type PreparedLocalRefresh = {
   requestedHosts: string[];
   snapshot: RefreshNodeSnapshotResult;
   refreshResult: PreparedRefreshCacheResult;
-  failureState: ReturnType<typeof resolveAutomaticRefreshFailureAnalysis>["failureState"];
+  failureState: Awaited<ReturnType<typeof resolveAutomaticRefreshFailureAnalysis>>["failureState"];
   failureReason: string;
 };
 
@@ -77,7 +77,7 @@ async function prepareLocalRefresh(
   currentAutoUpdateState: SubscriptionAutoUpdateStateFields,
   attemptedAt: Date
 ): Promise<PreparedLocalRefresh> {
-  const secrets = readSubscriptionSecrets(subscription);
+  const secrets = await readSubscriptionSecrets(subscription);
   const requestedHosts = extractHostsFromSubscriptionUrls(secrets.urls);
   const snapshot = await refreshNodeSnapshot({
     config: secrets.config,
@@ -85,7 +85,7 @@ async function prepareLocalRefresh(
     storedNodes: secrets.nodes,
     ...buildSubscriptionFetchCallbacks(),
   });
-  const { failureState, failureReason } = resolveAutomaticRefreshFailureAnalysis({
+  const { failureState, failureReason } = await resolveAutomaticRefreshFailureAnalysis({
     currentState: currentAutoUpdateState,
     snapshot,
     failedAt: attemptedAt,
@@ -147,9 +147,9 @@ async function completeSuccess(params: {
   const config = { ...params.prepared.config, sources: params.prepared.snapshot.savedSources };
 
   await writeAutoUpdateState(params.subscription.id, decision.nextAutoUpdateState.state, {
-    encryptedNodes: encryptJson(refreshResult.cacheEntry.nodes),
-    encryptedConfig: encryptJson(config),
-    encryptedSubscriptionInfo: encryptJson(refreshResult.cacheEntry.subscriptionInfo),
+    encryptedNodes: await encryptJson(refreshResult.cacheEntry.nodes),
+    encryptedConfig: await encryptJson(config),
+    encryptedSubscriptionInfo: await encryptJson(refreshResult.cacheEntry.subscriptionInfo),
     lastUpdatedAt: cachedAt,
     cacheExpiresAt: buildSubscriptionCacheExpiry(cachedAt),
     ...(decision.nextAutoUpdateState.shouldDisableAutoUpdate ? { autoUpdateInterval: null } : {}),

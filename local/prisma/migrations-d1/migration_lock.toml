@@ -1,0 +1,3 @@
+# Prisma migration bundle lockfile.
+# More information: https://pris.ly/d/migration-kit
+provider = "sqlite"

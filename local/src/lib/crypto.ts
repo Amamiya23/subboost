@@ -1,28 +1,30 @@
-import { decryptEncryptedFieldV2, encryptEncryptedFieldV2 } from "@subboost/server-core/crypto";
+import { decryptEncryptedFieldV3, encryptEncryptedFieldV3 } from "@subboost/server-core/crypto";
 import { requireEnv } from "./env";
 
 function getMasterKey(): string {
   return requireEnv("ENCRYPTION_KEY");
 }
 
-export function encryptText(plaintext: string): string {
-  return encryptEncryptedFieldV2(plaintext, getMasterKey());
+export async function encryptText(plaintext: string): Promise<string> {
+  return encryptEncryptedFieldV3(plaintext, getMasterKey());
 }
 
-export function decryptText(ciphertext: string): string {
-  return decryptEncryptedFieldV2(ciphertext, getMasterKey());
+export async function decryptText(ciphertext: string): Promise<string> {
+  return decryptEncryptedFieldV3(ciphertext, getMasterKey());
 }
 
-export function encryptJson(value: unknown): string {
+export async function encryptJson(value: unknown): Promise<string> {
   return encryptText(JSON.stringify(value));
 }
 
-export function decryptJson<T>(ciphertext: string | null | undefined, fallback: T): T {
+export async function decryptJson<T>(ciphertext: string | null | undefined, fallback: T): Promise<T> {
   if (!ciphertext) return fallback;
-  return JSON.parse(decryptText(ciphertext)) as T;
+  return JSON.parse(await decryptText(ciphertext)) as T;
 }
 
-export function decryptJsonObject(ciphertext: string | null | undefined): Record<string, unknown> {
-  const value = decryptJson<unknown>(ciphertext, {});
+export async function decryptJsonObject(
+  ciphertext: string | null | undefined,
+): Promise<Record<string, unknown>> {
+  const value = await decryptJson<unknown>(ciphertext, {});
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }

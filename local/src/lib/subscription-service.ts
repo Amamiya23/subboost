@@ -123,18 +123,18 @@ function buildLocalSubscriptionConfig(
   );
 }
 
-export function readSubscriptionSecrets(row: SubscriptionRow) {
+export async function readSubscriptionSecrets(row: SubscriptionRow) {
   return {
-    urls: decryptJson<string[]>(row.encryptedUrls, []),
-    nodes: decryptJson<ParsedNode[]>(row.encryptedNodes, []),
-    config: decryptJsonObject(row.encryptedConfig),
+    urls: await decryptJson<string[]>(row.encryptedUrls, []),
+    nodes: await decryptJson<ParsedNode[]>(row.encryptedNodes, []),
+    config: await decryptJsonObject(row.encryptedConfig),
     subscriptionInfo:
-      normalizeSubscriptionInfoForPersistence(decryptJson<unknown>(row.encryptedSubscriptionInfo, {})) ?? {},
+      normalizeSubscriptionInfoForPersistence(await decryptJson<unknown>(row.encryptedSubscriptionInfo, {})) ?? {},
   };
 }
 
-export function formatSubscription(row: SubscriptionRow): SubscriptionSummary {
-  const secrets = readSubscriptionSecrets(row);
+export async function formatSubscription(row: SubscriptionRow): Promise<SubscriptionSummary> {
+  const secrets = await readSubscriptionSecrets(row);
   const subscriptionUrl = buildLocalSubscriptionUrl(row.token);
   return serializeSubscriptionSummaryData(row, secrets, {
     subscriptionUrl,
@@ -146,8 +146,8 @@ export function formatSubscription(row: SubscriptionRow): SubscriptionSummary {
   }) as SubscriptionSummary;
 }
 
-export function formatSubscriptionDetail(row: SubscriptionRow): SubscriptionDetail {
-  const secrets = readSubscriptionSecrets(row);
+export async function formatSubscriptionDetail(row: SubscriptionRow): Promise<SubscriptionDetail> {
+  const secrets = await readSubscriptionSecrets(row);
   const subscriptionUrl = buildLocalSubscriptionUrl(row.token);
   return serializeSubscriptionDetailData(row, secrets, {
     subscriptionUrl,
@@ -165,7 +165,7 @@ export async function listSubscriptions(ownerId: string): Promise<SubscriptionSu
     include: { autoUpdateState: true },
     orderBy: { updatedAt: "desc" },
   });
-  return rows.map(formatSubscription);
+  return Promise.all(rows.map(formatSubscription));
 }
 
 export async function createSubscription(ownerId: string, body: unknown): Promise<SubscriptionSummary> {
@@ -187,10 +187,10 @@ export async function createSubscription(ownerId: string, body: unknown): Promis
     data: {
       ownerId,
       name,
-      encryptedUrls: encryptJson(urls),
-      encryptedNodes: encryptJson(nodes),
-      encryptedConfig: encryptJson(config),
-      encryptedSubscriptionInfo: encryptJson(subscriptionInfo),
+      encryptedUrls: await encryptJson(urls),
+      encryptedNodes: await encryptJson(nodes),
+      encryptedConfig: await encryptJson(config),
+      encryptedSubscriptionInfo: await encryptJson(subscriptionInfo),
       autoUpdateInterval,
     },
     include: { autoUpdateState: true },
@@ -203,7 +203,7 @@ export async function updateSubscription(ownerId: string, id: string, body: unkn
   const current = await prisma.subscription.findFirst({ where: { id, ownerId }, include: { autoUpdateState: true } });
   if (!current) return null;
 
-  const currentSecrets = readSubscriptionSecrets(current);
+  const currentSecrets = await readSubscriptionSecrets(current);
   const name = normalizeSubscriptionName(body.name) || current.name;
   const data: Record<string, unknown> = { name };
   const hasUrls = "urls" in body;
@@ -211,17 +211,19 @@ export async function updateSubscription(ownerId: string, id: string, body: unkn
   const hasConfig = "config" in body || "smartNodeMatchingEnabled" in body;
 
   if (hasUrls) {
-    data.encryptedUrls = encryptJson(normalizeSubscriptionUrlList(body.urls));
+    data.encryptedUrls = await encryptJson(normalizeSubscriptionUrlList(body.urls));
   }
   if (hasNodes) {
-    data.encryptedNodes = encryptJson(normalizeSubscriptionNodeList(body.nodes));
+    data.encryptedNodes = await encryptJson(normalizeSubscriptionNodeList(body.nodes));
   }
   if (hasConfig) {
     const config = buildLocalSubscriptionConfig(body, currentSecrets.config);
-    data.encryptedConfig = encryptJson(config);
+    data.encryptedConfig = await encryptJson(config);
   }
   if ("subscriptionInfo" in body) {
-    data.encryptedSubscriptionInfo = encryptJson(normalizeSubscriptionInfoForPersistence(body.subscriptionInfo) ?? {});
+    data.encryptedSubscriptionInfo = await encryptJson(
+      normalizeSubscriptionInfoForPersistence(body.subscriptionInfo) ?? {},
+    );
   }
 
   if (hasUrls || hasNodes || hasConfig) {
@@ -249,7 +251,7 @@ export async function getSubscription(ownerId: string, id: string): Promise<Subs
     where: { id, ownerId },
     include: { autoUpdateState: true },
   });
-  return row ? formatSubscriptionDetail(row) : null;
+  return row ? await formatSubscriptionDetail(row) : null;
 }
 
 export async function deleteSubscription(ownerId: string, id: string): Promise<boolean> {
@@ -300,18 +302,21 @@ async function persistRefreshSuccess(params: {
   config: Record<string, unknown>;
   cachedAt: Date;
 }) {
-  await prisma.$transaction(async (tx) => {
-    await tx.subscription.update({
+  const encryptedNodes = await encryptJson(params.snapshot.nodes);
+  const encryptedConfig = await encryptJson({ ...params.config, sources: params.snapshot.savedSources });
+  const encryptedSubscriptionInfo = await encryptJson(params.snapshot.subscriptionInfo);
+  await prisma.$transaction([
+    prisma.subscription.update({
       where: { id: params.subscriptionId },
       data: {
-        encryptedNodes: encryptJson(params.snapshot.nodes),
-        encryptedConfig: encryptJson({ ...params.config, sources: params.snapshot.savedSources }),
-        encryptedSubscriptionInfo: encryptJson(params.snapshot.subscriptionInfo),
+        encryptedNodes,
+        encryptedConfig,
+        encryptedSubscriptionInfo,
         lastUpdatedAt: params.cachedAt,
         cacheExpiresAt: buildSubscriptionCacheExpiry(params.cachedAt),
       },
-    });
-    await tx.subscriptionAutoUpdateState.upsert({
+    }),
+    prisma.subscriptionAutoUpdateState.upsert({
       where: { subscriptionId: params.subscriptionId },
       create: { subscriptionId: params.subscriptionId },
       update: {
@@ -323,15 +328,15 @@ async function persistRefreshSuccess(params: {
         disabledReason: null,
         disabledPreviousInterval: null,
       },
-    });
-  });
+    }),
+  ]);
 }
 
 export async function refreshSubscription(ownerId: string, id: string) {
   const row = await prisma.subscription.findFirst({ where: { id, ownerId }, include: { autoUpdateState: true } });
   if (!row) return null;
 
-  const secrets = readSubscriptionSecrets(row);
+  const secrets = await readSubscriptionSecrets(row);
   const snapshot = await refreshNodeSnapshot({
     config: secrets.config,
     urls: secrets.urls,
@@ -370,7 +375,7 @@ export async function refreshSubscription(ownerId: string, id: string) {
 export async function generateSubscriptionYaml(token: string): Promise<GeneratedSubscriptionYaml | null> {
   const row = await prisma.subscription.findUnique({ where: { token }, include: { autoUpdateState: true } });
   if (!row) return null;
-  const secrets = readSubscriptionSecrets(row);
+  const secrets = await readSubscriptionSecrets(row);
   const { testUrl, testInterval } = getEffectiveTestOptions(secrets.config);
   const proxyProviders = buildProxyProvidersFromConfig(secrets.config, { testUrl, testInterval });
   if (secrets.nodes.length === 0 && !proxyProviders) return null;

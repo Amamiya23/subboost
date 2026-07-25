@@ -110,8 +110,8 @@ describe("subscription auto-update state helpers", () => {
     });
   });
 
-  it("derives failure reasons from failed source state when source details exist", () => {
-    const result = resolveAutomaticRefreshFailureAnalysis({
+  it("derives failure reasons from failed source state when source details exist", async () => {
+    const result = await resolveAutomaticRefreshFailureAnalysis({
       currentState: { failureSourceState: null },
       failedAt,
       snapshot: {
@@ -154,7 +154,7 @@ describe("subscription auto-update state helpers", () => {
     expect(result.failureReason).toBe("目标订阅服务返回 HTTP 403");
 
     expect(
-      resolveAutomaticRefreshFailureAnalysis({
+      await resolveAutomaticRefreshFailureAnalysis({
         currentState: { failureSourceState: null },
         failedAt,
         snapshot: {

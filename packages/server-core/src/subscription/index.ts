@@ -6,6 +6,7 @@ export * from "./cron-update-summary";
 export * from "./crud";
 export * from "./doh-resolver";
 export * from "./fetch-profile-heuristics";
+export * from "./ip-address";
 export * from "./manual-refresh-response";
 export * from "./refresh-cache-result";
 export * from "./refresh-node-snapshot";

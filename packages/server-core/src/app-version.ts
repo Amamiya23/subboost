@@ -1,6 +1,5 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { createHash } from "node:crypto";
+import { sha256Hex } from "./crypto/hash";
 
 export type AppVersionInfo = {
   version: string;
@@ -51,9 +50,9 @@ function formatBuildVersion(releaseVersion: string, buildSha: string | null): st
   return `${releaseVersion}+sha.${buildSha.slice(0, 12)}`;
 }
 
-function formatVersionToken(releaseVersion: string, buildSha: string | null, buildVersion: string): string {
+async function formatVersionToken(releaseVersion: string, buildSha: string | null, buildVersion: string): Promise<string> {
   if (!buildSha && buildVersion === releaseVersion) return buildVersion;
-  const digest = createHash("sha256").update(`${releaseVersion}:${buildSha ?? ""}:${buildVersion}`).digest("hex").slice(0, 12);
+  const digest = (await sha256Hex(`${releaseVersion}:${buildSha ?? ""}:${buildVersion}`)).slice(0, 12);
   return `${releaseVersion}+build.${digest}`;
 }
 
@@ -66,11 +65,32 @@ function parseJsonObject(content: string): Record<string, unknown> | null {
   }
 }
 
-function readPackageVersion(cwd: string, readFile: (filePath: string) => string): string | null {
+function joinPackagePath(cwd: string, segments: string[]): string {
+  const separator = cwd.includes("\\") && !cwd.includes("/") ? "\\" : "/";
+  const prefix = cwd.startsWith(separator) ? separator : "";
+  const normalized: string[] = [];
+
+  for (const segment of [...cwd.split(/[\\/]+/), ...segments]) {
+    if (!segment || segment === ".") continue;
+    if (segment === "..") {
+      normalized.pop();
+      continue;
+    }
+    normalized.push(segment);
+  }
+
+  return `${prefix}${normalized.join(separator)}`;
+}
+
+function readPackageVersion(
+  cwd: string,
+  readFile: (filePath: string) => string = (filePath) => readFileSync(filePath, "utf8"),
+): string | null {
+  if (!cwd) return null;
   const candidates = [
-    join(cwd, "package.json"),
-    join(cwd, "..", "package.json"),
-    join(cwd, "..", "..", "package.json"),
+    joinPackagePath(cwd, ["package.json"]),
+    joinPackagePath(cwd, ["..", "package.json"]),
+    joinPackagePath(cwd, ["..", "..", "package.json"]),
   ];
   let fallback: string | null = null;
 
@@ -89,11 +109,11 @@ function readPackageVersion(cwd: string, readFile: (filePath: string) => string)
   return fallback;
 }
 
-export function resolveAppVersionInfo({
+export async function resolveAppVersionInfo({
   env,
   cwd,
-  readFile = (filePath) => readFileSync(filePath, "utf8"),
-}: ResolveAppVersionInfoOptions): AppVersionInfo {
+  readFile,
+}: ResolveAppVersionInfoOptions): Promise<AppVersionInfo> {
   const explicitVersion = normalizeText(env.APP_VERSION);
   const explicitVersionToken = normalizeText(env.APP_VERSION_TOKEN);
   const buildSha =
@@ -107,7 +127,7 @@ export function resolveAppVersionInfo({
     readPackageVersion(cwd, readFile) ??
     "0.0.0";
   const buildVersion = explicitVersion ?? formatBuildVersion(releaseVersion, buildSha);
-  const versionToken = explicitVersionToken ?? formatVersionToken(releaseVersion, buildSha, buildVersion);
+  const versionToken = explicitVersionToken ?? (await formatVersionToken(releaseVersion, buildSha, buildVersion));
 
   return {
     version: versionToken,

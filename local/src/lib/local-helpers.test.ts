@@ -21,8 +21,8 @@ const mocks = vi.hoisted(() => {
       },
     },
     readSession: vi.fn(),
-    encryptEncryptedFieldV2: vi.fn(),
-    decryptEncryptedFieldV2: vi.fn(),
+    encryptEncryptedFieldV3: vi.fn(),
+    decryptEncryptedFieldV3: vi.fn(),
     createRuleCatalogService: vi.fn(
       (options: {
         getGitHubToken: () => string;
@@ -41,8 +41,8 @@ vi.mock("server-only", () => ({}));
 vi.mock("./prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("./session", () => ({ readSession: mocks.readSession }));
 vi.mock("@subboost/server-core/crypto", () => ({
-  encryptEncryptedFieldV2: mocks.encryptEncryptedFieldV2,
-  decryptEncryptedFieldV2: mocks.decryptEncryptedFieldV2,
+  encryptEncryptedFieldV3: mocks.encryptEncryptedFieldV3,
+  decryptEncryptedFieldV3: mocks.decryptEncryptedFieldV3,
 }));
 vi.mock("@subboost/server-core/rules", () => ({
   createRuleCatalogService: mocks.createRuleCatalogService,
@@ -86,8 +86,8 @@ describe("local lib helpers", () => {
     process.env.APP_URL = " https://local.subboost.test/// ";
     process.env.ENCRYPTION_KEY = " master-key ";
     process.env.GITHUB_TOKEN = "gh-token";
-    mocks.encryptEncryptedFieldV2.mockImplementation((plaintext: string, key: string) => `enc:${key}:${plaintext}`);
-    mocks.decryptEncryptedFieldV2.mockImplementation((ciphertext: string, key: string) => {
+    mocks.encryptEncryptedFieldV3.mockImplementation(async (plaintext: string, key: string) => `enc:${key}:${plaintext}`);
+    mocks.decryptEncryptedFieldV3.mockImplementation(async (ciphertext: string, key: string) => {
       if (ciphertext === "json") return JSON.stringify({ ok: true });
       if (ciphertext === "array") return JSON.stringify(["nope"]);
       return `dec:${key}:${ciphertext}`;
@@ -148,14 +148,14 @@ describe("local lib helpers", () => {
     await expect(isSetupRequired()).resolves.toBe(false);
   });
 
-  it("encrypts and decrypts text and JSON through the shared crypto helpers", () => {
-    expect(encryptText("hello")).toBe("enc:master-key:hello");
-    expect(decryptText("cipher")).toBe("dec:master-key:cipher");
-    expect(encryptJson({ ok: true })).toBe('enc:master-key:{"ok":true}');
-    expect(decryptJson("json", { ok: false })).toEqual({ ok: true });
-    expect(decryptJson(null, { fallback: true })).toEqual({ fallback: true });
-    expect(decryptJsonObject("json")).toEqual({ ok: true });
-    expect(decryptJsonObject("array")).toEqual({});
+  it("encrypts and decrypts text and JSON through the shared crypto helpers", async () => {
+    expect(await encryptText("hello")).toBe("enc:master-key:hello");
+    expect(await decryptText("cipher")).toBe("dec:master-key:cipher");
+    expect(await encryptJson({ ok: true })).toBe('enc:master-key:{"ok":true}');
+    expect(await decryptJson("json", { ok: false })).toEqual({ ok: true });
+    expect(await decryptJson(null, { fallback: true })).toEqual({ fallback: true });
+    expect(await decryptJsonObject("json")).toEqual({ ok: true });
+    expect(await decryptJsonObject("array")).toEqual({});
   });
 
   it("builds JSON responses and reads request bodies safely", async () => {
