@@ -17,7 +17,7 @@ npm ci
 npx wrangler d1 create subboost-db
 ```
 
-将返回的数据库 ID 填入 `local/wrangler.jsonc`，替换其中的 `REPLACE_WITH_D1_DATABASE_ID`。数据库 ID 不属于机密信息，应与部署配置一起提交到版本库。
+将返回的数据库 ID 写入 `local/wrangler.jsonc` 的 `database_id`。数据库 ID 不是机密信息，可以提交到版本库。
 
 应用项目中包含的 D1 迁移：
 
@@ -76,4 +76,4 @@ Workers Cron Triggers 配置在 `local/wrangler.jsonc` 中：
 - `CLOUDFLARE_API_TOKEN`：具有 Workers Scripts 编辑、D1 编辑和账户读取权限的 token。
 - `CLOUDFLARE_ACCOUNT_ID`：目标 Cloudflare 账户 ID。
 
-合并到 `main` 前，请确保 `local/wrangler.jsonc` 中已填写真实的 D1 数据库 ID。
+合并到 `main` 前，请确保 `local/wrangler.jsonc` 中的 D1 数据库 ID 与目标 Cloudflare 账户一致。

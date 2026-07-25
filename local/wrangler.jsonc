@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "subboost-local",
   "main": "worker/index.ts",
-  "compatibility_date": "2024-12-30",
+  "compatibility_date": "2026-07-25",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
     "directory": ".open-next/assets",
@@ -18,7 +18,7 @@
     {
       "binding": "DB",
       "database_name": "subboost-db",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "45cb5ac4-5e0f-4656-ac08-b18a8801cf89",
       "migrations_dir": "prisma/migrations-d1",
       "migrations_pattern": "prisma/migrations-d1/*/migration.sql"
     }
