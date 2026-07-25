@@ -61,6 +61,7 @@ function HomeSurfaceInner({ adapter }: Props) {
     parseMultipleSources,
     clearNodes,
     generateConfig,
+    setGeneratedYaml,
     template,
     enabledProxyGroups,
     hiddenProxyGroups,
@@ -209,6 +210,7 @@ function HomeSurfaceInner({ adapter }: Props) {
       hasValidSources={hasValidSources}
       handleGenerate={handleGenerate}
       handleDownload={handleDownload}
+      onGeneratedYamlChange={setGeneratedYaml}
       subscription={subscription}
       noticeSlot={adapter?.renderNotice?.({ user, showAiColumn })}
       renderAnnouncement={adapter?.renderAnnouncement}

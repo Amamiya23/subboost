@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   links: [] as any[],
   subscriptionDialog: undefined as any,
   yamlHighlight: undefined as any,
+  yamlPreviewEditor: undefined as any,
   interactions: {
     modeChanged: vi.fn(),
     templateUploadOpened: vi.fn(),
@@ -106,6 +107,13 @@ vi.mock("@subboost/ui/product/preview/diff-highlight", () => ({
   },
 }));
 
+vi.mock("@subboost/ui/product/preview/yaml-preview-editor", () => ({
+  YamlPreviewEditor: (props: any) => {
+    mocks.yamlPreviewEditor = props;
+    return React.createElement("pre", null, props.content);
+  },
+}));
+
 vi.mock("@subboost/ui/product/home/subscription-link-dialog", () => ({
   SubscriptionLinkDialog: (props: any) => {
     mocks.subscriptionDialog = props;
@@ -164,6 +172,7 @@ const baseProps = {
   hasValidSources: false,
   handleGenerate: vi.fn(),
   handleDownload: vi.fn(),
+  onGeneratedYamlChange: vi.fn(),
   subscription: createSubscription(),
 };
 
@@ -175,6 +184,7 @@ describe("HomeLayout", () => {
     mocks.links = [];
     mocks.subscriptionDialog = undefined;
     mocks.yamlHighlight = undefined;
+    mocks.yamlPreviewEditor = undefined;
   });
 
   it("renders the empty preview state and disabled primary actions", () => {
@@ -261,7 +271,8 @@ describe("HomeLayout", () => {
     expect(mocks.tabs[0]).toMatchObject({ value: "advanced" });
     mocks.tabs[0].onValueChange("quick");
     expect(mocks.interactions.modeChanged).toHaveBeenCalledWith({ mode: "quick" });
-    expect(mocks.yamlHighlight).toMatchObject({ content: "mixed-port: 7890" });
+    expect(mocks.yamlPreviewEditor).toMatchObject({ content: "mixed-port: 7890" });
+    expect(mocks.yamlPreviewEditor.onContentChange).toBeTypeOf("function");
 
     mocks.buttons[0].onClick();
     mocks.buttons[1].onClick();
@@ -298,6 +309,6 @@ describe("HomeLayout", () => {
 
     expect(html).toContain("基础和 DNS 配置有错误");
     expect(html).toContain("dns is invalid");
-    expect(mocks.yamlHighlight).toBeUndefined();
+    expect(mocks.yamlPreviewEditor).toBeUndefined();
   });
 });

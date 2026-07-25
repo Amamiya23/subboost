@@ -19,7 +19,7 @@ import { QuickMode } from "@subboost/ui/product/converter/quick-mode";
 import { AdvancedMode } from "@subboost/ui/product/converter/advanced-mode";
 import { UnsavedPrompt } from "@subboost/ui/product/home/unsaved-prompt";
 import { VisualGraph } from "@subboost/ui/product/preview/visual-graph";
-import { YamlHighlight } from "@subboost/ui/product/preview/diff-highlight";
+import { YamlPreviewEditor } from "@subboost/ui/product/preview/yaml-preview-editor";
 import { SubscriptionLinkDialog } from "@subboost/ui/product/home/subscription-link-dialog";
 import { artisticTabsIconClassName, artisticTabsListClassName, artisticTabsTriggerClassName } from "@subboost/ui/components/ui/artistic-nav";
 import { useProductInteractionAdapter, type ProductMode } from "@subboost/ui/product/interactions";
@@ -75,6 +75,7 @@ type Props = {
 
   handleGenerate: (mode: ProductMode) => void;
   handleDownload: (mode: ProductMode) => void;
+  onGeneratedYamlChange: (yaml: string) => void;
 
   subscription: SubscriptionLinkState;
   noticeSlot?: React.ReactNode;
@@ -104,6 +105,7 @@ export function HomeLayout({
   hasValidSources,
   handleGenerate,
   handleDownload,
+  onGeneratedYamlChange,
   subscription,
   noticeSlot,
   renderAnnouncement,
@@ -283,7 +285,11 @@ export function HomeLayout({
                         </div>
                       </div>
                     ) : generatedYaml ? (
-                      <YamlHighlight content={generatedYaml} className="h-full" />
+                      <YamlPreviewEditor
+                        content={generatedYaml}
+                        onContentChange={onGeneratedYamlChange}
+                        className="h-full"
+                      />
                     ) : (
                       <pre className="p-4 font-mono text-xs text-white/60 whitespace-pre">
                         {`# 请先添加订阅或节点
