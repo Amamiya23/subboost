@@ -19,7 +19,9 @@ Restored Web Crypto read compatibility for legacy v2 subscription records, added
 
 ### Main Changes
 
-- Detailed change bullets were not supplied; see the summary above.
+- Shared per-rule generation scope between Clash `rules` and `rule-providers`.
+- Preserved moved preset rules after disabling their source proxy group without restoring sibling rules.
+- Added helper-level and assembled-config regression coverage plus a core generator code-spec.
 
 ### Git Commits
 
@@ -27,6 +29,42 @@ Restored Web Crypto read compatibility for legacy v2 subscription records, added
 |------|---------|
 | `85f28b5` | (see git log) |
 | `939b2b6` | (see git log) |
+
+### Testing
+
+- `npm run lint`
+- `npm run test:core` (58 files, 350 tests)
+- `npm run local:typecheck`
+- `npx vitest run local/zz-core-generation-contract.test.ts`
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
+
+
+## Session 2: Fix moved ruleset omission
+
+**Date**: 2026-07-26
+**Task**: Fix moved ruleset omission
+**Branch**: `main`
+
+### Summary
+
+Preserved moved preset rules and providers when their source proxy group is disabled, added regression coverage, and documented the shared generation-scope contract.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `baf50ce` | (see git log) |
 
 ### Testing
 
