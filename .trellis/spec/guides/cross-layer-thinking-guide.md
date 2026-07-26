@@ -299,6 +299,36 @@ Create detailed flow docs when:
 
 ---
 
+## CI Builder Capability Changes
+
+Changing a CI builder driver is a contract change across the setup action,
+build exporter, cache backend, artifact handoff, and publication job.
+
+### Checklist: Before Changing A Container Builder Driver
+
+- [ ] List every feature used by the build command: target platforms, cache
+      exporter, output exporter, `push-by-digest`, attestations, and final tags
+- [ ] Verify each feature against the selected driver's documented capability
+      matrix; do not assume two BuildKit-backed drivers expose identical exporters
+- [ ] Search all workflow stages for mechanisms inherited from the previous
+      architecture, including digest artifacts and manifest assembly
+- [ ] For a single-platform image, prefer pushing final tags directly and pass
+      the build action's digest through job outputs to downstream release steps
+- [ ] Preserve release gating: final stable/dev tags must not be pushed before
+      required checks pass
+- [ ] Validate both workflow syntax and semantic invariants (driver, exporter,
+      tags, digest consumers); YAML parsing alone cannot detect unsupported flags
+
+**Real-world example**: The Docker workflows switched from the
+`docker-container` driver to the runner's embedded `docker` driver to avoid a
+Docker Hub timeout while booting `moby/buildkit`. Keeping the old
+`push-by-digest` exporter made the next run fail because that exporter is not
+implemented by the `docker` driver. The durable fix removed the multi-platform
+digest-artifact/manifest pipeline and directly pushed final amd64 tags, while
+passing `steps.build_image.outputs.digest` to release-asset jobs.
+
+---
+
 ## Event Log / Projection Boundary
 
 Append-only logs are cross-layer contracts. A single event travels through:

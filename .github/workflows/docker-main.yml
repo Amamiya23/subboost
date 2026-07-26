@@ -48,6 +48,8 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     needs: meta
+    outputs:
+      image_digest: ${{ steps.build_image.outputs.digest }}
     steps:
       - uses: actions/checkout@v6
 
@@ -63,100 +65,29 @@ jobs:
           username: ${{ secrets.GHCR_USERNAME || github.actor }}
           password: ${{ secrets.GHCR_PAT || github.token }}
 
-      - name: Build and push linux/amd64 image by digest
+      - name: Build and push linux/amd64 image
         id: build_image
         uses: docker/build-push-action@v7
         with:
           context: .
           file: local/Dockerfile
           platforms: linux/amd64
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          push: true
           build-args: |
             APP_RELEASE_VERSION=${{ needs.meta.outputs.release_version }}
             APP_BUILD_SHA=${{ github.sha }}
             APP_VERSION=${{ needs.meta.outputs.build_version }}
             APP_VERSION_TOKEN=${{ needs.meta.outputs.build_version }}
           provenance: false
-          tags: ${{ needs.meta.outputs.image_name }}
-
-      - name: Export digest
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p "${RUNNER_TEMP}/digests"
-          digest="${{ steps.build_image.outputs.digest }}"
-          touch "${RUNNER_TEMP}/digests/${digest#sha256:}"
-
-      - name: Upload digest
-        uses: actions/upload-artifact@v4
-        with:
-          name: digest-amd64
-          path: ${{ runner.temp }}/digests/*
-          if-no-files-found: error
-          retention-days: 1
-
-  publish-image:
-    runs-on: ubuntu-latest
-    needs:
-      - meta
-      - build-image
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: docker/setup-buildx-action@v4
-        with:
-          driver: docker
-
-      - uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ secrets.GHCR_USERNAME || github.actor }}
-          password: ${{ secrets.GHCR_PAT || github.token }}
-
-      - name: Download image digests
-        uses: actions/download-artifact@v4
-        with:
-          pattern: digest-amd64
-          path: ${{ runner.temp }}/digests
-          merge-multiple: true
-
-      - name: Create amd64 image tags
-        id: image_manifest
-        shell: bash
-        env:
-          IMAGE_NAME: ${{ needs.meta.outputs.image_name }}
-          SHORT_SHA: ${{ needs.meta.outputs.short_sha }}
-        run: |
-          set -euo pipefail
-          mapfile -t digest_files < <(find "${RUNNER_TEMP}/digests" -type f | sort)
-          if [ "${#digest_files[@]}" -ne 1 ]; then
-            echo "Expected one amd64 image digest, found ${#digest_files[@]}" >&2
-            exit 1
-          fi
-
-          sources=()
-          for file in "${digest_files[@]}"; do
-            sources+=("${IMAGE_NAME}@sha256:$(basename "$file")")
-          done
-
-          docker buildx imagetools create \
-            --metadata-file "${RUNNER_TEMP}/image-metadata.json" \
-            --tag "${IMAGE_NAME}:main" \
-            --tag "${IMAGE_NAME}:sha-${SHORT_SHA}" \
-            "${sources[@]}"
-
-          digest="$(node -e 'const metadata = require(process.argv[1]); const digest = metadata["containerimage.digest"] || metadata["containerimage.descriptor"]?.digest; if (!digest) { console.error(JSON.stringify(metadata, null, 2)); process.exit(1); } process.stdout.write(digest);' "${RUNNER_TEMP}/image-metadata.json")"
-          if [ -z "$digest" ] || [ "$digest" = "null" ]; then
-            echo "Failed to resolve amd64 image digest for ${IMAGE_NAME}:main" >&2
-            exit 1
-          fi
-          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+          tags: |
+            ${{ needs.meta.outputs.image_name }}:main
+            ${{ needs.meta.outputs.image_name }}:sha-${{ needs.meta.outputs.short_sha }}
 
       - name: Summary
         shell: bash
         env:
           IMAGE_NAME: ${{ needs.meta.outputs.image_name }}
-          IMAGE_DIGEST: ${{ steps.image_manifest.outputs.digest }}
+          IMAGE_DIGEST: ${{ steps.build_image.outputs.digest }}
           SHORT_SHA: ${{ needs.meta.outputs.short_sha }}
         run: |
           set -euo pipefail
