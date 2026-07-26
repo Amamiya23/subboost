@@ -48,18 +48,8 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     needs: meta
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-            platform: linux/amd64
-          - arch: arm64
-            platform: linux/arm64
     steps:
       - uses: actions/checkout@v6
-
-      - uses: docker/setup-qemu-action@v3
 
       - uses: docker/setup-buildx-action@v3
 
@@ -69,21 +59,21 @@ jobs:
           username: ${{ secrets.GHCR_USERNAME || github.actor }}
           password: ${{ secrets.GHCR_PAT || github.token }}
 
-      - name: Build and push ${{ matrix.platform }} image by digest
+      - name: Build and push linux/amd64 image by digest
         id: build_image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: local/Dockerfile
-          platforms: ${{ matrix.platform }}
+          platforms: linux/amd64
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           build-args: |
             APP_RELEASE_VERSION=${{ needs.meta.outputs.release_version }}
             APP_BUILD_SHA=${{ github.sha }}
             APP_VERSION=${{ needs.meta.outputs.build_version }}
             APP_VERSION_TOKEN=${{ needs.meta.outputs.build_version }}
-          cache-from: type=gha,scope=main-${{ matrix.arch }}
-          cache-to: type=gha,mode=max,scope=main-${{ matrix.arch }}
+          cache-from: type=gha,scope=main-amd64
+          cache-to: type=gha,mode=max,scope=main-amd64
           provenance: false
           tags: ${{ needs.meta.outputs.image_name }}
 
@@ -98,7 +88,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digest-${{ matrix.arch }}
+          name: digest-amd64
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -122,11 +112,11 @@ jobs:
       - name: Download image digests
         uses: actions/download-artifact@v4
         with:
-          pattern: digest-*
+          pattern: digest-amd64
           path: ${{ runner.temp }}/digests
           merge-multiple: true
 
-      - name: Create multi-platform image tags
+      - name: Create amd64 image tags
         id: image_manifest
         shell: bash
         env:
@@ -135,8 +125,8 @@ jobs:
         run: |
           set -euo pipefail
           mapfile -t digest_files < <(find "${RUNNER_TEMP}/digests" -type f | sort)
-          if [ "${#digest_files[@]}" -lt 2 ]; then
-            echo "Expected at least two architecture digests, found ${#digest_files[@]}" >&2
+          if [ "${#digest_files[@]}" -ne 1 ]; then
+            echo "Expected one amd64 image digest, found ${#digest_files[@]}" >&2
             exit 1
           fi
 
@@ -153,7 +143,7 @@ jobs:
 
           digest="$(node -e 'const metadata = require(process.argv[1]); const digest = metadata["containerimage.digest"] || metadata["containerimage.descriptor"]?.digest; if (!digest) { console.error(JSON.stringify(metadata, null, 2)); process.exit(1); } process.stdout.write(digest);' "${RUNNER_TEMP}/image-metadata.json")"
           if [ -z "$digest" ] || [ "$digest" = "null" ]; then
-            echo "Failed to resolve multi-platform image digest for ${IMAGE_NAME}:main" >&2
+            echo "Failed to resolve amd64 image digest for ${IMAGE_NAME}:main" >&2
             exit 1
           fi
           echo "digest=${digest}" >> "$GITHUB_OUTPUT"
@@ -174,5 +164,5 @@ jobs:
             echo "| \`main\` | \`${IMAGE_NAME}:main\` |"
             echo "| \`sha-${SHORT_SHA}\` | \`${IMAGE_NAME}:sha-${SHORT_SHA}\` |"
             echo ""
-            echo "Multi-arch manifest digest: \`${IMAGE_NAME}@${IMAGE_DIGEST}\`"
+            echo "amd64 image digest: \`${IMAGE_NAME}@${IMAGE_DIGEST}\`"
           } >> "$GITHUB_STEP_SUMMARY"
