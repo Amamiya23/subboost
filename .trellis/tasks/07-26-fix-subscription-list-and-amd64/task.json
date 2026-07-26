@@ -1,0 +1,29 @@
+{
+  "id": "fix-subscription-list-and-amd64",
+  "name": "fix-subscription-list-and-amd64",
+  "title": "Fix subscription visibility and amd64 image builds",
+  "description": "",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "amamiya",
+  "assignee": "amamiya",
+  "createdAt": "2026-07-26",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-26-fix-subscription-list-visibility",
+    "07-26-docker-amd64-only"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

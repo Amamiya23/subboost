@@ -6,7 +6,7 @@
 
 - Trigger: a `local/` change that affects Cloudflare Workers, D1, generated Prisma clients, or scheduled jobs.
 - The Worker runs OpenNext with D1; the Docker path continues to use PostgreSQL.
-- Do not reuse an existing PostgreSQL or v2-encrypted dataset for a Worker deployment.
+- Do not point a Worker deployment at an existing PostgreSQL database; D1 is a separate datastore. Imported legacy `v2:` encrypted values remain readable when the same `ENCRYPTION_KEY` is used.
 
 ### 2. Signatures
 
@@ -34,7 +34,7 @@
 | Placeholder production database ID | do not deploy; replace it in `wrangler.jsonc` |
 | `SUBBOOST_RUNTIME` omitted | Prisma generation uses PostgreSQL schema for Docker/local Node builds |
 | Worker build lacks `SUBBOOST_RUNTIME=workers` | reject the build path because Prisma will generate the PostgreSQL client |
-| v2 encrypted field in a v3 deployment | decryption fails by design; deploy against a clean database |
+| v2 encrypted field in a v3 deployment | read through the Web Crypto legacy compatibility path; new writes remain v3 |
 
 ### 5. Good / Base / Bad Cases
 
@@ -72,3 +72,69 @@ OpenNext invokes `npm run build` internally, which regenerates the PostgreSQL cl
 The environment variable is inherited by OpenNext's internal `npm run build`, so every generate step selects `schema-d1.prisma`.
 
 > **Warning**: Prisma's D1 adapter does not provide Prisma `$transaction` atomicity. Keep D1 deployments to the single-admin workflow; use Docker/PostgreSQL where strict concurrent multi-write atomicity is required.
+
+## Scenario: Encrypted Field Version Compatibility
+
+### 1. Scope / Trigger
+
+- Trigger: changing encrypted-field formats or shared crypto imports used by both Docker/PostgreSQL and Cloudflare/D1 runtimes.
+- Existing Docker databases may contain `v2:` fields written with Node crypto. New Docker and Worker writes use `v3:` Web Crypto fields.
+
+### 2. Signatures
+
+- `encryptEncryptedFieldV3(plaintext, masterKey): Promise<string>` is the only write path.
+- `decryptText(ciphertext): Promise<string>` dispatches `v2:` to `decryptLegacyV2EncryptedField` and all other supported current data to `decryptEncryptedFieldV3`.
+- `decryptLegacyV2EncryptedField(ciphertext, masterKey): Promise<string>` must remain Web Crypto-only so the shared entrypoint is Worker-safe.
+
+### 3. Contracts
+
+- New encrypted values start with `v3:`.
+- Existing `v2:` values remain readable but are never newly written.
+- `ENCRYPTION_KEY` must remain unchanged across an upgrade; version compatibility cannot recover data encrypted with a different key.
+- Collection endpoints that decrypt multiple rows must not lose all existing Docker records merely because the format version changed.
+
+### 4. Validation & Error Matrix
+
+| Condition | Expected behavior |
+|---|---|
+| Valid `v3:` field and matching key | Decrypt with the v3 Web Crypto path |
+| Valid legacy `v2:` field and matching key | Decrypt with the read-only Web Crypto compatibility path |
+| Malformed version metadata | Reject with the matching v2/v3 format or metadata error |
+| Valid ciphertext with a different key | Reject authentication; never return fallback plaintext |
+| Unsupported prefix | Reject; do not guess a crypto format |
+
+### 5. Good / Base / Bad Cases
+
+- Good: a PostgreSQL account containing both v2 and v3 subscriptions can list and retrieve every record after upgrade.
+- Base: a clean D1 deployment writes and reads only v3 data.
+- Bad: importing the Node-only `encrypted-field-v2.ts` implementation through `@subboost/server-core/crypto`; this can compile for Docker while breaking the Worker bundle.
+
+### 6. Tests Required
+
+- Generate a v2 ciphertext with the historical Node implementation and assert the shared Worker-safe compatibility function decrypts it.
+- Assert local `decryptText` dispatches v2 and v3 prefixes to the correct functions.
+- Run subscription service and route contract tests to protect list/detail/YAML behavior.
+- Run `npm --workspace @subboost/local run build:worker` to catch accidental `node:crypto` imports in the Worker graph.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```typescript
+export async function decryptText(ciphertext: string) {
+  return decryptEncryptedFieldV3(ciphertext, getMasterKey());
+}
+```
+
+This makes one legacy v2 row reject during `Promise.all`, causing the entire subscription list request to fail while the independent account count still succeeds.
+
+#### Correct
+
+```typescript
+export async function decryptText(ciphertext: string) {
+  if (isLegacyV2EncryptedField(ciphertext)) {
+    return decryptLegacyV2EncryptedField(ciphertext, getMasterKey());
+  }
+  return decryptEncryptedFieldV3(ciphertext, getMasterKey());
+}
+```

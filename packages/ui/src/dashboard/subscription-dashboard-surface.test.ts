@@ -279,7 +279,7 @@ describe("SubscriptionDashboardSurface", () => {
     const failingAdapter = createAdapter({ fetchSubscriptions: vi.fn(async () => { throw new Error("offline"); }) });
     const failed = renderSurface(failingAdapter, {}, { runEffects: true });
     await flushPromises();
-    expect(failed.setters[0]).toHaveBeenCalledWith([]);
+    expect(failed.setters[11]).toHaveBeenCalledWith("offline");
 
     renderSurface(adapter, { 0: [disabledSubscription], 1: false }, { runEffects: true });
     await flushPromises();
@@ -288,6 +288,23 @@ describe("SubscriptionDashboardSurface", () => {
       "2026-01-03T00:00:00.000Z:fetch_failed"
     );
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "自动更新已关闭", variant: "warning" }));
+  });
+
+  it("shows a retryable error instead of the empty state when loading subscriptions fails", async () => {
+    const adapter = createAdapter({ fetchSubscriptions: vi.fn(async () => [subscription]) });
+    const rendered = renderSurface(adapter, { 1: false, 11: "数据库暂时不可用" });
+
+    expect(rendered.html).toContain("订阅列表加载失败");
+    expect(rendered.html).toContain("数据库暂时不可用");
+    expect(rendered.html).not.toContain("暂无订阅");
+
+    const retry = mocks.captures.buttons.find((props: any) => props.children?.includes?.("重试"));
+    retry.onClick();
+    await flushPromises();
+    expect(adapter.fetchSubscriptions).toHaveBeenCalled();
+    expect(rendered.setters[1]).toHaveBeenCalledWith(true);
+    expect(rendered.setters[11]).toHaveBeenCalledWith(null);
+    expect(rendered.setters[0]).toHaveBeenCalledWith([subscription]);
   });
 
   it("copies, deletes, refreshes, and opens settings for subscriptions", async () => {

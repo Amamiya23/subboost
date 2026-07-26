@@ -23,6 +23,8 @@ const mocks = vi.hoisted(() => {
     readSession: vi.fn(),
     encryptEncryptedFieldV3: vi.fn(),
     decryptEncryptedFieldV3: vi.fn(),
+    decryptLegacyV2EncryptedField: vi.fn(),
+    isLegacyV2EncryptedField: vi.fn(),
     createRuleCatalogService: vi.fn(
       (options: {
         getGitHubToken: () => string;
@@ -43,6 +45,8 @@ vi.mock("./session", () => ({ readSession: mocks.readSession }));
 vi.mock("@subboost/server-core/crypto", () => ({
   encryptEncryptedFieldV3: mocks.encryptEncryptedFieldV3,
   decryptEncryptedFieldV3: mocks.decryptEncryptedFieldV3,
+  decryptLegacyV2EncryptedField: mocks.decryptLegacyV2EncryptedField,
+  isLegacyV2EncryptedField: mocks.isLegacyV2EncryptedField,
 }));
 vi.mock("@subboost/server-core/rules", () => ({
   createRuleCatalogService: mocks.createRuleCatalogService,
@@ -92,6 +96,10 @@ describe("local lib helpers", () => {
       if (ciphertext === "array") return JSON.stringify(["nope"]);
       return `dec:${key}:${ciphertext}`;
     });
+    mocks.isLegacyV2EncryptedField.mockImplementation((ciphertext: string) => ciphertext.startsWith("v2:"));
+    mocks.decryptLegacyV2EncryptedField.mockImplementation(async (ciphertext: string, key: string) =>
+      `legacy:${key}:${ciphertext}`
+    );
   });
 
   afterEach(() => {
@@ -151,6 +159,7 @@ describe("local lib helpers", () => {
   it("encrypts and decrypts text and JSON through the shared crypto helpers", async () => {
     expect(await encryptText("hello")).toBe("enc:master-key:hello");
     expect(await decryptText("cipher")).toBe("dec:master-key:cipher");
+    expect(await decryptText("v2:cipher")).toBe("legacy:master-key:v2:cipher");
     expect(await encryptJson({ ok: true })).toBe('enc:master-key:{"ok":true}');
     expect(await decryptJson("json", { ok: false })).toEqual({ ok: true });
     expect(await decryptJson(null, { fallback: true })).toEqual({ fallback: true });

@@ -183,6 +183,7 @@ describe("local app pages and adapters", () => {
       stepHours: 0.1,
       requireIntegerHours: false,
     });
+    expect(fetchMock).toHaveBeenCalledWith("/api/subscriptions", { cache: "no-store" });
     expect(fetchMock).toHaveBeenCalledWith("/api/subscriptions/sub%201", { method: "DELETE" });
     expect(fetchMock).toHaveBeenCalledWith("/api/subscriptions/sub%201/refresh", expect.objectContaining({ method: "POST" }));
     expect(fetchMock).toHaveBeenCalledWith("/api/subscriptions/sub%201", expect.objectContaining({ method: "PUT" }));

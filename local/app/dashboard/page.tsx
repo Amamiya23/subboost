@@ -25,7 +25,7 @@ const localDashboardAdapter: DashboardSurfaceAdapter = {
   settingsDescription: "查看本地管理员和运行状态",
   autoUpdateIntervalPolicy: LOCAL_AUTO_UPDATE_POLICY,
   fetchSubscriptions: async () => {
-    const response = await fetch("/api/subscriptions");
+    const response = await fetch("/api/subscriptions", { cache: "no-store" });
     const data = await readJsonResponse<{ subscriptions?: Subscription[]; error?: string }>(response, "获取订阅失败");
     return Array.isArray(data.subscriptions) ? data.subscriptions : [];
   },

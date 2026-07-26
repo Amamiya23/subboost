@@ -133,18 +133,21 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
   );
   const [autoUpdateHours, setAutoUpdateHours] = React.useState<number>(autoUpdatePolicy.defaultHours);
   const [savingSettings, setSavingSettings] = React.useState(false);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     void fetchUser();
   }, [fetchUser]);
 
   const fetchSubscriptions = React.useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
     try {
       const nextSubscriptions = await adapter.fetchSubscriptions();
       setSubscriptions(nextSubscriptions);
     } catch (error) {
       console.error("Failed to fetch subscriptions:", error);
-      setSubscriptions([]);
+      setLoadError(error instanceof Error ? error.message : "获取订阅失败");
     } finally {
       setIsLoading(false);
     }
@@ -153,6 +156,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
   React.useEffect(() => {
     if (!user) {
       setIsLoading(false);
+      setLoadError(null);
       return;
     }
     void fetchSubscriptions();
@@ -377,6 +381,16 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
               {[1, 2].map((i) => (
                 <div key={i} className="h-24 bg-white/10 rounded-lg animate-pulse" />
               ))}
+            </div>
+          ) : loadError ? (
+            <div className="py-12 text-center">
+              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-amber-300" />
+              <h3 className="mb-2 text-lg font-medium">订阅列表加载失败</h3>
+              <p className="mb-4 text-white/50">{loadError}</p>
+              <Button variant="outline" onClick={() => void fetchSubscriptions()}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                重试
+              </Button>
             </div>
           ) : subscriptions.length === 0 ? (
             <div className="text-center py-12">

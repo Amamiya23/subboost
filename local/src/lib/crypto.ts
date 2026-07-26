@@ -1,4 +1,9 @@
-import { decryptEncryptedFieldV3, encryptEncryptedFieldV3 } from "@subboost/server-core/crypto";
+import {
+  decryptEncryptedFieldV3,
+  decryptLegacyV2EncryptedField,
+  encryptEncryptedFieldV3,
+  isLegacyV2EncryptedField,
+} from "@subboost/server-core/crypto";
 import { requireEnv } from "./env";
 
 function getMasterKey(): string {
@@ -10,6 +15,9 @@ export async function encryptText(plaintext: string): Promise<string> {
 }
 
 export async function decryptText(ciphertext: string): Promise<string> {
+  if (isLegacyV2EncryptedField(ciphertext)) {
+    return decryptLegacyV2EncryptedField(ciphertext, getMasterKey());
+  }
   return decryptEncryptedFieldV3(ciphertext, getMasterKey());
 }
 
