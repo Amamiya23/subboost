@@ -45,7 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="zh-CN" className="dark">
       <body className="font-sans">
         <ScrollLockStabilizer />
-        <div className="min-h-screen bg-gradient-radial flex flex-col">
+        <div className="min-h-screen flex flex-col">
           <LocalHeader />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <Footer mode="local" buildVersion={buildVersion} />

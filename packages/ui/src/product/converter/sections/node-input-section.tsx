@@ -143,7 +143,7 @@ export function NodeInputSection({
                               className={cn(
                                 "p-1 rounded transition-colors",
                                 source.type === type
-                                  ? "bg-indigo-500/20 text-indigo-400"
+                                  ? "bg-white/12 text-white/65"
                                   : "text-white/30 hover:text-white/50 hover:bg-white/5"
                               )}
                               title={info.label}
@@ -173,11 +173,11 @@ export function NodeInputSection({
                       className={cn(
                         "p-1 rounded transition-colors",
                         source.parsing
-                          ? "text-indigo-400"
+                          ? "text-white/65"
                           : source.parsed
                           ? "text-green-400 hover:text-green-300"
                           : source.content.trim()
-                          ? "text-white/30 hover:text-indigo-400 hover:bg-indigo-500/10"
+                          ? "text-white/30 hover:text-white/65 hover:bg-white/8"
                           : "text-white/10 cursor-not-allowed"
                       )}
                       title="解析导入"
@@ -271,7 +271,7 @@ export function NodeInputSection({
                           type="text"
                           value={editNodeValue}
                           onChange={(e) => setEditNodeValue(e.target.value)}
-                          className="w-20 px-1 py-0.5 bg-white/5 border border-indigo-500/50 rounded text-xs"
+                          className="w-20 px-1 py-0.5 bg-white/5 border border-white/20 rounded text-xs"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === "Enter") handleSaveEdit(node.name);
@@ -298,7 +298,7 @@ export function NodeInputSection({
                         </span>
                         <button
                           onClick={() => handleStartEdit(node.name)}
-                          className="p-0.5 opacity-0 group-hover:opacity-100 text-white/30 hover:text-indigo-400 transition-opacity"
+                          className="p-0.5 opacity-0 group-hover:opacity-100 text-white/30 hover:text-white/65 transition-opacity"
                           title="重命名"
                         >
                           <Pencil className="h-2.5 w-2.5" />

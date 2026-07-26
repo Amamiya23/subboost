@@ -200,7 +200,7 @@ export function TemplatesSection() {
               key={template.id}
               className={cn(
                 "p-2.5 cursor-pointer transition-all border-2",
-                selectedTemplate === template.id ? "border-indigo-500 bg-indigo-500/10" : "border-transparent hover:border-white/20"
+                selectedTemplate === template.id ? "border-white/25 bg-white/8" : "border-transparent hover:border-white/20"
               )}
               onClick={() => {
                 setTemplate(template.id);
@@ -215,10 +215,10 @@ export function TemplatesSection() {
                   <div
                     className={cn(
                       "w-4 h-4 rounded-full border-2 flex items-center justify-center",
-                      selectedTemplate === template.id ? "border-indigo-500" : "border-white/30"
+                      selectedTemplate === template.id ? "border-white/25" : "border-white/30"
                     )}
                   >
-                    {selectedTemplate === template.id && <div className="w-2 h-2 rounded-full bg-indigo-500" />}
+                    {selectedTemplate === template.id && <div className="w-2 h-2 rounded-full bg-white" />}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
@@ -264,7 +264,7 @@ export function TemplatesSection() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-4 h-4 rounded-full border-2 border-white/30 flex items-center justify-center flex-shrink-0">
-                    <Globe className="h-3 w-3 text-indigo-400" />
+                    <Globe className="h-3 w-3 text-white/65" />
                   </div>
                   <div className="min-w-0">
                     <span className="text-sm font-medium text-white">{catalogName}</span>

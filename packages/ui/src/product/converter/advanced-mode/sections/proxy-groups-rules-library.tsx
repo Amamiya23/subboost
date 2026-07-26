@@ -194,7 +194,7 @@ export function ProxyGroupsRulesLibrary() {
                       </div>
                       <div className="flex items-center gap-1 mt-0.5">
                         <span className="text-[9px] text-white/50">属于</span>
-                        <span className="text-[9px] font-medium text-indigo-400">
+                        <span className="text-[9px] font-medium text-white/65">
                           {resolveModuleFullName(belongsToModule)}
                         </span>
                       </div>
@@ -238,7 +238,7 @@ export function ProxyGroupsRulesLibrary() {
                       </div>
                       <div className="flex items-center gap-1 mt-0.5">
                         <span className="text-[9px] text-white/50">属于</span>
-                        <span className="text-[9px] font-medium text-indigo-400">
+                        <span className="text-[9px] font-medium text-white/65">
                           {belongsToCustom.name}
                         </span>
                       </div>
@@ -266,7 +266,7 @@ export function ProxyGroupsRulesLibrary() {
                   className={cn(
                     "flex items-center gap-1.5 px-1.5 py-1 rounded cursor-pointer transition-colors",
                     isSelected
-                      ? "bg-indigo-500/20 text-indigo-400"
+                      ? "bg-white/12 text-white/65"
                       : "hover:bg-white/5 text-white/70",
                   )}
                 >
@@ -274,7 +274,7 @@ export function ProxyGroupsRulesLibrary() {
                     className={cn(
                       "h-3.5 w-3.5 rounded border flex items-center justify-center flex-shrink-0",
                       isSelected
-                        ? "bg-indigo-500 border-indigo-500"
+                        ? "bg-white/15 border-white/25"
                         : "border-white/30",
                     )}
                   >
@@ -339,11 +339,11 @@ export function ProxyGroupsRulesLibrary() {
         )}
 
         {selectedRules.length > 0 && (
-          <div className="space-y-2 bg-indigo-500/10 rounded p-2 border border-indigo-500/30">
+          <div className="space-y-2 bg-white/8 rounded p-2 border border-white/20">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-white/70">
                 已选择{" "}
-                <span className="text-indigo-400 font-medium">
+                <span className="text-white/65 font-medium">
                   {selectedRules.length}
                 </span>{" "}
                 条未分配的规则

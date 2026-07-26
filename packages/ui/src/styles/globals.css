@@ -1,17 +1,18 @@
 @import "tailwindcss" source("../../../..");
 
 @theme {
-  --color-primary: #6366f1;
-  --color-primary-50: #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #6366f1;
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
+  /* v1 视觉系统：primary 退役为白系（保留键名兼容既有 primary-* 引用） */
+  --color-primary: #ffffff;
+  --color-primary-50: #ffffff;
+  --color-primary-100: #fafafa;
+  --color-primary-200: #f5f5f5;
+  --color-primary-300: #e5e5e5;
+  --color-primary-400: #d4d4d4;
+  --color-primary-500: #ffffff;
+  --color-primary-600: #fafafa;
+  --color-primary-700: #e5e5e5;
+  --color-primary-800: #a3a3a3;
+  --color-primary-900: #737373;
 
   --color-dark: #0a0a0a;
   --color-dark-50: #141414;
@@ -34,8 +35,8 @@
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
+  --primary: #ffffff;
+  --primary-hover: #fafafa;
   --card: #141414;
   --card-hover: #1a1a1a;
   --border: #262626;
@@ -47,7 +48,7 @@
 
 @layer base {
   * {
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
   body {
@@ -59,6 +60,7 @@
     overflow-y: scroll;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.005em;
   }
 
   html body[data-scroll-locked] {
@@ -79,23 +81,24 @@
   }
 }
 
-/* 自定义滚动条 */
+/* 自定义滚动条：细而安静 */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 0;
+  border: 3px solid var(--background);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 /* 动画 */
@@ -118,62 +121,43 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* 渐变背景 */
-.bg-gradient-radial {
-  background: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.15) 0%, transparent 50%);
-}
-
 @layer components {
-  /* 毛玻璃卡片 */
+  /* v1：毛玻璃 / 发光边框 / 渐变文字 / 紫色背景 全部退役。
+     保留类名做空实现（仅保留必要的圆角/边框以维持既有布局），
+     避免破坏既有引用；新代码不应再使用。 */
   .glass-card {
-    @apply bg-[#141414] backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl;
+    @apply bg-[#141414] border border-white/10 rounded-md;
   }
 
   .glass-card-hover {
-    @apply bg-[#141414] backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl transition-all duration-300 hover:bg-[#1a1a1a] hover:border-indigo-500/30;
+    @apply bg-[#141414] border border-white/10 rounded-md transition-colors duration-150 hover:bg-[#1a1a1a];
   }
 
-  /* 发光边框 */
-  .glow-border {
-    @apply relative;
-  }
-
+  .glow-border,
   .glow-border::before {
-    content: "";
-    @apply absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300;
-    background: linear-gradient(
-      135deg,
-      rgba(99, 102, 241, 0.2) 0%,
-      rgba(99, 102, 241, 0) 50%,
-      rgba(99, 102, 241, 0.1) 100%
-    );
+    /* no-op：发光效果移除 */
   }
 
-  .glow-border:hover::before {
-    @apply opacity-100;
-  }
-
-  /* 渐变文字 */
   .text-gradient {
-    @apply bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent;
+    @apply text-white;
   }
 
-  /* 按钮样式 */
+  /* 按钮：默认 = 白底黑字（Vercel 反向强调） */
   .btn-primary {
-    @apply border border-primary-500/50 bg-primary-500/20 text-white font-medium px-4 py-2 rounded-xl transition-all duration-200 shadow-lg shadow-primary-500/10 hover:bg-primary-500/30 hover:border-primary-400/70 hover:shadow-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply border border-transparent bg-white text-black font-medium px-4 py-2 rounded-md transition-colors duration-150 hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply bg-white/5 hover:bg-white/10 text-white/70 hover:text-white font-medium px-4 py-2 rounded-xl transition-all duration-200 border border-white/15 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-white/5 hover:bg-white/10 text-white/80 hover:text-white font-medium px-4 py-2 rounded-md transition-colors duration-150 border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-ghost {
-    @apply hover:bg-white/5 text-white/60 hover:text-white font-medium px-4 py-2 rounded-xl transition-all duration-200;
+    @apply hover:bg-white/5 text-white/60 hover:text-white font-medium px-4 py-2 rounded-md transition-colors duration-150;
   }
 
-  /* 输入框样式 */
+  /* 输入框：hairline，无彩色 ring */
   .input-base {
-    @apply bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all duration-200;
+    @apply bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-colors duration-150;
   }
 
   /* 折叠面板触发器 */
@@ -185,18 +169,18 @@
     @apply rotate-180;
   }
 
-  /* 标签样式 */
+  /* 标签：等宽、低饱和 */
   .tag {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/5 text-white/60;
+    @apply inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-white/5 text-white/60 border border-white/10;
   }
 
   .tag-accent {
-    @apply bg-indigo-500/20 text-indigo-400;
+    @apply bg-white/10 text-white/80 border-white/15;
   }
 
-  /* 统计卡片 */
+  /* 统计块 */
   .stat-card {
-    @apply text-center p-3 bg-white/5 rounded-2xl border border-white/10;
+    @apply text-center p-3 bg-white/5 rounded-md border border-white/8;
   }
 
   .proxy-group-module-header {
@@ -335,9 +319,9 @@
 }
 
 @layer utilities {
-  /* 文本选择样式 */
+  /* 文本选择：低透明白 */
   ::selection {
-    @apply bg-indigo-500/30 text-white;
+    @apply bg-white/20 text-white;
   }
 
   /* 隐藏滚动条但保持滚动功能 */
@@ -350,15 +334,15 @@
     display: none;
   }
 
-  /* 自定义滚动条类 - 用于特定元素 */
+  /* 安静的中性灰滚动条 */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -366,11 +350,11 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(99, 102, 241, 0.3);
-    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 0;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(99, 102, 241, 0.5);
+    background: rgba(255, 255, 255, 0.2);
   }
 }

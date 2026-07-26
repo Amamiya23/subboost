@@ -23,7 +23,7 @@ describe("basic UI components", () => {
     expect(html).toContain("href=\"/docs\"");
     expect(html).toContain("Warn");
     expect(buttonVariants({ variant: "outline", size: "sm" })).toContain("h-8");
-    expect(badgeVariants({ variant: "success" })).toContain("green");
+    expect(badgeVariants({ variant: "success" })).toContain("emerald");
   });
 
   it("renders card sections and date/text inputs with merged classes", () => {

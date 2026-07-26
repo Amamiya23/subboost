@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="zh-CN" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SubBoost · v1 视觉系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        },
+        colors: {
+          // 新 token：纯灰阶，无紫
+          bg: '#0a0a0b',
+          surface: '#111113',
+          surface2: '#171719',
+          elevated: '#1d1d20',
+          line: 'rgba(255,255,255,0.08)',
+          lineStrong: 'rgba(255,255,255,0.14)',
+        },
+      },
+    },
+  };
+</script>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0a0a0b;
+    --surface: #111113;
+    --surface2: #171719;
+    --elevated: #1d1d20;
+    --line: rgba(255,255,255,0.08);
+    --line-strong: rgba(255,255,255,0.14);
+  }
+  html, body { background: var(--bg); color: #fff; }
+  body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; letter-spacing: -0.005em; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  /* hairline 分隔线，无阴影发光 */
+  .hairline { border-color: var(--line); }
+  .hairline-strong { border-color: var(--line-strong); }
+  /* 焦点环：纯白低透明，无彩色 */
+  .focus-ring:focus-visible { outline: none; box-shadow: 0 0 0 1px var(--bg), 0 0 0 3px rgba(255,255,255,0.18); }
+  /* Vercel 风主按钮：白底黑字 */
+  .btn-primary { background:#fff; color:#000; }
+  .btn-primary:hover { background:#fafafa; }
+  /* 滚动条更细更安静 */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 0; border: 3px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+  ::-webkit-scrollbar-track { background: transparent; }
+  /* 网格底纹仅作 token 展示参考，不在真实 UI 中使用 */
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- 顶部导航 -->
+<header class="sticky top-0 z-40 border-b hairline bg-bg/80 backdrop-blur-md">
+  <div class="mx-auto max-w-[1280px] px-6 h-14 flex items-center gap-6">
+    <div class="flex items-center gap-2">
+      <!-- 简化 logo：单色方块 -->
+      <div class="size-5 rounded-[5px] bg-white"></div>
+      <span class="text-[13px] font-semibold tracking-tight">SubBoost</span>
+    </div>
+    <nav class="flex items-center gap-1 text-[13px] text-white/55">
+      <a class="px-2.5 py-1 rounded-md text-white bg-white/8 hover:bg-white/10 transition-colors">转换</a>
+      <a class="px-2.5 py-1 rounded-md hover:bg-white/8 hover:text-white transition-colors">订阅</a>
+      <a class="px-2.5 py-1 rounded-md hover:bg-white/8 hover:text-white transition-colors">模板</a>
+      <a class="px-2.5 py-1 rounded-md hover:bg-white/8 hover:text-white transition-colors">文档</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-2">
+      <button class="h-8 px-3 text-[12.5px] text-white/65 hover:text-white hover:bg-white/8 rounded-md transition-colors focus-ring">登录</button>
+      <button class="h-8 px-3 text-[12.5px] font-medium rounded-md btn-primary transition-colors focus-ring">开始使用</button>
+    </div>
+  </div>
+</header>
+
+<main class="mx-auto max-w-[1280px] px-6">
+
+  <!-- HERO -->
+  <section class="py-20 border-b hairline">
+    <div class="max-w-2xl">
+      <div class="text-[12px] text-white/45 font-mono mb-4 tracking-wide">DESIGN SYSTEM · v1</div>
+      <h1 class="text-[44px] leading-[1.05] font-semibold tracking-tight">极简黑。<br/>让规则自己说话。</h1>
+      <p class="mt-5 text-[15px] leading-relaxed text-white/55 max-w-lg">
+        去掉发光、毛玻璃和紫色渐变。只剩灰阶、hairline 描边和一种强调动作。参考 Linear 与 Vercel 的视觉语言，为工具型场景而生。
+      </p>
+      <div class="mt-8 flex items-center gap-3">
+        <button class="h-9 px-4 text-[13px] font-medium rounded-md btn-primary focus-ring">查看组件</button>
+        <button class="h-9 px-4 text-[13px] text-white/75 hover:text-white border hairline-strong hover:bg-white/8 rounded-md transition-colors focus-ring">真实界面预览 ↓</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOKENS -->
+  <section class="py-14 border-b hairline">
+    <div class="text-[12px] font-mono text-white/45 mb-6 tracking-wide">01 · TOKENS</div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+      <!-- 颜色 -->
+      <div>
+        <div class="text-[13px] text-white/70 mb-3 font-medium">Surfaces</div>
+        <div class="space-y-1.5 text-[12px] font-mono">
+          <div class="flex items-center gap-3"><span class="size-8 rounded border hairline" style="background:#0a0a0b"></span><span class="text-white/60">--bg</span><span class="text-white/35 ml-auto">#0A0A0B</span></div>
+          <div class="flex items-center gap-3"><span class="size-8 rounded border hairline" style="background:#111113"></span><span class="text-white/60">--surface</span><span class="text-white/35 ml-auto">#111113</span></div>
+          <div class="flex items-center gap-3"><span class="size-8 rounded border hairline" style="background:#171719"></span><span class="text-white/60">--surface2</span><span class="text-white/35 ml-auto">#171719</span></div>
+          <div class="flex items-center gap-3"><span class="size-8 rounded border hairline" style="background:#1d1d20"></span><span class="text-white/60">--elevated</span><span class="text-white/35 ml-auto">#1D1D20</span></div>
+        </div>
+        <div class="text-[13px] text-white/70 mt-6 mb-3 font-medium">Lines</div>
+        <div class="space-y-1.5 text-[12px] font-mono">
+          <div class="flex items-center gap-3"><span class="size-8 rounded border" style="border-color:rgba(255,255,255,0.08)"></span><span class="text-white/60">--line</span><span class="text-white/35 ml-auto">white 8%</span></div>
+          <div class="flex items-center gap-3"><span class="size-8 rounded border" style="border-color:rgba(255,255,255,0.14)"></span><span class="text-white/60">--line-strong</span><span class="text-white/35 ml-auto">white 14%</span></div>
+        </div>
+      </div>
+
+      <!-- 文字层级 -->
+      <div>
+        <div class="text-[13px] text-white/70 mb-3 font-medium">Text hierarchy</div>
+        <div class="space-y-2.5">
+          <div class="flex items-baseline gap-3"><span class="text-[15px] text-white">Primary</span><span class="text-[11px] font-mono text-white/35 ml-auto">white · 100%</span></div>
+          <div class="flex items-baseline gap-3"><span class="text-[15px] text-white/70">Secondary</span><span class="text-[11px] font-mono text-white/35 ml-auto">white · 70%</span></div>
+          <div class="flex items-baseline gap-3"><span class="text-[15px] text-white/45">Tertiary</span><span class="text-[11px] font-mono text-white/35 ml-auto">white · 45%</span></div>
+          <div class="flex items-baseline gap-3"><span class="text-[15px] text-white/30">Disabled / hint</span><span class="text-[11px] font-mono text-white/35 ml-auto">white · 30%</span></div>
+        </div>
+        <div class="text-[13px] text-white/70 mt-6 mb-3 font-medium">Type scale</div>
+        <div class="space-y-1">
+          <div class="text-[28px] font-semibold tracking-tight leading-none">Display</div>
+          <div class="text-[18px] font-semibold tracking-tight leading-tight">Section title</div>
+          <div class="text-[14px] font-medium">Body medium</div>
+          <div class="text-[13px] text-white/70">Body default 13px</div>
+          <div class="text-[12px] text-white/50">Caption 12px</div>
+          <div class="text-[11px] font-mono text-white/45 tracking-wide">META · MONO 11</div>
+        </div>
+      </div>
+
+      <!-- 圆角 / 描边 -->
+      <div>
+        <div class="text-[13px] text-white/70 mb-3 font-medium">Radius</div>
+        <div class="space-y-2 text-[12px] font-mono text-white/60">
+          <div class="flex items-center gap-3"><span class="size-8 bg-surface border hairline" style="border-radius:4px"></span>4px · input</div>
+          <div class="flex items-center gap-3"><span class="size-8 bg-surface border hairline" style="border-radius:6px"></span>6px · button / card <span class="text-white/35 ml-auto">默认</span></div>
+          <div class="flex items-center gap-3"><span class="size-8 bg-surface border hairline" style="border-radius:8px"></span>8px · panel</div>
+        </div>
+        <div class="text-[13px] text-white/70 mt-6 mb-3 font-medium">Forbidden（彻底去除）</div>
+        <ul class="text-[12.5px] text-white/55 space-y-1.5">
+          <li class="flex gap-2"><span class="text-white/30">×</span> backdrop-blur / 毛玻璃卡片</li>
+          <li class="flex gap-2"><span class="text-white/30">×</span> indigo 紫色强调色与彩色光晕</li>
+          <li class="flex gap-2"><span class="text-white/30">×</span> shadow-lg shadow-primary/10 发光阴影</li>
+          <li class="flex gap-2"><span class="text-white/30">×</span> gradient 文字与 radial 背景渐变</li>
+          <li class="flex gap-2"><span class="text-white/30">×</span> rounded-xl / 2xl 大圆角</li>
+          <li class="flex gap-2"><span class="text-white/30">×</span> pulse-glow / animate-pulse 装饰动画</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section class="py-14 border-b hairline">
+    <div class="text-[12px] font-mono text-white/45 mb-6 tracking-wide">02 · COMPONENTS</div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+      <!-- 按钮 -->
+      <div>
+        <div class="text-[13px] text-white/70 mb-4 font-medium">Buttons</div>
+        <div class="flex flex-wrap items-center gap-3">
+          <button class="h-9 px-4 text-[13px] font-medium rounded-md btn-primary focus-ring">Primary</button>
+          <button class="h-9 px-4 text-[13px] text-white/80 hover:text-white border hairline-strong hover:bg-white/8 rounded-md transition-colors focus-ring">Secondary</button>
+          <button class="h-9 px-4 text-[13px] text-white/55 hover:text-white hover:bg-white/8 rounded-md transition-colors focus-ring">Ghost</button>
+          <button class="h-9 px-4 text-[13px] text-white/80 border border-red-500/25 bg-red-500/10 hover:bg-red-500/15 hover:border-red-500/40 rounded-md transition-colors focus-ring">Destructive</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 mt-3">
+          <button class="h-7 px-2.5 text-[12px] font-medium rounded btn-primary focus-ring">Small</button>
+          <button class="h-7 px-2.5 text-[12px] text-white/75 hover:text-white border hairline-strong hover:bg-white/8 rounded transition-colors focus-ring">Small</button>
+          <button class="size-7 grid place-items-center text-white/55 hover:text-white hover:bg-white/8 rounded transition-colors focus-ring">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Badge -->
+      <div>
+        <div class="text-[13px] text-white/70 mb-4 font-medium">Badges &amp; tags</div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="h-5 inline-flex items-center px-1.5 rounded text-[10.5px] font-mono text-white/65 border hairline-strong bg-white/5">DIRECT</span>
+          <span class="h-5 inline-flex items-center px-1.5 rounded text-[10.5px] font-mono text-white bg-white/15">PROXY</span>
+          <span class="h-5 inline-flex items-center px-1.5 rounded text-[10.5px] font-mono text-red-300/85 border border-red-500/25 bg-red-500/8">REJECT</span>
+          <span class="h-5 inline-flex items-center gap-1 px-1.5 rounded text-[10.5px] text-emerald-300/85 border border-emerald-500/20 bg-emerald-500/8">
+            <span class="size-1.5 rounded-full bg-emerald-400"></span>active
+          </span>
+          <span class="h-5 inline-flex items-center px-1.5 rounded text-[10.5px] text-white/45 border hairline">archived</span>
+        </div>
+        <div class="text-[12px] text-white/45 mt-3">直角胶囊 · 等宽 · 仅状态色边框 8%，无重底色</div>
+      </div>
+
+      <!-- Input -->
+      <div>
+        <div class="text-[13px] text-white/70 mb-4 font-medium">Input</div>
+        <div class="space-y-2.5 max-w-sm">
+          <div class="relative">
+            <input value="https://sub.example.com/link?token=…" class="w-full h-9 rounded bg-surface border hairline-strong px-3 text-[13px] text-white placeholder:text-white/35 focus-ring transition-colors" />
+          </div>
+          <input placeholder="节点名称过滤…" class="w-full h-9 rounded bg-surface border hairline px-3 text-[13px] text-white placeholder:text-white/35 focus:border-white/20 focus-ring transition-colors" />
+          <div class="text-[11px] text-white/40 font-mono">URL · 8/24 节点</div>
+        </div>
+      </div>
+
+      <!-- Switch + Select -->
+      <div>
+        <div class="text-[13px] text-white/70 mb-4 font-medium">Switch &amp; Select</div>
+        <div class="flex items-center gap-6">
+          <label class="flex items-center gap-2.5 cursor-pointer">
+            <span class="relative inline-flex h-[18px] w-8 rounded-full bg-white/15 has-[:checked]:bg-white transition-colors">
+              <input type="checkbox" checked class="peer sr-only" />
+              <span class="absolute top-[2px] left-[2px] size-[14px] rounded-full bg-white transition-transform peer-checked:translate-x-[14px]"></span>
+            </span>
+            <span class="text-[13px]">已开启</span>
+          </label>
+          <label class="flex items-center gap-2.5 cursor-pointer">
+            <span class="relative inline-flex h-[18px] w-8 rounded-full bg-white/15 has-[:checked]:bg-white transition-colors">
+              <input type="checkbox" class="peer sr-only" />
+              <span class="absolute top-[2px] left-[2px] size-[14px] rounded-full bg-white transition-transform peer-checked:translate-x-[14px]"></span>
+            </span>
+            <span class="text-[13px] text-white/55">已关闭</span>
+          </label>
+        </div>
+        <div class="mt-4 inline-flex items-center h-9 rounded border hairline-strong bg-surface text-[13px]">
+          <button class="px-2.5 h-full text-white/55 hover:text-white border-r hairline">select</button>
+          <button class="px-2.5 h-full text-white bg-white/8">url-test</button>
+          <button class="px-2.5 h-full text-white/55 hover:text-white border-l hairline">fallback</button>
+        </div>
+        <div class="text-[12px] text-white/45 mt-2">分段控件代替下拉，常用值更快触达</div>
+      </div>
+
+      <!-- Tooltip / Menu -->
+      <div>
+        <div class="text-[13px] text-white/70 mb-4 font-medium">Menu item</div>
+        <div class="w-60 rounded-md border hairline-strong bg-elevated p-1 shadow-2xl shadow-black/40">
+          <button class="w-full flex items-center gap-2.5 px-2 h-8 text-[13px] text-white rounded bg-white/8">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white/60"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            重命名
+            <span class="ml-auto text-[11px] font-mono text-white/35">⏎</span>
+          </button>
+          <button class="w-full flex items-center gap-2.5 px-2 h-8 text-[13px] text-white/75 hover:bg-white/8 rounded transition-colors">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white/60"><path d="M16 3l5 5L8 21H3v-5L16 3z"/></svg>
+            编辑成员
+          </button>
+          <div class="my-1 h-px bg-white/8"></div>
+          <button class="w-full flex items-center gap-2.5 px-2 h-8 text-[13px] text-red-300/90 hover:bg-red-500/10 rounded transition-colors">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+            删除分组
+          </button>
+        </div>
+      </div>
+
+      <!-- Code / YAML -->
+      <div>
+        <div class="text-[13px] text-white/70 mb-4 font-medium">Code block</div>
+        <pre class="rounded-md border hairline bg-surface p-3.5 text-[12px] leading-[1.65] font-mono text-white/80 overflow-x-auto">proxy-groups:
+  - name: <span class="text-white">🚀 节点选择</span>
+    type: select
+    proxies:
+      - <span class="text-white/55">⚡ 自动选择</span>
+      - <span class="text-emerald-300/80">DIRECT</span>
+      - <span class="text-white/55">🇺🇸 VMISS</span>
+rules:
+  - RULE-SET,private,<span class="text-emerald-300/80">DIRECT</span>
+  - RULE-SET,geolocation-!cn,<span class="text-white">🚀 节点选择</span>
+  - MATCH,<span class="text-white/55">🐟 漏网之鱼</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- REAL UI: 转换器 -->
+  <section class="py-14 border-b hairline">
+    <div class="text-[12px] font-mono text-white/45 mb-6 tracking-wide">03 · REAL UI · 转换器</div>
+
+    <div class="rounded-lg border hairline bg-surface overflow-hidden">
+      <!-- 工具栏 -->
+      <div class="h-11 px-4 flex items-center gap-3 border-b hairline">
+        <div class="flex items-center gap-1 text-[12.5px]">
+          <button class="h-7 px-2.5 rounded text-white bg-white/8">转换</button>
+          <button class="h-7 px-2.5 rounded text-white/55 hover:bg-white/8 hover:text-white transition-colors">YAML 预览</button>
+          <button class="h-7 px-2.5 rounded text-white/55 hover:bg-white/8 hover:text-white transition-colors">拓扑图</button>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <span class="text-[11px] font-mono text-white/40 tnum">8 nodes · 12 rules</span>
+          <button class="h-7 px-3 text-[12px] font-medium rounded btn-primary focus-ring">生成配置</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <!-- 左：输入 -->
+        <div class="p-5 border-b lg:border-b-0 lg:border-r hairline space-y-5">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-[12px] text-white/55 font-mono tracking-wide">SUBSCRIPTION URL</label>
+              <span class="text-[11px] text-white/35">支持 ss:// vmess:// trojan:// 订阅链接</span>
+            </div>
+            <div class="flex gap-2">
+              <input value="https://sub.example.com/link?token=abc123" class="flex-1 h-9 rounded bg-bg border hairline-strong px-3 text-[13px] font-mono text-white/85 focus-ring transition-colors" />
+              <button class="h-9 px-3 text-[12.5px] text-white/75 hover:text-white border hairline-strong hover:bg-white/8 rounded transition-colors focus-ring">解析</button>
+            </div>
+          </div>
+
+          <!-- 节点列表（密度感） -->
+          <div>
+            <div class="flex items-center justify-between mb-2.5">
+              <label class="text-[12px] text-white/55 font-mono tracking-wide">NODES · 8</label>
+              <div class="flex items-center gap-1">
+                <button class="h-6 px-2 text-[11px] text-white/55 hover:text-white hover:bg-white/8 rounded transition-colors">全选</button>
+                <button class="h-6 px-2 text-[11px] text-white/55 hover:text-white hover:bg-white/8 rounded transition-colors">反选</button>
+              </div>
+            </div>
+            <div class="rounded-md border hairline divide-y divide-white/6">
+              <!-- row -->
+              <label class="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 px-3 h-9 hover:bg-white/4 transition-colors cursor-pointer">
+                <input type="checkbox" checked class="size-3.5 accent-white" />
+                <span class="text-[13px]">🇺🇸 VMISS · Los Angeles</span>
+                <span class="text-[11px] font-mono text-white/40">ss</span>
+                <span class="text-[11px] font-mono text-white/40 tnum">142ms</span>
+              </label>
+              <label class="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 px-3 h-9 hover:bg-white/4 transition-colors cursor-pointer">
+                <input type="checkbox" checked class="size-3.5 accent-white" />
+                <span class="text-[13px]">🇺🇸 DMIT · San Jose</span>
+                <span class="text-[11px] font-mono text-white/40">vmess</span>
+                <span class="text-[11px] font-mono text-white/40 tnum">168ms</span>
+              </label>
+              <label class="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 px-3 h-9 hover:bg-white/4 transition-colors cursor-pointer">
+                <input type="checkbox" checked class="size-3.5 accent-white" />
+                <span class="text-[13px]">🇰🇷 ALI · Seoul</span>
+                <span class="text-[11px] font-mono text-white/40">trojan</span>
+                <span class="text-[11px] font-mono text-white/40 tnum">58ms</span>
+              </label>
+              <label class="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 px-3 h-9 hover:bg-white/4 transition-colors cursor-pointer">
+                <input type="checkbox" class="size-3.5 accent-white" />
+                <span class="text-[13px] text-white/45">🇯🇵 Azure · Tokyo</span>
+                <span class="text-[11px] font-mono text-white/30">vmess</span>
+                <span class="text-[11px] font-mono text-white/30 tnum">—</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右：分流组 -->
+        <div class="p-5 bg-bg/40 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-[13px] font-medium">分流规则组</div>
+              <div class="text-[11px] text-white/40 mt-0.5">勾选启用 · private / cn / global 已固定后台运行</div>
+            </div>
+            <span class="text-[11px] font-mono text-white/45 tnum">4/10</span>
+          </div>
+
+          <!-- 折叠分类：核心 -->
+          <div>
+            <div class="flex items-center gap-1.5 mb-1.5 text-[11px] font-mono text-white/40 tracking-wide">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+              CORE
+            </div>
+            <div class="rounded-md border hairline divide-y divide-white/6 overflow-hidden">
+              <div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 h-10 bg-white/3">
+                <span class="size-1.5 rounded-full bg-white/40"></span>
+                <div>
+                  <div class="text-[13px]">🚀 节点选择</div>
+                  <div class="text-[10.5px] text-white/40">手动选择代理节点</div>
+                </div>
+                <label class="cursor-pointer"><input type="checkbox" checked class="size-3.5 accent-white" /></label>
+              </div>
+              <div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 h-10">
+                <span class="size-1.5 rounded-full bg-white/40"></span>
+                <div>
+                  <div class="text-[13px]">⚡ 自动选择</div>
+                  <div class="text-[10.5px] text-white/40">自动选择最快节点</div>
+                </div>
+                <label class="cursor-pointer"><input type="checkbox" checked class="size-3.5 accent-white" /></label>
+              </div>
+              <div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 h-10">
+                <span class="size-1.5 rounded-full bg-red-400/70"></span>
+                <div>
+                  <div class="text-[13px]">🛑 广告拦截</div>
+                  <div class="text-[10.5px] text-white/40">拦截广告和追踪器</div>
+                </div>
+                <label class="cursor-pointer"><input type="checkbox" checked class="size-3.5 accent-white" /></label>
+              </div>
+              <div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 h-10">
+                <span class="size-1.5 rounded-full bg-white/40"></span>
+                <div>
+                  <div class="text-[13px]">🐟 漏网之鱼</div>
+                  <div class="text-[10.5px] text-white/40">未匹配到任何规则的流量</div>
+                </div>
+                <label class="cursor-pointer"><input type="checkbox" checked class="size-3.5 accent-white" /></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 服务 -->
+          <div>
+            <div class="flex items-center gap-1.5 mb-1.5 text-[11px] font-mono text-white/40 tracking-wide">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+              SERVICE
+            </div>
+            <div class="space-y-px">
+              <div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 h-9 rounded border hairline">
+                <span class="size-1.5 rounded-full bg-white/40"></span>
+                <div class="text-[13px]">🤖 AI 服务</div>
+                <label class="cursor-pointer"><input type="checkbox" checked class="size-3.5 accent-white" /></label>
+              </div>
+              <div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 h-9 rounded border hairline">
+                <span class="size-1.5 rounded-full bg-white/40"></span>
+                <div class="text-[13px]">🔍 谷歌服务</div>
+                <label class="cursor-pointer"><input type="checkbox" class="size-3.5 accent-white" /></label>
+              </div>
+              <div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 h-9 rounded border hairline">
+                <span class="size-1.5 rounded-full bg-white/40"></span>
+                <div class="text-[13px]">Ⓜ️ 微软服务</div>
+                <label class="cursor-pointer"><input type="checkbox" class="size-3.5 accent-white" /></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 固定后台规则（只读提示，pinned 三个组） -->
+          <div class="rounded-md border hairline bg-surface2/40 p-3">
+            <div class="flex items-center gap-2 mb-2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white/40"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span class="text-[11.5px] font-mono text-white/55 tracking-wide">PINNED · 始终启用</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-[11.5px] font-mono">
+              <div class="rounded border hairline px-2 py-1.5 bg-bg/60">
+                <div class="text-white/80">private</div>
+                <div class="text-emerald-300/75 mt-0.5">→ DIRECT</div>
+              </div>
+              <div class="rounded border hairline px-2 py-1.5 bg-bg/60">
+                <div class="text-white/80">cn</div>
+                <div class="text-emerald-300/75 mt-0.5">→ DIRECT</div>
+              </div>
+              <div class="rounded border hairline px-2 py-1.5 bg-bg/60">
+                <div class="text-white/80">global</div>
+                <div class="text-white/55 mt-0.5">→ 节点选择</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 与现状对比 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10">
+      <div class="rounded-md border hairline p-4">
+        <div class="text-[11px] font-mono text-white/40 mb-2 tracking-wide">CURRENT · 之前</div>
+        <div class="rounded-xl border border-indigo-500/30 bg-indigo-500/10 backdrop-blur-xl p-3 shadow-lg shadow-indigo-500/10">
+          <div class="text-[13px] font-medium bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent">🤖 AI 服务</div>
+          <div class="text-[11px] text-white/50 mt-0.5">ChatGPT、Claude、Copilot</div>
+          <div class="mt-2"><span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/50">3 rules</span></div>
+        </div>
+        <div class="text-[11.5px] text-white/45 mt-3 leading-relaxed">毛玻璃 + 紫色发光 + 大圆角 + 渐变文字 + 彩色胶囊。装饰盖过了信息。</div>
+      </div>
+      <div class="rounded-md border hairline p-4">
+        <div class="text-[11px] font-mono text-white/40 mb-2 tracking-wide">PROPOSED · 之后</div>
+        <div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 h-10 rounded border hairline">
+          <span class="size-1.5 rounded-full bg-white/40"></span>
+          <div>
+            <div class="text-[13px]">🤖 AI 服务</div>
+            <div class="text-[10.5px] text-white/40">ChatGPT · Claude · Copilot</div>
+          </div>
+          <label class="cursor-pointer"><input type="checkbox" checked class="size-3.5 accent-white" /></label>
+        </div>
+        <div class="text-[11.5px] text-white/45 mt-3 leading-relaxed">实色 + hairline 描边 + 小圆角 + 状态点。信息优先，决策快。</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="py-10 text-[12px] text-white/35 font-mono">
+    SubBoost · v1 设计稿 · 用于方向对齐 · 不含真实交互
+  </footer>
+
+</main>
+</body>
+</html>

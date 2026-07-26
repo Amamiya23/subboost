@@ -5,18 +5,20 @@ const preset = {
   theme: {
     extend: {
       colors: {
+        // v1 视觉系统：primary 退役为白系（保留键名以兼容既有 primary-* 引用）
+        // 仅 DEFAULT/500/600 用于实色填充与 hover；其余档位提供渐进透明度 fallback
         primary: {
-          DEFAULT: "#6366f1",
-          50: "#eef2ff",
-          100: "#e0e7ff",
-          200: "#c7d2fe",
-          300: "#a5b4fc",
-          400: "#818cf8",
-          500: "#6366f1",
-          600: "#4f46e5",
-          700: "#4338ca",
-          800: "#3730a3",
-          900: "#312e81",
+          DEFAULT: "#ffffff",
+          50: "#ffffff",
+          100: "#fafafa",
+          200: "#f5f5f5",
+          300: "#e5e5e5",
+          400: "#d4d4d4",
+          500: "#ffffff",
+          600: "#fafafa",
+          700: "#e5e5e5",
+          800: "#a3a3a3",
+          900: "#737373",
         },
         dark: {
           DEFAULT: "#0a0a0a",
@@ -31,9 +33,6 @@ const preset = {
           800: "#e5e5e5",
           900: "#ededed",
         },
-      },
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(ellipse at top, rgba(99, 102, 241, 0.15) 0%, transparent 50%)",
       },
       backdropBlur: {
         xs: "2px",

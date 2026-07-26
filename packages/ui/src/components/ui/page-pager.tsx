@@ -29,7 +29,7 @@ export function PagePager({ page, totalPages, onPageChange, className, disabled 
       <Button
         variant="outline"
         size="icon"
-        className="h-10 w-10 rounded-xl bg-white/5 hover:bg-white/10"
+        className="h-9 w-9 rounded bg-white/5 hover:bg-white/10"
         onClick={() => goToPage(page - 1)}
         disabled={disabled || page <= 1 || isSinglePage}
         aria-label="上一页"
@@ -51,7 +51,7 @@ export function PagePager({ page, totalPages, onPageChange, className, disabled 
             if (!Number.isFinite(parsed)) return;
             goToPage(parsed);
           }}
-          className="w-14 h-10 rounded-xl px-2 text-center font-mono text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-14 h-9 rounded px-2 text-center font-mono text-[13px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           aria-label="页码"
           disabled={disabled || isSinglePage}
         />
@@ -61,7 +61,7 @@ export function PagePager({ page, totalPages, onPageChange, className, disabled 
       <Button
         variant="outline"
         size="icon"
-        className="h-10 w-10 rounded-xl bg-white/5 hover:bg-white/10"
+        className="h-9 w-9 rounded bg-white/5 hover:bg-white/10"
         onClick={() => goToPage(page + 1)}
         disabled={disabled || page >= safeTotalPages || isSinglePage}
         aria-label="下一页"

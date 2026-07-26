@@ -31,7 +31,7 @@ export default function SettingsPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-            <div className="rounded-lg bg-indigo-500/20 p-2 text-indigo-300">
+            <div className="rounded-lg bg-white/12 p-2 text-white/70">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <CardTitle className="text-base">本地管理员</CardTitle>

@@ -139,7 +139,7 @@ export function RulesManagementSection({
         title: "开启“调整所有规则顺序”？",
         description: (
           <span className="block pt-2">
-            <span className="block rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
+            <span className="block rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
               <span className="font-medium text-amber-200">警告：</span>
               开启后，你可以移动任意规则到任意位置，这会改变分流优先级与命中结果。
             </span>
@@ -223,7 +223,7 @@ export function RulesManagementSection({
                               {entry.sourceLabel}
                             </Badge>
                           )}
-                          <Badge variant="outline" className="max-w-full border-indigo-500/30 bg-indigo-500/10 text-indigo-200">
+                          <Badge variant="outline" className="max-w-full border-white/20 bg-white/8 text-white/80">
                             {entry.target}
                           </Badge>
                           {entry.noResolve && (

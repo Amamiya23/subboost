@@ -72,19 +72,19 @@ export function UserMenu({ privilegedMenuItem }: { privilegedMenuItem?: AccountM
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/8 transition-colors"
       >
         <SafeImage
           src={user.avatarUrl}
           alt={user.name || user.username}
-          className="h-8 w-8 rounded-full border border-white/20"
+          className="h-8 w-8 rounded-full border border-white/15"
           fallback={
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <UserIcon className="h-4 w-4 text-white" />
+            <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">
+              <UserIcon className="h-4 w-4 text-white/70" />
             </div>
           }
         />
-        <span className="text-sm font-medium hidden sm:block">{user.name || user.username}</span>
+        <span className="text-[13px] font-medium hidden sm:block">{user.name || user.username}</span>
         <ChevronDown className={`h-4 w-4 text-white/50 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
@@ -94,37 +94,37 @@ export function UserMenu({ privilegedMenuItem }: { privilegedMenuItem?: AccountM
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#1a1a1a] border border-white/10 shadow-xl py-2 z-50">
+          <div className="absolute right-0 mt-2 w-64 rounded-md bg-[#1a1a1a] border border-white/10 shadow-xl shadow-black/40 py-2 z-50">
             {/* User Info Header */}
-            <div className="px-4 py-3 border-b border-white/10">
+            <div className="px-4 py-3 border-b border-white/8">
               <div className="flex items-center gap-3">
                 <SafeImage
                   src={user.avatarUrl}
                   alt={user.name || user.username}
-                  className="h-12 w-12 rounded-full border border-white/20"
+                  className="h-11 w-11 rounded-full border border-white/15"
                   fallback={
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                      <UserIcon className="h-6 w-6 text-white" />
+                    <div className="h-11 w-11 rounded-full bg-white/10 flex items-center justify-center">
+                      <UserIcon className="h-5 w-5 text-white/70" />
                     </div>
                   }
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{user.name || user.username}</p>
-                  <p className="text-xs text-white/40 truncate">@{user.username}</p>
+                  <p className="text-[13px] font-medium text-white truncate">{user.name || user.username}</p>
+                  <p className="text-[11px] text-white/40 truncate">@{user.username}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 mt-3 flex-wrap">
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 text-xs text-indigo-400">
+              <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono bg-white/5 text-white/65 border border-white/10">
                   <Shield className="h-3 w-3" />
                   <span>Lv.{user.trustLevel}</span>
                 </div>
                 {user.isAdmin && !user.isBanned && (
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/20 text-xs text-indigo-400">
+                  <div className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono bg-white/10 text-white/85 border border-white/15">
                     <Shield className="h-3 w-3" />
                     <span>管理员</span>
                   </div>
                 )}
-                <div className="text-xs text-white/40">
+                <div className="text-[11px] text-white/40 font-mono">
                   {user.subscriptionCount}/{user.quota.maxSubscriptions} 订阅
                 </div>
               </div>
@@ -136,7 +136,7 @@ export function UserMenu({ privilegedMenuItem }: { privilegedMenuItem?: AccountM
                 <Link
                   href={privilegedMenuItem.href}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-indigo-400/80 hover:bg-white/5 hover:text-indigo-400 transition-colors"
+                  className="flex items-center gap-3 px-4 py-2 text-[13px] text-white/75 hover:bg-white/8 hover:text-white transition-colors"
                 >
                   <Settings className="h-4 w-4" />
                   {privilegedMenuItem.label}

@@ -167,16 +167,16 @@ export function HomeLayout({
               <CardHeader className="pb-3 flex-shrink-0">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle className="text-base lg:text-lg flex items-center gap-2 min-w-0">
-                    <Settings2 className="h-5 w-5 text-indigo-400" />
+                    <Settings2 className="h-5 w-5 text-white/65" />
                     <span className="shrink-0">配置生成器</span>
                     {isLoadingEditingSubscription && editSubscriptionId && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 text-[10px] text-indigo-100/90">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] text-white/85">
                         <Loader2 className="h-3 w-3 animate-spin" />
                         加载订阅中...
                       </span>
                     )}
                     {editingSubscription && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 text-[10px] text-indigo-100/90 min-w-0">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] text-white/85 min-w-0">
                         <span className="shrink-0">编辑中</span>
                         <span className="max-w-[10rem] sm:max-w-[16rem] truncate">
                           {editingSubscription.name}
@@ -256,7 +256,7 @@ export function HomeLayout({
               <CardHeader className="pb-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base lg:text-lg flex items-center gap-2">
-                    <Eye className="h-5 w-5 text-indigo-400" />
+                    <Eye className="h-5 w-5 text-white/65" />
                     预览
                   </CardTitle>
                   <TabsList className="h-8">
@@ -271,7 +271,7 @@ export function HomeLayout({
               </CardHeader>
               <CardContent className={`pt-0 relative lg:flex-1 lg:overflow-hidden ${DESKTOP_PANEL_CONTENT_MIN_HEIGHT_CLASS}`}>
                 <TabsContent value="yaml" className="mt-0 data-[state=inactive]:hidden lg:absolute lg:inset-0">
-                  <div className="h-[clamp(420px,70vh,820px)] lg:h-full rounded-xl bg-white/5 border border-white/10 overflow-auto custom-scrollbar">
+                  <div className="h-[clamp(420px,70vh,820px)] lg:h-full rounded-md bg-white/5 border border-white/10 overflow-auto custom-scrollbar">
                     {generatedYamlError ? (
                       <div className="h-full p-4 text-sm text-rose-200">
                         <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
@@ -314,7 +314,7 @@ export function HomeLayout({
                   </div>
                 </TabsContent>
                 <TabsContent value="visual" className="mt-0 data-[state=inactive]:hidden lg:absolute lg:inset-0">
-                  <div className="h-[clamp(420px,70vh,820px)] lg:h-full rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+                  <div className="h-[clamp(420px,70vh,820px)] lg:h-full rounded-md bg-white/5 border border-white/10 overflow-hidden">
                     <VisualGraph />
                   </div>
                 </TabsContent>

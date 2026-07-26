@@ -83,13 +83,13 @@ export function LocalLogin() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Image src="/logo.png" alt="SubBoost" width={64} height={64} className="rounded-2xl shadow-lg shadow-blue-500/25" />
+            <Image src="/logo.png" alt="SubBoost" width={64} height={64} className="rounded-md shadow-lg " />
           </Link>
           <h1 className="text-2xl font-bold mt-4 text-white">欢迎使用 SubBoost</h1>
           <p className="text-white/50 mt-2">{setupRequired ? "初始化本地管理员账号" : "登录以使用订阅管理功能"}</p>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 space-y-4">
+        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-md p-6 space-y-4">
           {auth ? (
             <form onSubmit={handleSubmit} className="space-y-3">
               <input
@@ -98,7 +98,7 @@ export function LocalLogin() {
                 placeholder="管理员账号"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
               />
               <div className="relative">
                 <input
@@ -108,7 +108,7 @@ export function LocalLogin() {
                   placeholder="密码"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition-colors pr-12"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors pr-12"
                 />
                 <button
                   type="button"
@@ -130,7 +130,7 @@ export function LocalLogin() {
                   placeholder="确认密码"
                   value={passwordConfirm}
                   onChange={(e) => setPasswordConfirm(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
                 />
               ) : null}
 
@@ -150,7 +150,7 @@ export function LocalLogin() {
               </button>
             </form>
           ) : (
-            <div className="h-36 animate-pulse rounded-xl bg-white/5" />
+            <div className="h-36 animate-pulse rounded-md bg-white/5" />
           )}
         </div>
       </div>

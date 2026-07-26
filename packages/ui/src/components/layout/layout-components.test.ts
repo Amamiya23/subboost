@@ -108,19 +108,17 @@ describe("shared layout components", () => {
     expect(html).toContain("https://subboost.org/faq");
     expect(html).not.toContain("本地管理员入口");
     expect(html).not.toContain("我的订阅");
-    expect(html).toContain("Powered by SubBoost | v 2.3.17");
+    expect(html).toContain("SubBoost v2.3.17");
 
     mocks.userState = { user: { id: "user-1" } };
     html = renderToStaticMarkup(
       React.createElement(Footer, {
         brandLinks: [{ href: "https://example.test", label: "Example", iconSrc: "/example.png" }],
         helpLinks: [{ href: "/help", label: "Help" }],
-        resourceLinks: [{ href: "/disabled", label: "Disabled", disabled: true }],
       })
     );
     expect(html).toContain("我的订阅");
     expect(html).toContain("Help");
-    expect(html).toContain("Disabled");
     expect(html).toContain("/example.png");
 
     mocks.userState = { user: { id: "admin-1", isAdmin: true, isBanned: false } };
@@ -131,9 +129,8 @@ describe("shared layout components", () => {
     expect(html).toContain("RyanVan&#x27;s Blog");
     expect(html).toContain("https://linux.do");
     expect(html).toContain("https://subboost.org/terms");
-    expect(html).toContain("Mihomo Core");
     expect(html).not.toContain("源代码");
-    expect(html).toContain("Powered by SubBoost | v 2.3.17");
+    expect(html).toContain("SubBoost v2.3.17");
   });
 
   it("renders mobile nav items for anonymous and authenticated users", () => {

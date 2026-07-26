@@ -82,13 +82,13 @@ export function InputSourceEditorDialog({
                       className="text-xs min-w-0 flex-1"
                     />
 
-                    <div className="flex h-10 flex-none items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3">
+                    <div className="flex h-10 flex-none items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3">
                       <div className="text-xs text-white/70 whitespace-nowrap">proxy-providers模式</div>
                       <Popover.Root>
                         <Popover.Trigger asChild>
                           <button
                             type="button"
-                            className="inline-flex h-6 w-6 flex-none items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                            className="inline-flex h-6 w-6 flex-none items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                             aria-label="proxy-providers 模式说明"
                             title="proxy-providers 模式说明"
                           >
@@ -100,7 +100,7 @@ export function InputSourceEditorDialog({
                             side="bottom"
                             align="end"
                             sideOffset={8}
-                            className="z-50 w-[360px] rounded-xl border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
+                            className="z-50 w-[360px] rounded-md border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
                           >
                             <div className="space-y-2 text-xs">
                               <div className="flex items-center gap-2">

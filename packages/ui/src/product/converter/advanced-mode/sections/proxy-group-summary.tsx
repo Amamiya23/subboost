@@ -10,7 +10,7 @@ export type ProxyGroupSummaryItem = {
 
 const toneClass: Record<NonNullable<ProxyGroupSummaryItem["tone"]>, string> = {
   muted: "text-white/55",
-  accent: "text-indigo-300",
+  accent: "text-white",
   success: "text-emerald-300",
   info: "text-sky-300",
   warning: "text-amber-300",

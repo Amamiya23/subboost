@@ -116,7 +116,7 @@ function getGroupColor(category: string) {
     case "other":
       return "border-slate-500/50 bg-slate-500/10";
     case "custom":
-      return "border-indigo-500/50 bg-indigo-500/10";
+      return "border-white/20 bg-white/8";
     case "dialer":
       return "border-amber-500/50 bg-amber-500/10";
     default:
@@ -174,13 +174,13 @@ export function ProxyGroupsPreview({
               "relative rounded-lg border transition-all",
               getGroupColor(group.category),
               isDragging && "opacity-60",
-              isDragOver && "ring-2 ring-indigo-400/40",
+              isDragOver && "ring-2 ring-white/25",
             )}
           >
             {isDragOver && dragOverPosition && (
               <div
                 className={cn(
-                  "pointer-events-none absolute left-2 right-2 h-0.5 rounded-full bg-indigo-400/70",
+                  "pointer-events-none absolute left-2 right-2 h-0.5 rounded-full bg-white/70",
                   dragOverPosition === "before" ? "top-0" : "bottom-0",
                 )}
               />

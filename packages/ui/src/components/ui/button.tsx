@@ -6,26 +6,27 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@subboost/ui/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-[13px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
+        // 主操作：白底黑字（Vercel 反向强调）
         default:
-          "border border-primary-500/50 bg-primary-500/20 text-white hover:bg-primary-500/30 hover:border-primary-400/70 shadow-lg shadow-primary-500/10 hover:shadow-primary-500/20",
+          "bg-white text-black hover:bg-white/90",
         destructive:
-          "border border-red-500/50 bg-red-500/20 text-white hover:bg-red-500/30 hover:border-red-400/70 shadow-lg shadow-red-500/10 hover:shadow-red-500/20",
+          "border border-red-500/25 bg-red-500/10 text-red-200 hover:bg-red-500/15 hover:border-red-500/40",
         outline:
-          "border border-white/15 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white",
+          "border border-white/10 bg-transparent hover:bg-white/8 text-white/80 hover:text-white",
         secondary:
-          "bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/15",
-        ghost: "hover:bg-white/5 text-white/60 hover:text-white",
-        link: "text-indigo-400 underline-offset-4 hover:underline hover:text-indigo-300",
+          "bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10",
+        ghost: "hover:bg-white/8 text-white/60 hover:text-white",
+        link: "text-white underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-8 rounded-lg px-3 text-xs",
-        lg: "h-12 rounded-xl px-8 text-base",
-        icon: "h-10 w-10",
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded px-3 text-[12px]",
+        lg: "h-10 rounded-md px-6 text-[14px]",
+        icon: "h-9 w-9",
       },
     },
     defaultVariants: {

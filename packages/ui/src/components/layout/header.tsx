@@ -124,20 +124,20 @@ export function Header({
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-black/50 border-b border-white/5">
+    <header className="sticky top-0 z-50 backdrop-blur-md bg-[#0a0a0a]/85 border-b border-white/8">
       <div className="w-full max-w-[clamp(1200px,95vw,2400px)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <div className="flex items-center gap-2">
             <Link href="/" className="group flex items-center gap-2">
               <Image
                 src="/logo.png"
                 alt="SubBoost"
-                width={36}
-                height={36}
-                className="rounded-xl shadow-lg shadow-blue-500/25 transition-shadow group-hover:shadow-blue-500/40"
+                width={28}
+                height={28}
+                className="rounded-md transition-opacity group-hover:opacity-90"
               />
-              <span className="hidden text-xl font-bold leading-none bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent sm:inline-flex">
+              <span className="hidden text-[15px] font-semibold leading-none tracking-tight text-white sm:inline-flex">
                 SubBoost
               </span>
             </Link>
@@ -148,7 +148,7 @@ export function Header({
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center rounded-full border border-white/10 bg-white/[0.04] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <nav className="hidden md:flex items-center gap-0.5 rounded-md border border-white/8 bg-white/[0.03] p-0.5">
             {visibleNavItems.map((item) => {
               const isActive = isNavItemActive(pathname, item.href);
               return (
@@ -156,13 +156,13 @@ export function Header({
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "inline-flex items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-200",
+                    "inline-flex items-center gap-1.5 whitespace-nowrap rounded px-2.5 py-1.5 text-[13px] font-medium transition-colors",
                     isActive
-                      ? "border border-white/10 bg-white/10 text-white shadow-[0_10px_30px_rgba(15,23,42,0.22)]"
-                      : "text-white/60 hover:bg-white/5 hover:text-white"
+                      ? "bg-white/10 text-white"
+                      : "text-white/55 hover:bg-white/8 hover:text-white"
                   )}
                 >
-                  <item.icon className={cn("h-3.5 w-3.5", isActive ? "text-indigo-300" : "text-white/45")} />
+                  <item.icon className={cn("h-3.5 w-3.5", isActive ? "text-white/80" : "text-white/40")} />
                   {item.label}
                 </Link>
               );
@@ -171,10 +171,10 @@ export function Header({
               <Link
                 href={visiblePrivilegedItem.href}
                 className={cn(
-                  "ml-1 inline-flex items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-200",
+                  "ml-0.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded px-2.5 py-1.5 text-[13px] font-medium transition-colors",
                   isNavItemActive(pathname, visiblePrivilegedItem.href)
-                    ? "border border-indigo-500/30 bg-indigo-500/15 text-indigo-200 shadow-[0_10px_30px_rgba(79,70,229,0.18)]"
-                    : "text-indigo-300/75 hover:bg-indigo-500/10 hover:text-indigo-200"
+                    ? "bg-white/10 text-white"
+                    : "text-white/55 hover:bg-white/8 hover:text-white"
                 )}
               >
                 <Shield className="h-3.5 w-3.5" />
@@ -190,7 +190,7 @@ export function Header({
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors"
+              className="md:hidden p-2 rounded hover:bg-white/8 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
@@ -204,8 +204,8 @@ export function Header({
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/10 py-4">
-            <nav className="flex flex-col gap-1">
+          <div className="md:hidden border-t border-white/8 py-3">
+            <nav className="flex flex-col gap-0.5">
               {visibleNavItems.map((item) => {
                 const isActive = isNavItemActive(pathname, item.href);
                 return (
@@ -214,13 +214,13 @@ export function Header({
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-colors",
+                      "flex items-center gap-3 px-3 py-2 rounded text-[13px] transition-colors",
                       isActive
-                        ? "text-white bg-white/5"
-                        : "text-white/60 hover:text-white hover:bg-white/5"
+                        ? "text-white bg-white/8"
+                        : "text-white/60 hover:text-white hover:bg-white/8"
                     )}
                   >
-                    <item.icon className="w-5 h-5" />
+                    <item.icon className="w-4 h-4" />
                     {item.label}
                   </Link>
                 );
@@ -230,13 +230,13 @@ export function Header({
                   href={visiblePrivilegedItem.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2 rounded text-[13px] transition-colors",
                     isNavItemActive(pathname, visiblePrivilegedItem.href)
-                      ? "text-indigo-400 bg-indigo-500/10"
-                      : "text-indigo-400/70 hover:text-indigo-400 hover:bg-white/5"
+                      ? "text-white bg-white/8"
+                      : "text-white/60 hover:text-white hover:bg-white/8"
                   )}
                 >
-                  <Shield className="w-5 h-5" />
+                  <Shield className="w-4 h-4" />
                   {visiblePrivilegedItem.label}
                 </Link>
               )}
@@ -247,9 +247,9 @@ export function Header({
                     captureAuthConfigHandoff(useConfigStore.getState());
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-indigo-400 hover:text-indigo-300 hover:bg-white/5 transition-colors"
+                  className="flex items-center gap-3 px-3 py-2 rounded text-[13px] text-white/70 hover:text-white hover:bg-white/8 transition-colors"
                 >
-                  <LogIn className="w-5 h-5" />
+                  <LogIn className="w-4 h-4" />
                   登录
                 </Link>
               )}

@@ -124,7 +124,7 @@ export function NodeManagementNodeList({
                         <ProtocolBadge type={node.type} />
                         {primaryTag && (
                           <span
-                            className="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-200 text-[10px] border border-indigo-500/20"
+                            className="px-1.5 py-0.5 rounded bg-white/12 text-white/80 text-[10px] border border-white/15"
                             title={`导入源 tag：${primaryTag}（不可在节点管理修改）`}
                           >
                             {primaryTag}
@@ -168,7 +168,7 @@ export function NodeManagementNodeList({
                         <span className="flex-1 min-w-0 flex items-center gap-1">
                           {primaryTag && (
                             <span
-                              className="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-200 text-[10px] border border-indigo-500/20"
+                              className="px-1.5 py-0.5 rounded bg-white/12 text-white/80 text-[10px] border border-white/15"
                               title={`导入源 tag：${primaryTag}（不可在节点管理修改）`}
                             >
                               {primaryTag}
@@ -274,7 +274,7 @@ export function NodeManagementNodeList({
                             <button
                               onClick={() => moveNode(node.name, "up")}
                               disabled={(nodeIndexByName.get(node.name) ?? 0) <= 0}
-                              className="h-3 w-4 flex items-center justify-center text-white/30 hover:text-indigo-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                              className="h-3 w-4 flex items-center justify-center text-white/30 hover:text-white/70 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                               title="上移"
                             >
                               <ChevronUp className="h-2.5 w-2.5" />
@@ -282,7 +282,7 @@ export function NodeManagementNodeList({
                             <button
                               onClick={() => moveNode(node.name, "down")}
                               disabled={(nodeIndexByName.get(node.name) ?? 0) >= nodes.length - 1}
-                              className="h-3 w-4 flex items-center justify-center text-white/30 hover:text-indigo-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                              className="h-3 w-4 flex items-center justify-center text-white/30 hover:text-white/70 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                               title="下移"
                             >
                               <ChevronDown className="h-2.5 w-2.5" />
@@ -303,7 +303,7 @@ export function NodeManagementNodeList({
                             setEditingNodeName(node.name);
                             setEditNodeValue(parts.baseName);
                           }}
-                          className="p-1 text-white/50 hover:text-indigo-400 transition-colors"
+                          className="p-1 text-white/50 hover:text-white/65 transition-colors"
                           title="重命名"
                         >
                           <Pencil className="h-3 w-3" />

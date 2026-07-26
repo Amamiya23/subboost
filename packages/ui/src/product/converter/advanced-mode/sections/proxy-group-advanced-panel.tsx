@@ -422,7 +422,7 @@ export function ProxyGroupAdvancedPanel({
                     type="checkbox"
                     checked={sourceIds.includes(source.id)}
                     onChange={() => onChange({ sourceIds: toggleValue(sourceIds, source.id) })}
-                    className="h-3 w-3 accent-indigo-500"
+                    className="h-3 w-3 accent-white"
                   />
                   <span className="truncate">{source.label}</span>
                 </label>
@@ -445,7 +445,7 @@ export function ProxyGroupAdvancedPanel({
                   className={cn(
                     "rounded border px-2 py-1 text-[10px] transition-colors",
                     active
-                      ? "border-indigo-400/40 bg-indigo-500/20 text-indigo-100"
+                      ? "border-white/20 bg-white/12 text-white/85"
                       : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10",
                   )}
                 >

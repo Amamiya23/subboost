@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 import { useUserStore } from "@subboost/ui/store/user-store";
-import { SUBBOOST_FOOTER_DESCRIPTION } from "@subboost/ui/brand";
 
 export type FooterMode = "default" | "local";
 
@@ -24,7 +23,6 @@ type FooterProps = {
   buildVersion?: string | null;
   brandLinks?: FooterLink[];
   helpLinks?: FooterLink[];
-  resourceLinks?: FooterLink[];
 };
 
 const sourceRepositoryUrl = "https://github.com/SubBoost/subboost";
@@ -51,12 +49,6 @@ const defaultBrandLinks: FooterLink[] = [
     external: true,
     iconSrc: "/icons/linuxdo.png",
   },
-];
-
-const defaultResourceLinks: FooterLink[] = [
-  { href: "https://github.com/MetaCubeX/mihomo", label: "Mihomo Core", external: true },
-  { href: "https://github.com/MetaCubeX/meta-rules-dat", label: "规则库", external: true },
-  { href: "https://www.haitunt.org/", label: "代理百科", external: true },
 ];
 
 function filterLinks(links: FooterLink[], hasUser: boolean): FooterLink[] {
@@ -138,7 +130,6 @@ export function Footer({
   buildVersion,
   brandLinks = defaultBrandLinks,
   helpLinks,
-  resourceLinks = defaultResourceLinks,
 }: FooterProps) {
   const { user } = useUserStore();
   const hasUser = Boolean(user);
@@ -151,26 +142,24 @@ export function Footer({
     hasUser
   );
   const visibleHelpLinks = filterLinks(helpLinks ?? buildDefaultHelpLinks(mode), hasUser);
-  const visibleResourceLinks = filterLinks(resourceLinks, hasUser);
 
   return (
-    <footer className="hidden md:block border-t border-white/10 bg-dark-50/80 backdrop-blur-sm">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          <div className="space-y-4">
+    <footer className="hidden md:block border-t border-white/8 bg-[#0a0a0a]">
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Image
                 src="/logo.png"
                 alt="SubBoost"
-                width={32}
-                height={32}
-                className="rounded-xl shadow-lg shadow-blue-500/25"
+                width={24}
+                height={24}
+                className="rounded-md"
               />
-              <span className="font-semibold text-white">SubBoost</span>
+              <span className="text-[13px] font-semibold text-white">SubBoost</span>
             </div>
-            <p className="text-sm leading-relaxed text-white/50">{SUBBOOST_FOOTER_DESCRIPTION}</p>
             {brandLinks.length > 0 && (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 {brandLinks.map((link) => (
                   <a
                     key={link.href}
@@ -189,8 +178,8 @@ export function Footer({
           </div>
 
           <div>
-            <h3 className="mb-4 font-medium text-white">功能</h3>
-            <ul className="space-y-2">
+            <h3 className="mb-3 text-[12px] font-medium uppercase tracking-wide text-white/40">功能</h3>
+            <ul className="space-y-1.5">
               {visibleFeatureLinks.map((link) => (
                 <li key={link.href}>
                   <FooterTextLink link={link} />
@@ -200,8 +189,8 @@ export function Footer({
           </div>
 
           <div>
-            <h3 className="mb-4 font-medium text-white">帮助</h3>
-            <ul className="space-y-2">
+            <h3 className="mb-3 text-[12px] font-medium uppercase tracking-wide text-white/40">帮助</h3>
+            <ul className="space-y-1.5">
               {visibleHelpLinks.map((link) => (
                 <li key={`${link.label}-${link.href}`}>
                   <FooterTextLink link={link} />
@@ -209,22 +198,11 @@ export function Footer({
               ))}
             </ul>
           </div>
-
-          <div>
-            <h3 className="mb-4 font-medium text-white">相关资源</h3>
-            <ul className="space-y-2">
-              {visibleResourceLinks.map((link) => (
-                <li key={link.href}>
-                  <FooterTextLink link={link} />
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
 
-        <div className="mt-8 border-t border-white/5 pt-6">
-          <p className="text-center text-xs text-white/40">
-            Powered by SubBoost{buildVersion ? ` | v ${buildVersion}` : ""}
+        <div className="mt-6 pt-4 border-t border-white/5">
+          <p className="text-[11px] font-mono text-white/35">
+            SubBoost{buildVersion ? ` v${buildVersion}` : ""}
           </p>
         </div>
       </div>

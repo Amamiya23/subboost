@@ -276,7 +276,7 @@ describe("ProxyGroupsModuleCard", () => {
     );
 
     expect(html).toContain("手动选择代理节点");
-    expect(html).toContain('text-indigo-300">手动选择代理节点');
+    expect(html).toContain('text-white">手动选择代理节点');
     expect(html).toContain('text-emerald-300">3 规则');
     expect(html).not.toContain('title="手动选择代理节点');
     expect(html).not.toContain('title="3 规则');

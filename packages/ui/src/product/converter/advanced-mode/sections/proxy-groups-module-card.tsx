@@ -42,7 +42,7 @@ function ModuleHintPopover({ moduleId }: { moduleId: string }) {
       <Popover.Trigger asChild>
         <button
           type="button"
-          className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           aria-label={label}
           title={label}
           onClick={(e) => e.stopPropagation()}
@@ -55,7 +55,7 @@ function ModuleHintPopover({ moduleId }: { moduleId: string }) {
           side="bottom"
           align="start"
           sideOffset={8}
-          className="z-50 w-[340px] rounded-xl border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
+          className="z-50 w-[340px] rounded-md border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
         >
           {isGemini ? (
             <div className="space-y-2 text-xs">
@@ -376,7 +376,7 @@ export function ProxyGroupsModuleCard({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-7 shrink-0 px-2 text-white/35 hover:text-indigo-200"
+                    className="h-7 shrink-0 px-2 text-white/35 hover:text-white/80"
                     title={`类型：${typeLabel}`}
                     aria-label={`修改 ${display.full} 类型`}
                   >

@@ -335,7 +335,7 @@ export function ProxyGroupsCustomRules() {
               return (
                 <div
                   key={rule.id}
-                  className="rounded-md border border-indigo-400/20 bg-indigo-500/[0.08] p-1.5"
+                  className="rounded-md border border-white/15 bg-white/8 p-1.5"
                 >
                   <div className={RULE_EDIT_ROW_CLASS}>
                     <div className={RULE_EDIT_PRIMARY_GROUP_CLASS}>
@@ -467,7 +467,7 @@ export function ProxyGroupsCustomRules() {
                 key={rule.id}
                 className="flex min-w-0 flex-wrap items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px]"
               >
-                <span className="rounded border border-indigo-400/20 bg-indigo-500/10 px-1.5 py-0.5 font-medium text-indigo-200">
+                <span className="rounded border border-white/15 bg-white/8 px-1.5 py-0.5 font-medium text-white/80">
                   自定义
                 </span>
                 <span className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 font-medium text-white/55">

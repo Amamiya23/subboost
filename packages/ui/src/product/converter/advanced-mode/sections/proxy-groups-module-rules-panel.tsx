@@ -242,7 +242,7 @@ export function ProxyGroupsModuleRulesPanel({
       title: "确认修改预设规则集？",
       description: (
         <span className="block pt-2">
-          <span className="block rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
+          <span className="block rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
             <span className="font-medium text-amber-200">警告：</span>
             删除或移动预设规则会改变当前配置的分流命中结果。
           </span>
@@ -491,7 +491,7 @@ export function ProxyGroupsModuleRulesPanel({
               <Popover.Trigger asChild>
                 <button
                   type="button"
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                   aria-label="实验性：中国业务子规则集"
                   title="实验性：中国业务子规则集"
                 >
@@ -503,7 +503,7 @@ export function ProxyGroupsModuleRulesPanel({
                   side="bottom"
                   align="start"
                   sideOffset={8}
-                  className="z-50 w-[420px] rounded-xl border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
+                  className="z-50 w-[420px] rounded-md border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
                 >
                   <div className="space-y-2 text-xs">
                     <div className="flex items-center gap-2">

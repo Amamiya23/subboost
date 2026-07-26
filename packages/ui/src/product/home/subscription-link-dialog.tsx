@@ -67,7 +67,7 @@ export function SubscriptionLinkDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <LinkIcon className="h-5 w-5 text-indigo-400" />
+            <LinkIcon className="h-5 w-5 text-white/65" />
             {subscriptionUrl
               ? (isEditingExistingSubscription ? "订阅链接已更新" : "订阅链接已生成")
               : (isEditingExistingSubscription ? "更新订阅链接" : "生成订阅链接")}

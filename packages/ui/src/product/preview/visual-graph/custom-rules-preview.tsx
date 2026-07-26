@@ -59,7 +59,7 @@ export function CustomRulesPreview({
             <span className="w-5 shrink-0 tabular-nums text-white/40">
               {idx + 1}.
             </span>
-            <span className="rounded border border-indigo-400/20 bg-indigo-500/10 px-1.5 py-0.5 font-medium text-indigo-200">
+            <span className="rounded border border-white/15 bg-white/8 px-1.5 py-0.5 font-medium text-white/80">
               {rule.type}
             </span>
             <span

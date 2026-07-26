@@ -137,7 +137,7 @@ export function ProxyGroupsCustomRulesBatchDialog({
       <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5 text-indigo-300" />
+            <Upload className="h-5 w-5 text-white/70" />
             批量导入规则
           </DialogTitle>
         </DialogHeader>
@@ -207,7 +207,7 @@ export function ProxyGroupsCustomRulesBatchDialog({
                     </div>
                     {item.rule ? (
                       <div className="flex min-w-0 flex-wrap items-center gap-1">
-                        <span className="rounded border border-indigo-400/20 bg-indigo-500/10 px-1.5 py-0.5 font-medium text-indigo-200">
+                        <span className="rounded border border-white/15 bg-white/8 px-1.5 py-0.5 font-medium text-white/80">
                           {item.rule.type}
                         </span>
                         <span

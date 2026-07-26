@@ -136,7 +136,7 @@ export function NodeManagementSection({
           title: "确认开启「监听端口」？",
           description: (
             <span className="block pt-2">
-              <span className="block rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
+              <span className="block rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
                 警告：请确保你的设备处于受信任网络；如果你的监听端口暴露在公网，任何人都可以使用你的节点。
               </span>
               <span className="mt-3 block leading-6 text-white/65">

@@ -28,7 +28,7 @@ export function SectionHeader({
       ) : (
         <ChevronRight className="h-4 w-4 text-white/50" />
       )}
-      <Icon className="h-4 w-4 text-indigo-400" />
+      <Icon className="h-4 w-4 text-white/60" />
       <span className="text-sm font-medium text-white">{title}</span>
       {badge}
     </button>

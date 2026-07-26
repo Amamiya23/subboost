@@ -35,7 +35,7 @@ const Toast = React.forwardRef<
   <ToastPrimitives.Root
     ref={ref}
     className={cn(
-      "group pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden border p-4 shadow-lg transition-all glass-card",
+      "group pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden border border-white/10 bg-[#141414] p-4 rounded-md shadow-xl shadow-black/40 transition-all",
       variant === "info" && "border-sky-500/30",
       variant === "success" && "border-emerald-500/30",
       variant === "warning" && "border-amber-500/30",
@@ -54,7 +54,7 @@ const ToastAction = React.forwardRef<
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
-      "inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex h-8 shrink-0 items-center justify-center rounded border border-white/10 bg-white/5 px-3 text-[13px] font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/20 disabled:pointer-events-none disabled:opacity-50",
       className
     )}
     {...props}
@@ -69,7 +69,7 @@ const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      "absolute right-2 top-2 rounded-lg p-1 text-white/50 opacity-0 transition-opacity hover:bg-white/5 hover:text-white focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 group-hover:opacity-100",
+      "absolute right-2 top-2 rounded p-1 text-white/50 opacity-0 transition-opacity hover:bg-white/8 hover:text-white focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-white/20 group-hover:opacity-100",
       className
     )}
     toast-close=""

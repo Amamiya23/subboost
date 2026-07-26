@@ -106,7 +106,7 @@ describe("MobileNav", () => {
     expect(html).toContain("预览");
     expect(html).not.toContain("AI");
     expect(html).not.toContain("我的");
-    expect(html).toContain("text-indigo-400");
+    expect(html).toContain("text-white");
 
     links.find((link) => link.href === "/#config").onClick({ preventDefault });
     expect(preventDefault).toHaveBeenCalled();
@@ -124,7 +124,7 @@ describe("MobileNav", () => {
 
     expect(html).toContain("AI");
     expect(html).toContain("我的");
-    expect(html).toContain("text-indigo-400");
+    expect(html).toContain("text-white");
     links.find((link) => link.href === "/#ai").onClick({ preventDefault });
     expect(preventDefault).not.toHaveBeenCalled();
   });

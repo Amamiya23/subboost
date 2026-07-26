@@ -433,7 +433,7 @@ export function ProxyGroupsCategories() {
                                     title: `确认删除「${display.full}」？`,
                                     description: (
                                       <span className="block pt-2">
-                                        <span className="block rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
+                                        <span className="block rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
                                           <span className="font-medium text-amber-200">
                                             警告：
                                           </span>
@@ -506,7 +506,7 @@ export function ProxyGroupsCategories() {
                               title: `确认关闭「${display.full}」？`,
                               description: (
                                 <span className="block pt-2">
-                                  <span className="block rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
+                                  <span className="block rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
                                     <span className="font-medium text-amber-200">
                                       警告：
                                     </span>

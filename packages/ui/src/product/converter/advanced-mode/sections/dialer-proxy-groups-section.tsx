@@ -370,7 +370,7 @@ export function DialerProxyGroupsSection({
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="h-7 shrink-0 px-2 text-white/35 hover:text-indigo-200"
+                          className="h-7 shrink-0 px-2 text-white/35 hover:text-white/80"
                           title={`类型：${dialerTypeLabel}`}
                           aria-label={`修改 ${group.name} 类型`}
                           onClick={(event) => event.stopPropagation()}
@@ -424,7 +424,7 @@ export function DialerProxyGroupsSection({
                             className={cn(
                               "flex items-center gap-2 px-2 py-1 rounded text-xs cursor-pointer transition-colors",
                               isSelected
-                                ? "bg-indigo-500/20 text-indigo-400"
+                                ? "bg-white/12 text-white/65"
                                 : "hover:bg-white/5 text-white/70"
                             )}
                             onClick={() => {
@@ -438,7 +438,7 @@ export function DialerProxyGroupsSection({
                             <div
                               className={cn(
                                 "h-3 w-3 rounded border flex items-center justify-center",
-                                isSelected ? "bg-indigo-500 border-indigo-500" : "border-white/30"
+                                isSelected ? "bg-white/15 border-white/25" : "border-white/30"
                               )}
                             >
                               {isSelected && <Check className="h-2 w-2 text-white" />}

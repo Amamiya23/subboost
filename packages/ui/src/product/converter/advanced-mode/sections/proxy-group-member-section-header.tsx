@@ -50,7 +50,7 @@ export function ProxyGroupMemberSectionHeader({
             type="button"
             variant="ghost"
             size="sm"
-            className="proxy-group-member-action-button h-6 min-w-6 shrink-0 gap-0.5 px-1.5 text-[10px] text-white/40 hover:bg-indigo-500/10 hover:text-indigo-200 disabled:pointer-events-none disabled:opacity-30"
+            className="proxy-group-member-action-button h-6 min-w-6 shrink-0 gap-0.5 px-1.5 text-[10px] text-white/40 hover:bg-white/8 hover:text-white/80 disabled:pointer-events-none disabled:opacity-30"
             title="恢复默认成员"
             aria-label="恢复默认成员"
             disabled={restoreDisabled}

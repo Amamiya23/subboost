@@ -374,7 +374,7 @@ export function VisualGraph() {
       { id: "tech", label: "技术", dotClass: "bg-cyan-500/50", order: 6 },
       { id: "finance", label: "支付", dotClass: "bg-yellow-500/50", order: 7 },
       { id: "other", label: "其它", dotClass: "bg-slate-500/50", order: 8 },
-      { id: "custom", label: "自定义", dotClass: "bg-indigo-500/50", order: 9 },
+      { id: "custom", label: "自定义", dotClass: "bg-white/50", order: 9 },
     ];
 
     return items

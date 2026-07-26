@@ -59,10 +59,10 @@ describe("additional basic UI components", () => {
     expect(getProtocolBadgeClass("unknown")).toContain("slate");
     expect(getArtisticNavButtonClassName({ active: true, size: "md", className: "extra" })).toContain("extra");
     expect(getArtisticNavButtonClassName({ active: true, size: "md" })).toContain("text-white");
-    expect(getArtisticNavButtonClassName({ active: false })).toContain("hover:bg-white/5");
+    expect(getArtisticNavButtonClassName({ active: false })).toContain("hover:bg-white/8");
     expect(getArtisticNavIconClassName(true, "icon-extra")).toContain("icon-extra");
-    expect(getArtisticNavIconClassName(false)).toContain("text-white/45");
-    expect(artisticNavContainerClassName).toContain("rounded-full");
+    expect(getArtisticNavIconClassName(false)).toContain("text-white/40");
+    expect(artisticNavContainerClassName).toContain("rounded-md");
     expect(artisticTabsListClassName).toContain("h-auto");
     expect(artisticTabsTriggerClassName).toContain("data-[state=active]");
     expect(artisticTabsIconClassName).toContain("group-data-[state=active]");

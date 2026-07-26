@@ -222,7 +222,7 @@ export function ProxyGroupRuleMoveMenu({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-7 px-2 text-white/45 hover:text-indigo-200"
+          className="h-7 px-2 text-white/45 hover:text-white/80"
           title={title}
           aria-label={ariaLabel}
         >
@@ -285,7 +285,7 @@ function RuleSourceBadge({ source }: { source: RuleSource }) {
   const className = {
     preset: "border-white/10 bg-blue-500/10 text-blue-200",
     custom: "border-emerald-500/20 bg-emerald-500/10 text-emerald-200",
-    manual: "border-indigo-400/20 bg-indigo-500/10 text-indigo-200",
+    manual: "border-white/15 bg-white/8 text-white/80",
     experimental: "border-amber-500/30 bg-amber-500/10 text-amber-200",
   }[source];
   const label = {

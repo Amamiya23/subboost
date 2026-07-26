@@ -109,7 +109,7 @@ function getVariantIcon(variant: ConfirmDialogVariant) {
     case "warning":
       return <AlertTriangle className="h-5 w-5 text-amber-400" />;
     default:
-      return <HelpCircle className="h-5 w-5 text-indigo-400" />;
+      return <HelpCircle className="h-5 w-5 text-white/70" />;
   }
 }
 

@@ -87,7 +87,7 @@ export function InputSection({
                             className={cn(
                               "p-1 rounded transition-colors",
                               source.type === type
-                                ? "bg-indigo-500/20 text-indigo-400"
+                                ? "bg-white/12 text-white/65"
                                 : "text-white/30 hover:text-white/50 hover:bg-white/5"
                             )}
                             title={info.label}
@@ -105,7 +105,7 @@ export function InputSection({
                         <Popover.Trigger asChild>
                           <button
                             type="button"
-                            className="inline-flex items-center gap-1 rounded-full border border-green-500/50 bg-green-500/5 px-2 py-0.5 text-xs font-semibold text-green-300 transition-colors hover:bg-green-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black whitespace-nowrap"
+                            className="inline-flex items-center gap-1 rounded-full border border-green-500/50 bg-green-500/5 px-2 py-0.5 text-xs font-semibold text-green-300 transition-colors hover:bg-green-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-black whitespace-nowrap"
                             title="查看流量/到期"
                             aria-label="查看流量/到期"
                           >
@@ -118,7 +118,7 @@ export function InputSection({
                             side="bottom"
                             align="start"
                             sideOffset={8}
-                            className="z-50 w-[260px] rounded-xl border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
+                            className="z-50 w-[260px] rounded-md border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
                           >
                             <div className="space-y-2 text-xs">
                               <div className="flex items-center gap-2">
@@ -148,7 +148,7 @@ export function InputSection({
                       <button
                         onClick={() => moveSource(source.id, "up")}
                         disabled={index <= 0}
-                        className="flex h-3.5 w-4 items-center justify-center text-white/30 transition-colors hover:text-indigo-300 disabled:cursor-not-allowed disabled:opacity-30"
+                        className="flex h-3.5 w-4 items-center justify-center text-white/30 transition-colors hover:text-white/70 disabled:cursor-not-allowed disabled:opacity-30"
                         title="上移"
                         aria-label="上移"
                       >
@@ -157,7 +157,7 @@ export function InputSection({
                       <button
                         onClick={() => moveSource(source.id, "down")}
                         disabled={index >= sources.length - 1}
-                        className="flex h-3.5 w-4 items-center justify-center text-white/30 transition-colors hover:text-indigo-300 disabled:cursor-not-allowed disabled:opacity-30"
+                        className="flex h-3.5 w-4 items-center justify-center text-white/30 transition-colors hover:text-white/70 disabled:cursor-not-allowed disabled:opacity-30"
                         title="下移"
                         aria-label="下移"
                       >
@@ -178,11 +178,11 @@ export function InputSection({
                       className={cn(
                         "p-1 rounded transition-colors disabled:opacity-100",
                         source.parsing
-                          ? "text-indigo-400"
+                          ? "text-white/65"
                           : source.parsed
                             ? "text-green-400 hover:text-green-300"
                             : source.content.trim()
-                              ? "text-white/50 hover:text-indigo-400 hover:bg-indigo-500/10"
+                              ? "text-white/50 hover:text-white/65 hover:bg-white/8"
                               : "text-white/50 cursor-not-allowed"
                       )}
                       title={source.parsing ? "导入中..." : source.parsed ? "重新导入" : "导入此源"}
@@ -252,7 +252,7 @@ export function InputSection({
                       onClick={() => addSource(type)}
                       className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/5 transition-colors"
                     >
-                      <Icon className="h-4 w-4 text-indigo-400" />
+                      <Icon className="h-4 w-4 text-white/65" />
                       <div>
                         <div className="text-xs font-medium text-white">{info.label}</div>
                       </div>
