@@ -113,6 +113,41 @@ describe("rule generator", () => {
     }
   });
 
+  it("keeps a moved preset rule when its source module is disabled", () => {
+    const generate = (enabled: false | undefined) => generateClashConfig({
+      nodes: [],
+      template: "full",
+      userConfig: {
+        enabledGroups: ["select"],
+        enabledRules: ["select"],
+        customRules: [],
+        ruleProviderBaseUrl: "https://example.com/rules",
+        experimentalCnUseCnRuleSet: false,
+      },
+      builtinRuleEdits: {
+        "module:github:github": {
+          target: "🚀 节点选择",
+          ...(enabled === false ? { enabled } : {}),
+        },
+      },
+    });
+
+    const moved = generate(undefined);
+    const movedRules = moved.rules as string[];
+    const movedProviders = moved["rule-providers"] as Record<string, { url?: string }>;
+
+    expect(movedRules.filter((rule) => rule === "RULE-SET,github,🚀 节点选择")).toHaveLength(1);
+    expect(movedProviders.github?.url).toBe("https://example.com/rules/geosite/github.mrs");
+    expect(movedRules.some((rule) => rule.startsWith("RULE-SET,gitlab,"))).toBe(false);
+    expect(movedRules.some((rule) => rule.startsWith("RULE-SET,atlassian,"))).toBe(false);
+    expect(movedProviders.gitlab).toBeUndefined();
+    expect(movedProviders.atlassian).toBeUndefined();
+
+    const deleted = generate(false);
+    expect((deleted.rules as string[]).some((rule) => rule.startsWith("RULE-SET,github,"))).toBe(false);
+    expect((deleted["rule-providers"] as Record<string, unknown>).github).toBeUndefined();
+  });
+
   it("handles Apple TV+ deletion and moves without special-rule leftovers", () => {
     const enabledModules = PROXY_GROUP_MODULES.map((proxyModule) => proxyModule.id);
     const baseConfig = {

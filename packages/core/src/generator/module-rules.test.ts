@@ -5,6 +5,7 @@ import {
   getExcludedModuleRuleIds,
   getModuleRuleById,
   getModuleRuleOrderKey,
+  isModuleRuleInGenerationScope,
   isModuleRuleMovedFrom,
   isPresetModuleRule,
   normalizeHiddenPresetRuleIds,
@@ -84,5 +85,24 @@ describe("module rule helpers", () => {
     expect(isModuleRuleMovedFrom("", "youtube", { other: [{ id: "youtube" }] })).toBe(false);
     expect(isModuleRuleMovedFrom("media", " ", { other: [{ id: "youtube" }] })).toBe(false);
     expect(isModuleRuleMovedFrom("media", "youtube", { other: "bad" as never })).toBe(false);
+  });
+
+  it("keeps only moved rules in generation scope when the source module is disabled", () => {
+    const enabledModules = new Set<string>();
+    const edits = {
+      "module:media:youtube": { target: "Proxy" },
+    };
+
+    expect(isModuleRuleInGenerationScope(proxyModule, "youtube", enabledModules, edits)).toBe(true);
+    expect(isModuleRuleInGenerationScope(proxyModule, "netflix", enabledModules, edits)).toBe(false);
+    expect(isModuleRuleInGenerationScope(proxyModule, "netflix", new Set(["media"]), edits)).toBe(true);
+    expect(
+      isModuleRuleInGenerationScope(
+        { ...proxyModule, pinned: { target: "DIRECT" } },
+        "netflix",
+        enabledModules,
+        edits
+      )
+    ).toBe(true);
   });
 });

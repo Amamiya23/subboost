@@ -1,3 +1,4 @@
+import type { BuiltinRuleEdits } from "@subboost/core/types/config";
 import type { ProxyGroupModule, ProxyGroupRule } from "./proxy-group-modules";
 
 export type HiddenPresetRuleIds = Record<string, string[]>;
@@ -47,6 +48,17 @@ export function getExcludedModuleRuleIds(
 
 export function getModuleRuleOrderKey(moduleId: string, ruleId: string): string {
   return `module:${moduleId}:${ruleId}`;
+}
+
+export function isModuleRuleInGenerationScope(
+  module: ProxyGroupModule,
+  ruleId: string,
+  enabledModules: ReadonlySet<string>,
+  builtinRuleEdits?: BuiltinRuleEdits
+): boolean {
+  if (module.pinned || enabledModules.has(module.id)) return true;
+  const edit = builtinRuleEdits?.[getModuleRuleOrderKey(module.id, ruleId)];
+  return Boolean(edit?.target);
 }
 
 export function isPresetModuleRule(module: ProxyGroupModule, ruleId: string): boolean {

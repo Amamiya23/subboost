@@ -4,7 +4,11 @@ import { getCustomRuleOrderKey } from "@subboost/core/rules/custom-rule-utils";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { resolveProxyGroupTargetName } from "@subboost/core/proxy-group-targets";
 import { PROXY_GROUP_MODULES, isPinnedModule, type ProxyGroupModule, type ProxyGroupRule } from "./proxy-group-modules";
-import { getEffectiveModuleRules, getModuleRuleOrderKey } from "./module-rules";
+import {
+  getEffectiveModuleRules,
+  getModuleRuleOrderKey,
+  isModuleRuleInGenerationScope,
+} from "./module-rules";
 import { createPolicyTargetResolver } from "./policy-targets";
 
 type CustomRuleLike = Pick<CustomRule, "id" | "type" | "value" | "target" | "noResolve">;
@@ -446,12 +450,12 @@ function buildCanonicalRuleEntries(options: Omit<RulesGenerateOptions, "ruleOrde
   };
 
   const pushAppleTvPlusAtCanonicalPosition = () => {
-    if (!enabledSet.has("streaming-west")) return;
     const streamingWestModule = PROXY_GROUP_MODULES.find((item) => item.id === "streaming-west");
     if (!streamingWestModule) return;
 
     const appleTvPlusRule = streamingWestModule.rules.find((rule) => rule.id === "apple-tvplus");
     if (!appleTvPlusRule) return;
+    if (!isModuleRuleInGenerationScope(streamingWestModule, appleTvPlusRule.id, enabledSet, builtinRuleEdits)) return;
 
     // Keep the existing generated order without turning Apple TV+ into a special system rule.
     pushModuleRuleEntry(streamingWestModule, appleTvPlusRule);
@@ -468,23 +472,26 @@ function buildCanonicalRuleEntries(options: Omit<RulesGenerateOptions, "ruleOrde
       pushAppleTvPlusAtCanonicalPosition();
     }
 
-    if (!isPinnedModule(moduleId) && !enabledSet.has(moduleId)) continue;
-    processedModules.add(moduleId);
-
     const ruleModule = PROXY_GROUP_MODULES.find((item) => item.id === moduleId);
     if (!ruleModule) continue;
+    const scopedRules = ruleModule.rules.filter((rule) =>
+      isModuleRuleInGenerationScope(ruleModule, rule.id, enabledSet, builtinRuleEdits)
+    );
+    if (scopedRules.length === 0) continue;
+    processedModules.add(moduleId);
 
-    for (const rule of ruleModule.rules) {
+    for (const rule of scopedRules) {
       pushModuleRuleEntry(ruleModule, rule);
     }
   }
 
   for (const ruleModule of PROXY_GROUP_MODULES) {
-    if (!isPinnedModule(ruleModule.id) && !enabledSet.has(ruleModule.id)) continue;
     if (processedModules.has(ruleModule.id)) continue;
     if (ruleModule.id === "final") continue;
 
-    for (const rule of ruleModule.rules) {
+    for (const rule of ruleModule.rules.filter((rule) =>
+      isModuleRuleInGenerationScope(ruleModule, rule.id, enabledSet, builtinRuleEdits)
+    )) {
       pushModuleRuleEntry(ruleModule, rule);
     }
   }

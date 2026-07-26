@@ -25,7 +25,7 @@ import {
   resolveModuleName,
   resolveModuleNameFromModule,
 } from "./rules";
-import { getModuleRuleOrderKey } from "./module-rules";
+import { getModuleRuleOrderKey, isModuleRuleInGenerationScope } from "./module-rules";
 import { buildRuleSetUrlFromPath } from "@subboost/core/rules/rule-model";
 import { buildTypedProxyGroup } from "./proxy-group-type";
 
@@ -492,10 +492,9 @@ export function generateRuleProviders(options: GenerateOptions): Record<string, 
 
   // 预设模块的规则
   for (const proxyModule of PROXY_GROUP_MODULES) {
-    if (!isPinnedModule(proxyModule.id) && !enabledSet.has(proxyModule.id)) continue;
-
     for (const rule of proxyModule.rules) {
       const edit = builtinRuleEdits?.[getModuleRuleOrderKey(proxyModule.id, rule.id)];
+      if (!isModuleRuleInGenerationScope(proxyModule, rule.id, enabledSet, builtinRuleEdits)) continue;
       if (!isPinnedModule(proxyModule.id) && edit?.enabled === false) continue;
       providers[rule.id] = {
         type: "http",
