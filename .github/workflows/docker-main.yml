@@ -51,9 +51,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
+        with:
+          # amd64-only builds can use the runner's embedded BuildKit and avoid
+          # pulling moby/buildkit from Docker Hub while booting a container builder.
+          driver: docker
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ secrets.GHCR_USERNAME || github.actor }}
@@ -61,7 +65,7 @@ jobs:
 
       - name: Build and push linux/amd64 image by digest
         id: build_image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: local/Dockerfile
@@ -72,8 +76,6 @@ jobs:
             APP_BUILD_SHA=${{ github.sha }}
             APP_VERSION=${{ needs.meta.outputs.build_version }}
             APP_VERSION_TOKEN=${{ needs.meta.outputs.build_version }}
-          cache-from: type=gha,scope=main-amd64
-          cache-to: type=gha,mode=max,scope=main-amd64
           provenance: false
           tags: ${{ needs.meta.outputs.image_name }}
 
@@ -101,9 +103,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
+        with:
+          driver: docker
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ secrets.GHCR_USERNAME || github.actor }}
