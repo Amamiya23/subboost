@@ -21,6 +21,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [Type Safety](./type-safety.md) | Type patterns, validation | To fill |
 | [Cloudflare Workers Deployment](./cloudflare-workers.md) | OpenNext, D1, Prisma, Cron, and deployment contracts | Active |
+| [Docker Runtime](./docker-runtime.md) | Standalone runner, isolated Prisma migrations, and image-size contracts | Active |
 
 ---
 

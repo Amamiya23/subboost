@@ -11,6 +11,11 @@ COPY local/package*.json local/
 WORKDIR /package/local
 RUN npm install
 
+FROM node:22-alpine AS migration-deps
+WORKDIR /migration
+COPY local/prisma-runtime/package*.json ./
+RUN npm ci --omit=dev
+
 FROM node:22-alpine AS builder
 WORKDIR /package
 RUN apk add --no-cache openssl
@@ -49,7 +54,7 @@ ENV APP_VERSION_TOKEN=${APP_VERSION_TOKEN}
 RUN apk add --no-cache openssl
 
 COPY --from=builder /package/local/.next/standalone ./
-COPY --from=deps /package/local/node_modules local/node_modules
+COPY --from=migration-deps /migration/node_modules /opt/prisma-runtime/node_modules
 COPY --from=builder /package/local/.next/static local/.next/static
 COPY --from=builder /package/local/public local/public
 COPY --from=builder /package/local/prisma.config.ts local/prisma.config.ts
@@ -58,4 +63,4 @@ RUN if [ ! -e node_modules ] && [ -d local/node_modules ]; then ln -s local/node
 
 WORKDIR /app/local
 EXPOSE 3000
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma && node server.js"]
+CMD ["sh", "-c", "NODE_PATH=/opt/prisma-runtime/node_modules /opt/prisma-runtime/node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma && node server.js"]

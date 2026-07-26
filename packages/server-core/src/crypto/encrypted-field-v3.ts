@@ -5,6 +5,7 @@ const KEY_LENGTH = 32;
 const V3_PREFIX = "v3";
 const V3_HKDF_SALT = "subboost:encrypted-field:v3";
 const V3_HKDF_INFO = "subboost:aes-256-gcm:v3";
+const HEX_BYTES = Array.from({ length: 256 }, (_, value) => value.toString(16).padStart(2, "0"));
 
 function assertNonEmptyMasterKey(masterKey: string): void {
   if (typeof masterKey !== "string" || masterKey.trim().length === 0) {
@@ -18,26 +19,49 @@ function getTextEncoder(): TextEncoder {
 
 let globalTextEncoder: TextEncoder | null = null;
 
+function getTextDecoder(): TextDecoder {
+  return globalTextDecoder ??= new TextDecoder();
+}
+
+let globalTextDecoder: TextDecoder | null = null;
+
+type DerivedKeyCacheEntry = {
+  masterKey: string;
+  promise: Promise<CryptoKey>;
+};
+
+let derivedKeyCache: DerivedKeyCacheEntry | null = null;
+
 function toHex(bytes: Uint8Array): string {
   let hex = "";
   for (let i = 0; i < bytes.length; i++) {
-    hex += bytes[i].toString(16).padStart(2, "0");
+    hex += HEX_BYTES[bytes[i]];
   }
   return hex;
 }
 
+function fromHexCode(code: number): number {
+  if (code >= 48 && code <= 57) return code - 48;
+  if (code >= 65 && code <= 70) return code - 55;
+  if (code >= 97 && code <= 102) return code - 87;
+  return -1;
+}
+
 function fromHex(hex: string): Uint8Array<ArrayBuffer> {
-  if (hex.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(hex)) throw new Error("Invalid hex length");
+  if (hex.length === 0 || hex.length % 2 !== 0) throw new Error("Invalid hex length");
   const length = hex.length / 2;
   const bytes = new Uint8Array(length);
   for (let i = 0; i < length; i++) {
-    const byte = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
-    bytes[i] = byte;
+    const offset = i * 2;
+    const high = fromHexCode(hex.charCodeAt(offset));
+    const low = fromHexCode(hex.charCodeAt(offset + 1));
+    if (high < 0 || low < 0) throw new Error("Invalid hex length");
+    bytes[i] = high * 16 + low;
   }
   return bytes;
 }
 
-async function deriveV3Key(masterKey: string): Promise<CryptoKey> {
+async function deriveV3KeyUncached(masterKey: string): Promise<CryptoKey> {
   const subtle = globalThis.crypto.subtle;
   const baseKey = await subtle.importKey(
     "raw",
@@ -57,6 +81,20 @@ async function deriveV3Key(masterKey: string): Promise<CryptoKey> {
     KEY_LENGTH * 8,
   );
   return subtle.importKey("raw", bits, ALGORITHM, false, ["encrypt", "decrypt"]);
+}
+
+function deriveV3Key(masterKey: string): Promise<CryptoKey> {
+  if (derivedKeyCache?.masterKey === masterKey) return derivedKeyCache.promise;
+
+  const entry: DerivedKeyCacheEntry = {
+    masterKey,
+    promise: deriveV3KeyUncached(masterKey),
+  };
+  derivedKeyCache = entry;
+  void entry.promise.catch(() => {
+    if (derivedKeyCache === entry) derivedKeyCache = null;
+  });
+  return entry.promise;
 }
 
 export function isV3EncryptedField(ciphertext: string | null | undefined): boolean {
@@ -114,5 +152,5 @@ export async function decryptEncryptedFieldV3(ciphertext: string, masterKey: str
     combined,
   );
 
-  return new TextDecoder().decode(decrypted);
+  return getTextDecoder().decode(decrypted);
 }

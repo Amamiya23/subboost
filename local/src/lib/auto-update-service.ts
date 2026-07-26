@@ -35,6 +35,20 @@ type AutoUpdateSubscriptionRow = SubscriptionRow & {
   };
 };
 
+type AutoUpdateScheduleCandidate = Pick<
+  SubscriptionRow,
+  "id" | "autoUpdateInterval" | "createdAt" | "lastUpdatedAt"
+> & {
+  autoUpdateState: Pick<SubscriptionAutoUpdateStateFields, "lastAttemptedAt"> | null;
+};
+
+type DueAutoUpdateCandidate = {
+  id: string;
+  intervalSeconds: number;
+};
+
+const AUTO_UPDATE_FULL_ROW_BATCH_SIZE = 10;
+
 type PreparedLocalRefresh = {
   config: Record<string, unknown>;
   requestedHosts: string[];
@@ -221,50 +235,79 @@ async function recordUnexpectedFailure(params: {
 }
 
 export async function runLocalSubscriptionAutoUpdateCron(now = new Date()): Promise<FinalCronUpdateSummary> {
-  const subscriptions = (await prisma.subscription.findMany({
+  const candidates = (await prisma.subscription.findMany({
     where: { autoUpdateInterval: { not: null } },
-    include: { owner: { select: { username: true } }, autoUpdateState: true },
-  })) as AutoUpdateSubscriptionRow[];
+    select: {
+      id: true,
+      autoUpdateInterval: true,
+      createdAt: true,
+      lastUpdatedAt: true,
+      autoUpdateState: { select: { lastAttemptedAt: true } },
+    },
+  })) as AutoUpdateScheduleCandidate[];
 
-  const accumulator = createCronUpdateAccumulator(subscriptions.length);
-  for (const subscription of subscriptions) {
-    let requestedHosts: string[] = [];
-    let attemptStartedAt: Date | null = null;
-    try {
-      const currentAutoUpdateState = resolveSubscriptionAutoUpdateState(subscription);
-      const intervalSeconds = Math.max(
-        Number(subscription.autoUpdateInterval) || 0,
-        LOCAL_AUTO_UPDATE_MIN_SECONDS
-      );
-      const scheduleState = resolveAutoUpdateScheduleState({
-        createdAt: subscription.createdAt,
-        lastUpdatedAt: subscription.lastUpdatedAt,
-        lastAttemptedAt: currentAutoUpdateState.lastAttemptedAt,
-        now,
-        intervalSeconds,
-      });
+  const accumulator = createCronUpdateAccumulator(candidates.length);
+  const dueCandidates: DueAutoUpdateCandidate[] = [];
+  for (const candidate of candidates) {
+    const currentAutoUpdateState = resolveSubscriptionAutoUpdateState(candidate);
+    const intervalSeconds = Math.max(
+      Number(candidate.autoUpdateInterval) || 0,
+      LOCAL_AUTO_UPDATE_MIN_SECONDS
+    );
+    const scheduleState = resolveAutoUpdateScheduleState({
+      createdAt: candidate.createdAt,
+      lastUpdatedAt: candidate.lastUpdatedAt,
+      lastAttemptedAt: currentAutoUpdateState.lastAttemptedAt,
+      now,
+      intervalSeconds,
+    });
 
-      if (!scheduleState.due) {
+    if (!scheduleState.due) {
+      recordCronUpdateSkipped(accumulator);
+      continue;
+    }
+    dueCandidates.push({ id: candidate.id, intervalSeconds });
+  }
+
+  for (let offset = 0; offset < dueCandidates.length; offset += AUTO_UPDATE_FULL_ROW_BATCH_SIZE) {
+    const batch = dueCandidates.slice(offset, offset + AUTO_UPDATE_FULL_ROW_BATCH_SIZE);
+    const subscriptions = (await prisma.subscription.findMany({
+      where: {
+        id: { in: batch.map(({ id }) => id) },
+        autoUpdateInterval: { not: null },
+      },
+      include: { owner: { select: { username: true } }, autoUpdateState: true },
+    })) as AutoUpdateSubscriptionRow[];
+    const subscriptionById = new Map(subscriptions.map((subscription) => [subscription.id, subscription]));
+
+    for (const dueCandidate of batch) {
+      const subscription = subscriptionById.get(dueCandidate.id);
+      if (!subscription) {
         recordCronUpdateSkipped(accumulator);
         continue;
       }
 
-      attemptStartedAt = new Date();
-      const prepared = await prepareLocalRefresh(subscription, currentAutoUpdateState, attemptStartedAt);
-      requestedHosts = prepared.requestedHosts;
-      const outcome = await completeLocalRefresh({
-        subscription,
-        currentAutoUpdateState,
-        prepared,
-        attemptedAt: attemptStartedAt,
-        intervalSeconds,
-      });
-      applyCronUpdateOutcome(accumulator, outcome);
-    } catch (error) {
-      applyCronUpdateOutcome(
-        accumulator,
-        await recordUnexpectedFailure({ subscription, requestedHosts, error, attemptStartedAt })
-      );
+      let requestedHosts: string[] = [];
+      let attemptStartedAt: Date | null = null;
+      try {
+        const currentAutoUpdateState = resolveSubscriptionAutoUpdateState(subscription);
+        attemptStartedAt = new Date();
+        const prepared = await prepareLocalRefresh(subscription, currentAutoUpdateState, attemptStartedAt);
+        requestedHosts = prepared.requestedHosts;
+        const outcome = await completeLocalRefresh({
+          subscription,
+          currentAutoUpdateState,
+          prepared,
+          attemptedAt: attemptStartedAt,
+          intervalSeconds: dueCandidate.intervalSeconds,
+        });
+        applyCronUpdateOutcome(accumulator, outcome);
+      } catch (error) {
+        applyCronUpdateOutcome(
+          accumulator,
+          await recordUnexpectedFailure({ subscription, requestedHosts, error, attemptStartedAt })
+        );
+      }
     }
   }
 

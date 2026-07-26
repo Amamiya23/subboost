@@ -65,6 +65,14 @@ const subscription = {
   autoUpdateState: null,
 };
 
+function makeSubscription(id: string) {
+  return {
+    ...subscription,
+    id,
+    name: `Subscription ${id}`,
+  };
+}
+
 function accumulator(total: number) {
   return { total, skipped: 0, outcomes: [] as unknown[] };
 }
@@ -137,6 +145,17 @@ describe("local subscription auto update service", () => {
 
     expect(mocks.refreshNodeSnapshot).not.toHaveBeenCalled();
     expect(mocks.applyCronUpdateOutcome).not.toHaveBeenCalled();
+    expect(mocks.prisma.subscription.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.subscription.findMany).toHaveBeenCalledWith({
+      where: { autoUpdateInterval: { not: null } },
+      select: {
+        id: true,
+        autoUpdateInterval: true,
+        createdAt: true,
+        lastUpdatedAt: true,
+        autoUpdateState: { select: { lastAttemptedAt: true } },
+      },
+    });
   });
 
   it("refreshes due subscriptions and writes encrypted cache state", async () => {
@@ -163,6 +182,47 @@ describe("local subscription auto update service", () => {
     expect(mocks.prisma.subscriptionAutoUpdateState.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ where: { subscriptionId: "sub-1" } })
     );
+    expect(mocks.prisma.subscription.findMany).toHaveBeenNthCalledWith(2, {
+      where: {
+        id: { in: ["sub-1"] },
+        autoUpdateInterval: { not: null },
+      },
+      include: { owner: { select: { username: true } }, autoUpdateState: true },
+    });
+  });
+
+  it("loads due subscriptions in bounded batches and restores candidate order", async () => {
+    const candidates = Array.from({ length: 11 }, (_, index) => makeSubscription(`sub-${index + 1}`));
+    mocks.prisma.subscription.findMany
+      .mockResolvedValueOnce(candidates)
+      .mockResolvedValueOnce([...candidates.slice(0, 10)].reverse())
+      .mockResolvedValueOnce(candidates.slice(10));
+
+    await runLocalSubscriptionAutoUpdateCron(now);
+
+    expect(mocks.prisma.subscription.findMany).toHaveBeenCalledTimes(3);
+    expect(mocks.prisma.subscription.findMany).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ where: expect.objectContaining({ id: { in: candidates.slice(0, 10).map(({ id }) => id) } }) })
+    );
+    expect(mocks.prisma.subscription.findMany).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({ where: expect.objectContaining({ id: { in: ["sub-11"] } }) })
+    );
+    expect(mocks.readSubscriptionSecrets.mock.calls.map(([row]) => row.id)).toEqual(
+      candidates.map(({ id }) => id)
+    );
+  });
+
+  it("counts due candidates that disappear before the full-row read as skipped", async () => {
+    mocks.prisma.subscription.findMany
+      .mockResolvedValueOnce([subscription])
+      .mockResolvedValueOnce([]);
+
+    await expect(runLocalSubscriptionAutoUpdateCron(now)).resolves.toEqual(
+      expect.objectContaining({ total: 1, skipped: 1, outcomes: [] })
+    );
+    expect(mocks.readSubscriptionSecrets).not.toHaveBeenCalled();
   });
 
   it("records all-source failures and disables auto update when requested", async () => {

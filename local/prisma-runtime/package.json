@@ -1,0 +1,12 @@
+{
+  "name": "@subboost/prisma-runtime",
+  "version": "2.6.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0 <23 || >=24.0.0"
+  },
+  "dependencies": {
+    "dotenv": "17.4.2",
+    "prisma": "7.8.0"
+  }
+}
