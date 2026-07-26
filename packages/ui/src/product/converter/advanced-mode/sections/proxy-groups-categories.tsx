@@ -22,6 +22,7 @@ import {
   PROXY_GROUP_MODULES,
   generateProxyGroups,
 } from "@subboost/core/generator/proxy-groups";
+import { isPinnedModule } from "@subboost/core/generator/rules";
 import type { HiddenPresetRuleIds } from "@subboost/core/generator/module-rules";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { resolveProxyGroupTargetName } from "@subboost/core/proxy-group-targets";
@@ -152,6 +153,7 @@ export function ProxyGroupsCategories() {
     const grouped: Record<string, typeof PROXY_GROUP_MODULES> = {};
     for (const proxyMod of PROXY_GROUP_MODULES) {
       if (hidden.has(proxyMod.id)) continue;
+      if (isPinnedModule(proxyMod.id)) continue;
       if (!grouped[proxyMod.category]) grouped[proxyMod.category] = [];
       grouped[proxyMod.category].push(proxyMod);
     }
@@ -274,7 +276,7 @@ export function ProxyGroupsCategories() {
 
   const hiddenModules = React.useMemo(() => {
     const hidden = new Set(hiddenProxyGroups);
-    return PROXY_GROUP_MODULES.filter((module) => hidden.has(module.id));
+    return PROXY_GROUP_MODULES.filter((module) => hidden.has(module.id) && !isPinnedModule(module.id));
   }, [hiddenProxyGroups]);
   const manualRuleTargets = React.useMemo(
     () =>

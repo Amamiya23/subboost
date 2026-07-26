@@ -170,7 +170,7 @@ describe("local shared core generation contract", () => {
     expect(listeners.map((listener) => listener.name)).toEqual(["base-listener", "mixed0", "mixed1"]);
     expect(rules).toContain("IP-CIDR,203.0.113.0/24,Media,no-resolve");
     expect(rules).toContain("PROCESS-NAME,curl,Media");
-    expect(rules).toContain("RULE-SET,cn,🔒 国内服务");
+    expect(rules).toContain("RULE-SET,cn,DIRECT");
     expect(rules.at(-1)).toBe("MATCH,🐟 Final Local");
     expect(generateClashYaml({ ...persisted })).toContain("proxy-groups:");
   });
@@ -247,7 +247,8 @@ describe("local shared core generation contract", () => {
     expect(members.proxyNames).toEqual(["Custom", "US Node", "Korea Node", "DIRECT"]);
     expect(members.excluded.map((member) => member.key)).toEqual(["reject:REJECT"]);
     expect(groups.find((group) => group.name === "⚡ 自动选择")?.proxies).toEqual(["Node A"]);
-    expect(groups.find((group) => group.name === "Direct")?.proxies?.slice(0, 2)).toEqual(["DIRECT", "REJECT"]);
+    // direct-first 业务组不再暴露 REJECT；reject-first 仍以 REJECT 打头
+    expect(groups.find((group) => group.name === "Direct")?.proxies?.slice(0, 2)).toEqual(["DIRECT", "Node A"]);
     expect(groups.find((group) => group.name === "Reject")?.proxies?.slice(0, 2)).toEqual(["REJECT", "DIRECT"]);
     expect(providers.relative?.url).toBe("https://rules.example.com/geosite/relative.mrs");
     expect(providers.absolute?.url).toBe("https://rules.example.com/absolute.mrs");

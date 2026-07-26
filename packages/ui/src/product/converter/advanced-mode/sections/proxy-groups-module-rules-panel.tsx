@@ -15,7 +15,7 @@ import {
   isModuleRuleMovedFrom,
   type HiddenPresetRuleIds,
 } from "@subboost/core/generator/module-rules";
-import { EXPERIMENTAL_CN_RULE } from "@subboost/core/generator/rules";
+import { EXPERIMENTAL_CN_RULE, isPinnedModule } from "@subboost/core/generator/rules";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { cn } from "@subboost/ui/lib/utils";
 import { useProductApiAdapter } from "@subboost/ui/product/api-adapter";
@@ -31,7 +31,6 @@ import {
   isRuleSetMoveTarget,
   type RuleSetMoveTarget,
 } from "./proxy-group-rule-row";
-import { CnIpNoResolveHelpButton, ExperimentalCnRuleHelpButton } from "./proxy-groups-module-rules-help";
 
 type MoveTarget = { kind: "module" | "custom"; id: string };
 type ActiveRuleRow = EffectiveModuleRule & { state: "active" };
@@ -182,7 +181,7 @@ export function ProxyGroupsModuleRulesPanel({
   );
   const visibleProxyGroupModules = React.useMemo(() => {
     const hidden = new Set(hiddenProxyGroups);
-    return PROXY_GROUP_MODULES.filter((targetModule) => !hidden.has(targetModule.id));
+    return PROXY_GROUP_MODULES.filter((targetModule) => !hidden.has(targetModule.id) && !isPinnedModule(targetModule.id));
   }, [hiddenProxyGroups]);
   const moduleDisplayName = React.useMemo(
     () => resolveProxyGroupModuleName(module, proxyGroupNameOverrides?.[module.id]),
@@ -345,7 +344,6 @@ export function ProxyGroupsModuleRulesPanel({
                   <>
                     {isCnIpRule && (
                       <div className="flex h-7 shrink-0 items-center gap-1">
-                        <CnIpNoResolveHelpButton />
                         <span className="proxy-group-rule-no-resolve-label text-[10px] text-white/50">no-resolve</span>
                         <Switch checked={cnIpNoResolve} onCheckedChange={onChangeCnIpNoResolve} />
                       </div>
@@ -443,7 +441,6 @@ export function ProxyGroupsModuleRulesPanel({
             <div className="flex shrink-0 items-center justify-end gap-1.5">
               {experimentalCnUseCnRuleSet ? (
                 <>
-                  <ExperimentalCnRuleHelpButton />
                   <ProxyGroupRuleMoveMenu
                     title="移动规则集"
                     ariaLabel={`移动 ${EXPERIMENTAL_CN_RULE.name} 规则集`}

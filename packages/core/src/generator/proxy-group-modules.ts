@@ -30,6 +30,12 @@ export interface ProxyGroupModule {
   description: string;
   groupType: ProxyGroupGroupType;
   rules: ProxyGroupRule[];
+  /**
+   * 常驻后台规则组：标记后该模块不生成代理组、不出现在 UI 核心组列表，
+   * 但其规则始终按固定目标写入 rules / rule-providers，且忽略 builtinRuleEdits。
+   * target 为 "DIRECT"/"REJECT" 或一个模块 id（如 "select"），运行时解析为组名。
+   */
+  pinned?: { target: string };
 }
 export const PROXY_GROUP_MODULES: ProxyGroupModule[] = [
   // ==================== 核心组 ====================
@@ -69,6 +75,7 @@ export const PROXY_GROUP_MODULES: ProxyGroupModule[] = [
     category: "core",
     description: "局域网和私有IP直连",
     groupType: "direct-first",
+    pinned: { target: "DIRECT" },
     rules: [
       { id: "private", name: "私有网络", behavior: "domain", path: "geosite/private.mrs" },
       { id: "private-ip", name: "私有IP", behavior: "ipcidr", path: "geoip/private.mrs", noResolve: true },
@@ -81,6 +88,7 @@ export const PROXY_GROUP_MODULES: ProxyGroupModule[] = [
     category: "core",
     description: "国内网站和服务直连",
     groupType: "direct-first",
+    pinned: { target: "DIRECT" },
     rules: [
       { id: "geolocation-cn", name: "国内域名 (精简)", behavior: "domain", path: "geosite/geolocation-cn.mrs" },
       { id: "cn-ip", name: "国内IP", behavior: "ipcidr", path: "geoip/cn.mrs", noResolve: true },
@@ -93,6 +101,7 @@ export const PROXY_GROUP_MODULES: ProxyGroupModule[] = [
     category: "core",
     description: "非中国域名走代理",
     groupType: "select",
+    pinned: { target: "select" },
     rules: [
       { id: "geolocation-!cn", name: "非中国域名", behavior: "domain", path: "geosite/geolocation-!cn.mrs" },
     ],
@@ -497,4 +506,15 @@ export const PROXY_GROUP_MODULES: ProxyGroupModule[] = [
     ],
   },
 ];
+
+/**
+ * 标记为常驻后台规则的模块 id 集合。
+ */
+export const PINNED_MODULE_IDS: ReadonlySet<string> = new Set(
+  PROXY_GROUP_MODULES.filter((module) => module.pinned).map((module) => module.id)
+);
+
+export function isPinnedModule(moduleId: string): boolean {
+  return PINNED_MODULE_IDS.has(moduleId);
+}
 

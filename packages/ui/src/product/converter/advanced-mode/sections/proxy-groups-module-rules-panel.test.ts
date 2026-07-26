@@ -95,6 +95,7 @@ vi.mock("@subboost/core/generator/rules", () => ({
     behavior: "domain",
     path: "rule-set/experimental-cn.mrs",
   },
+  isPinnedModule: () => false,
 }));
 vi.mock("@subboost/core/proxy-group-name", () => ({
   resolveProxyGroupModuleName: (module: { id: string; name: string }, override?: string) => override || module.name,

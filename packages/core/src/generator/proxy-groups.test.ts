@@ -159,25 +159,22 @@ describe("proxy group generator", () => {
     expect(groups.find((group) => group.name === "🚀 节点选择")?.proxies).toEqual([
       "⚡ 自动选择",
       "DIRECT",
-      "REJECT",
       "Node A",
       "Node B",
     ]);
+    // 业务组默认不再暴露 REJECT（仅 reject-first 保留）
     expect(groups.find((group) => group.name === "Custom one")?.proxies).toEqual([
       "DIRECT",
-      "REJECT",
       "Node A",
       "Node B",
     ]);
     expect(groups.find((group) => group.name === "Custom two")?.proxies).toEqual([
       "DIRECT",
-      "REJECT",
       "Node A",
       "Node B",
     ]);
     expect(groups.find((group) => group.name === "Custom direct")?.proxies).toEqual([
       "DIRECT",
-      "REJECT",
       "Node A",
       "Node B",
     ]);
@@ -214,7 +211,6 @@ describe("proxy group generator", () => {
     expect(groups[0]?.name).toBe("Filtered Group");
     expect(groups.find((group) => group.name === "Filtered Group")?.proxies).toEqual([
       "DIRECT",
-      "REJECT",
       "Node A",
       "Filtered",
     ]);
@@ -227,13 +223,8 @@ describe("proxy group generator", () => {
     expect(groups.find((group) => group.name === "Custom normal")).toMatchObject({ use: ["remote"] });
     expect(groups.find((group) => group.name === "🚀 节点选择")?.proxies).not.toContain("Filtered Group");
     expect(groups.find((group) => group.name === "🚀 节点选择")?.proxies).not.toContain("Custom normal");
-    expect(groups.find((group) => group.name === "🏠 私有网络")?.proxies?.slice(0, 5)).toEqual([
-      "DIRECT",
-      "REJECT",
-      "Filtered Group",
-      "Custom normal",
-      "🚀 节点选择",
-    ]);
+    // 私有网络/国内服务/非中国 为 pinned 后台规则组，不再生成代理组
+    expect(groups.some((group) => group.name === "🏠 私有网络")).toBe(false);
   });
 
   it("keeps filtered-node generated group variants node-scoped and appends inline custom groups without an insert point", () => {
@@ -352,7 +343,15 @@ describe("proxy group generator", () => {
     expect(groups.some((group) => group.name === "Custom disabled")).toBe(false);
     expect(getAllGroupNames(["select"], [disabledGroup])).not.toContain("Custom disabled");
     expect(providers["disabled-rule"]).toBeUndefined();
-    expect(rules).toEqual(["MATCH,DIRECT"]);
+    // pinned 后台规则始终生成（目标 DIRECT，因 availablePolicyTargets 仅含 DIRECT）
+    expect(rules).toEqual([
+      "RULE-SET,private,DIRECT",
+      "RULE-SET,private-ip,DIRECT,no-resolve",
+      "RULE-SET,geolocation-cn,DIRECT",
+      "RULE-SET,cn-ip,DIRECT,no-resolve",
+      "RULE-SET,geolocation-!cn,DIRECT",
+      "MATCH,DIRECT",
+    ]);
   });
 
   it("covers provider target guards and module group type overrides", () => {
@@ -429,8 +428,9 @@ describe("proxy group generator", () => {
       proxies: [],
       use: ["remote"],
     });
-    expect(groups.find((group) => group.name === "🏠 私有网络")?.proxies?.slice(0, 2)).toEqual(["DIRECT", "REJECT"]);
-    expect(groups.find((group) => group.name === "🔒 国内服务")?.proxies?.slice(0, 2)).toEqual(["REJECT", "DIRECT"]);
+    // 私有网络/国内服务 为 pinned 后台规则组，不再生成代理组
+    expect(groups.some((group) => group.name === "🏠 私有网络")).toBe(false);
+    expect(groups.some((group) => group.name === "🔒 国内服务")).toBe(false);
     expect(providers["skip-by-name"]).toBeUndefined();
     expect(providers["relative-path"]).toMatchObject({
       url: "https://rules.example.com/geosite/relative.mrs",

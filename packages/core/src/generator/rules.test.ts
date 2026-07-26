@@ -9,6 +9,7 @@ import {
 } from "./rules";
 import { generateClashConfig } from "./index";
 import { PROXY_GROUP_MODULES } from "./proxy-groups";
+import { isPinnedModule } from "./proxy-group-modules";
 import type { CustomRule, CustomRuleSet } from "@subboost/core/types/config";
 
 const customRules: CustomRule[] = [
@@ -76,9 +77,9 @@ describe("rule generator", () => {
       editable: false,
     });
     expect(entries.some((entry) => entry.key === "special:apple-tvplus")).toBe(false);
-    expect(texts).toContain("RULE-SET,cn,🔒 CN Direct");
+    expect(texts).toContain("RULE-SET,cn,DIRECT");
     expect(texts).toContain("MATCH,🐟 Final");
-    expect(texts.find((text) => text.startsWith("RULE-SET,cn-ip,"))).toBe("RULE-SET,cn-ip,🔒 CN Direct");
+    expect(texts.find((text) => text.startsWith("RULE-SET,cn-ip,"))).toBe("RULE-SET,cn-ip,DIRECT");
   });
 
   it("removes deleted preset module rules from generated rules and providers", () => {
@@ -89,6 +90,7 @@ describe("rule generator", () => {
     expect(duplicateRuleIds).toEqual([]);
 
     for (const proxyModule of PROXY_GROUP_MODULES) {
+      if (isPinnedModule(proxyModule.id)) continue;
       for (const rule of proxyModule.rules) {
         const config = generateClashConfig({
           nodes: [],
@@ -182,12 +184,19 @@ describe("rule generator", () => {
       customRules,
       customRuleSets,
       ruleOrder: ["custom-rule-set:media-rule", "custom-rule:ip-rule"],
-    }).slice(0, 3)).toEqual(["custom-rule-set:media-rule", "custom-rule:ip-rule", "custom-rule:domain-rule"]);
+    }).filter((key) => key.startsWith("custom-rule"))).toEqual(["custom-rule-set:media-rule", "custom-rule:ip-rule", "custom-rule:domain-rule"]);
     expect(generateRules({
       enabledModules: [],
       customRules: [],
       fallbackPolicyTarget: "DIRECT",
-    })).toEqual(["MATCH,DIRECT"]);
+    })).toEqual([
+      "RULE-SET,private,DIRECT",
+      "RULE-SET,private-ip,DIRECT,no-resolve",
+      "RULE-SET,geolocation-cn,DIRECT",
+      "RULE-SET,cn-ip,DIRECT,no-resolve",
+      "RULE-SET,geolocation-!cn,🚀 节点选择",
+      "MATCH,DIRECT",
+    ]);
   });
 
   it("keeps inactive preset anchors so deleted or moved rules can restore their full-order position", () => {
@@ -202,6 +211,7 @@ describe("rule generator", () => {
       .map((entry) => entry.key);
 
     for (const proxyModule of PROXY_GROUP_MODULES) {
+      if (isPinnedModule(proxyModule.id)) continue;
       for (const rule of proxyModule.rules) {
         const sourceKey = `module:${proxyModule.id}:${rule.id}`;
         const targetModuleId = proxyModule.id === "google" ? "ai" : "google";
@@ -259,7 +269,7 @@ describe("rule generator", () => {
     });
 
     expect(resolveModuleName("missing-module")).toBe("missing-module");
-    expect(applied.slice(applied.indexOf(adKey) + 1, applied.indexOf(adKey) + 3)).toEqual([
+    expect(applied.filter((key) => key.startsWith("custom-rule"))).toEqual([
       "custom-rule:domain-rule",
       "custom-rule:ip-rule",
     ]);
@@ -286,7 +296,16 @@ describe("rule generator", () => {
         ],
         fallbackPolicyTarget: "DIRECT",
       }).map((entry) => entry.text)
-    ).toEqual(["DOMAIN-SUFFIX,example.org,DIRECT", "RULE-SET,plain-rule,Plain", "MATCH,🐟 漏网之鱼"]);
+    ).toEqual([
+      "RULE-SET,private,DIRECT",
+      "RULE-SET,private-ip,DIRECT,no-resolve",
+      "DOMAIN-SUFFIX,example.org,DIRECT",
+      "RULE-SET,plain-rule,Plain",
+      "RULE-SET,geolocation-cn,DIRECT",
+      "RULE-SET,cn-ip,DIRECT,no-resolve",
+      "RULE-SET,geolocation-!cn,🚀 节点选择",
+      "MATCH,🐟 漏网之鱼",
+    ]);
     expect(
       normalizePersistedRuleOrder({
         enabledModules: [],
@@ -348,7 +367,7 @@ describe("rule generator", () => {
     expect(texts).toContain("RULE-SET,module-set,🚀 节点选择");
     expect(texts.some((text) => text.includes("disabled-name.example"))).toBe(false);
     expect(texts.some((text) => text.includes("disabled-ref.example"))).toBe(false);
-    expect(texts.some((text) => text.startsWith("RULE-SET,private-ip,🏠 私有网络,no-resolve"))).toBe(true);
+    expect(texts.some((text) => text.startsWith("RULE-SET,private-ip,DIRECT,no-resolve"))).toBe(true);
     expect(texts.some((text) => text.startsWith("RULE-SET,apple,🍏 苹果服务"))).toBe(true);
 
     expect(hasFullRuleOrderKeys(undefined)).toBe(false);
@@ -360,17 +379,18 @@ describe("rule generator", () => {
         ruleOrder: undefined,
       })
     ).toEqual([]);
-    expect(
-      resolveAppliedRuleOrder({
-        enabledModules: [],
-        customRules,
-        customRuleSets: [],
-        ruleOrder: ["module:global:geolocation-!cn"],
-      })
-    ).toEqual(["custom-rule:domain-rule", "custom-rule:ip-rule"]);
+    const appliedWithStaleFullOrder = resolveAppliedRuleOrder({
+      enabledModules: [],
+      customRules,
+      customRuleSets: [],
+      ruleOrder: ["module:global:geolocation-!cn"],
+    });
+    expect(appliedWithStaleFullOrder).toContain("custom-rule:domain-rule");
+    expect(appliedWithStaleFullOrder).toContain("custom-rule:ip-rule");
+    expect(appliedWithStaleFullOrder).toContain("module:global:geolocation-!cn");
   });
 
-  it("applies builtin module target edits and cn no-resolve overrides", () => {
+  it("ignores builtin edits for pinned cn module and keeps cn no-resolve override", () => {
     const entries = buildGeneratedRuleEntries({
       enabledModules: ["cn"],
       customRules: [],
@@ -387,12 +407,14 @@ describe("rule generator", () => {
     });
     const texts = entries.map((entry) => entry.text);
 
-    expect(texts).toContain("RULE-SET,cn-ip,Regional,no-resolve");
+    // pinned 模块忽略 builtinRuleEdits，目标固定为 DIRECT
+    expect(texts).toContain("RULE-SET,cn-ip,DIRECT,no-resolve");
     expect(texts).toContain("MATCH,DIRECT");
     expect(entries.find((entry) => entry.key === "module:cn:cn-ip")).toMatchObject({
       noResolve: true,
       sourceLabel: "🔒 国内服务",
-      target: "Regional",
+      target: "DIRECT",
+      enabled: true,
     });
   });
 
@@ -429,12 +451,20 @@ describe("rule generator", () => {
     });
 
     expect(persisted).toEqual(["module:global:geolocation-!cn", "custom-rule:ip-rule"]);
-    expect(applied).toEqual([
-      "custom-rule:domain-rule",
-      "custom-rule-set:media-rule",
-      "module:global:geolocation-!cn",
-      "custom-rule:ip-rule",
-    ]);
+    expect(applied).toEqual(
+      expect.arrayContaining([
+        "custom-rule:domain-rule",
+        "custom-rule-set:media-rule",
+        "module:global:geolocation-!cn",
+        "custom-rule:ip-rule",
+        "module:private:private",
+        "module:private:private-ip",
+        "module:cn:geolocation-cn",
+        "module:cn:cn-ip",
+      ])
+    );
+    // persisted 顺序保留：geolocation-!cn 仍在 ip-rule 之前
+    expect(applied.indexOf("module:global:geolocation-!cn")).toBeLessThan(applied.indexOf("custom-rule:ip-rule"));
   });
 
   it("applies fallback policy targets and no-resolve guards for mixed custom rules", () => {

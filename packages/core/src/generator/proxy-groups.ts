@@ -18,7 +18,7 @@ import type {
 import { resolveProxyGroupMembers } from "@subboost/core/proxy-group-advanced";
 import { isSubscriptionInfoNodeName } from "@subboost/core/subscription/info-node-name";
 
-import { PROXY_GROUP_MODULES, type ProxyGroupModule, type ProxyGroupRule } from "./proxy-group-modules";
+import { PROXY_GROUP_MODULES, isPinnedModule, type ProxyGroupModule, type ProxyGroupRule } from "./proxy-group-modules";
 import {
   EXPERIMENTAL_CN_RULE,
   generateRules,
@@ -179,32 +179,32 @@ export function generateProxyGroups(options: GenerateOptions): ProxyGroup[] {
     return out;
   };
   const fallbackTargets = (...targets: unknown[]) => policyTargets(...targets, "DIRECT", "REJECT");
+  // 业务组默认不暴露 REJECT（仅 reject-first 组与 availableMemberProxyNames 保留）
+  const fallbackTargetsWithoutReject = (...targets: unknown[]) => policyTargets(...targets, "DIRECT");
   const selectTarget = enabledModuleTarget("select");
   const autoTarget = enabledModuleTarget("auto");
   const moduleBaseProxies = selectTarget
-    ? fallbackTargets(
+    ? fallbackTargetsWithoutReject(
         selectTarget,
         autoTarget,
         "DIRECT",
-        "REJECT",
         ...customGroupNames,
         ...filteredNodeNames
       )
-    : fallbackTargets(
+    : fallbackTargetsWithoutReject(
         autoTarget,
         ...customGroupNames,
         ...filteredNodeNames,
-        "DIRECT",
-        "REJECT"
+        "DIRECT"
       );
-  const customBaseProxies = fallbackTargets("DIRECT", "REJECT", ...filteredNodeNames);
+  const customBaseProxies = fallbackTargetsWithoutReject("DIRECT", ...filteredNodeNames);
   const availableMemberProxyNames = fallbackTargets(
     "DIRECT",
     "REJECT",
     autoTarget,
     selectTarget,
     ...filteredNodeNames,
-    ...PROXY_GROUP_MODULES.filter((module) => enabledSet.has(module.id)).map((module) => moduleNames[module.id]),
+    ...PROXY_GROUP_MODULES.filter((module) => enabledSet.has(module.id) && !isPinnedModule(module.id)).map((module) => moduleNames[module.id]),
     ...customGroupNames,
   );
 
@@ -248,10 +248,9 @@ export function generateProxyGroups(options: GenerateOptions): ProxyGroup[] {
     switch (groupType) {
       case "select":
         if (module.id === "select") {
-          const defaultProxies = fallbackTargets(
+          const defaultProxies = fallbackTargetsWithoutReject(
             autoTarget,
             "DIRECT",
-            "REJECT",
             ...nodeNames
           );
           groups.push({
@@ -335,9 +334,8 @@ export function generateProxyGroups(options: GenerateOptions): ProxyGroup[] {
 
       case "direct-first":
         {
-          const defaultProxies = fallbackTargets(
+          const defaultProxies = fallbackTargetsWithoutReject(
             "DIRECT",
-            "REJECT",
             ...customGroupNames,
             selectTarget,
             autoTarget,
@@ -385,7 +383,7 @@ export function generateProxyGroups(options: GenerateOptions): ProxyGroup[] {
         type: "select",
         proxies: customGroup.groupType === "reject-first"
           ? resolveCustom(["REJECT", "DIRECT", ...filteredNodeNames])
-          : resolveCustom(["DIRECT", "REJECT", ...filteredNodeNames]),
+          : resolveCustom(["DIRECT", ...filteredNodeNames]),
       };
     }
     if (customGroup.groupType === "url-test") {
@@ -407,7 +405,7 @@ export function generateProxyGroups(options: GenerateOptions): ProxyGroup[] {
         name: customGroup.name,
         type: "select",
         proxies: resolveCustom(
-          fallbackTargets("DIRECT", "REJECT", ...filteredNodeNames).filter(
+          fallbackTargetsWithoutReject("DIRECT", ...filteredNodeNames).filter(
             (target) => target !== customGroup.name
           )
         ),
@@ -450,6 +448,7 @@ export function generateProxyGroups(options: GenerateOptions): ProxyGroup[] {
     }
 
     if (!enabledSet.has(moduleId)) continue;
+    if (isPinnedModule(moduleId)) continue;
     
     const proxyModule = PROXY_GROUP_MODULES.find(m => m.id === moduleId);
     if (!proxyModule) continue;
@@ -460,6 +459,7 @@ export function generateProxyGroups(options: GenerateOptions): ProxyGroup[] {
 
   // 处理不在 PROXY_GROUP_ORDER 中的模块（按原始顺序添加到末尾）
   for (const proxyModule of PROXY_GROUP_MODULES) {
+    if (isPinnedModule(proxyModule.id)) continue;
     if (!enabledSet.has(proxyModule.id)) continue;
     if (processedModules.has(proxyModule.id)) continue;
     
@@ -492,11 +492,11 @@ export function generateRuleProviders(options: GenerateOptions): Record<string, 
 
   // 预设模块的规则
   for (const proxyModule of PROXY_GROUP_MODULES) {
-    if (!enabledSet.has(proxyModule.id)) continue;
+    if (!isPinnedModule(proxyModule.id) && !enabledSet.has(proxyModule.id)) continue;
 
     for (const rule of proxyModule.rules) {
       const edit = builtinRuleEdits?.[getModuleRuleOrderKey(proxyModule.id, rule.id)];
-      if (edit?.enabled === false) continue;
+      if (!isPinnedModule(proxyModule.id) && edit?.enabled === false) continue;
       providers[rule.id] = {
         type: "http",
         behavior: rule.behavior,
@@ -508,7 +508,7 @@ export function generateRuleProviders(options: GenerateOptions): Record<string, 
     }
   }
 
-  if (options.experimentalCnUseCnRuleSet && enabledSet.has("cn") && !providers[EXPERIMENTAL_CN_RULE.id]) {
+  if (options.experimentalCnUseCnRuleSet && !providers[EXPERIMENTAL_CN_RULE.id]) {
     providers[EXPERIMENTAL_CN_RULE.id] = {
       type: "http",
       behavior: EXPERIMENTAL_CN_RULE.behavior,
@@ -562,7 +562,7 @@ export function getGroupTarget(groupId: string): string {
  */
 export function getAllGroupNames(enabledModules: string[], customProxyGroups: CustomProxyGroup[] = []): string[] {
   const names = PROXY_GROUP_MODULES
-    .filter(m => enabledModules.includes(m.id))
+    .filter(m => enabledModules.includes(m.id) && !isPinnedModule(m.id))
     .map(m => m.name);
   
   // 添加自定义代理组

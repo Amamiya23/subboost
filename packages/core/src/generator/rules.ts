@@ -3,7 +3,7 @@ import type { CustomProxyGroup } from "@subboost/core/types/config";
 import { getCustomRuleOrderKey } from "@subboost/core/rules/custom-rule-utils";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { resolveProxyGroupTargetName } from "@subboost/core/proxy-group-targets";
-import { PROXY_GROUP_MODULES, type ProxyGroupModule, type ProxyGroupRule } from "./proxy-group-modules";
+import { PROXY_GROUP_MODULES, isPinnedModule, type ProxyGroupModule, type ProxyGroupRule } from "./proxy-group-modules";
 import { getEffectiveModuleRules, getModuleRuleOrderKey } from "./module-rules";
 import { createPolicyTargetResolver } from "./policy-targets";
 
@@ -101,7 +101,18 @@ export function resolveModuleNameFromModule(module: ProxyGroupModule, overrides?
   return resolveModuleName(module.id, overrides);
 }
 
-export { getEffectiveModuleRules };
+/**
+ * 解析 pinned 模块规则的固定目标字符串。
+ * "DIRECT"/"REJECT" 原样返回；否则按模块 id 解析为组名（受 overrides 影响）。
+ */
+export function resolvePinnedTarget(moduleId: string, overrides?: Record<string, string>): string {
+  const proxyModule = PROXY_GROUP_MODULES.find((m) => m.id === moduleId);
+  const target = proxyModule?.pinned?.target ?? "DIRECT";
+  if (target === "DIRECT" || target === "REJECT") return target;
+  return resolveModuleName(target, overrides);
+}
+
+export { getEffectiveModuleRules, isPinnedModule };
 
 function buildModuleNameMap(overrides?: Record<string, string>): Record<string, string> {
   return Object.fromEntries(
@@ -144,14 +155,18 @@ function buildModuleRuleEntry(
   resolvePolicyTarget: (target: string) => string = (target) => target
 ): GeneratedRuleEntry {
   const key = getModuleRuleOrderKey(module.id, rule.id);
+  const pinned = isPinnedModule(module.id);
   const edit = builtinRuleEdits?.[key];
-  const defaultTarget = resolveModuleNameFromModule(module, proxyGroupNameOverrides);
+  const moduleLabel = resolveModuleNameFromModule(module, proxyGroupNameOverrides);
   const moduleNames = buildModuleNameMap(proxyGroupNameOverrides);
-  const targetName = resolveProxyGroupTargetName(edit?.target || defaultTarget, {
-    moduleNames,
-    customProxyGroups,
-    fallbackTarget: defaultTarget,
-  });
+  // pinned 模块：目标写死、忽略 builtinRuleEdits、始终启用
+  const targetName = pinned
+    ? resolvePinnedTarget(module.id, proxyGroupNameOverrides)
+    : resolveProxyGroupTargetName(edit?.target || moduleLabel, {
+        moduleNames,
+        customProxyGroups,
+        fallbackTarget: moduleLabel,
+      });
   const target = resolvePolicyTarget(targetName);
   const noResolve =
     module.id === "cn" && rule.id === "cn-ip" && typeof cnIpNoResolve === "boolean"
@@ -164,12 +179,12 @@ function buildModuleRuleEntry(
     key,
     text,
     kind: "module",
-    sourceLabel: defaultTarget,
+    sourceLabel: moduleLabel,
     summary: rule.name,
     target,
     noResolve,
     editable: false,
-    enabled: edit?.enabled !== false,
+    enabled: pinned ? true : edit?.enabled !== false,
   };
 }
 
@@ -380,9 +395,27 @@ function buildCanonicalRuleEntries(options: Omit<RulesGenerateOptions, "ruleOrde
   const moduleNames = buildModuleNameMap(proxyGroupNameOverrides);
   const activeCustomProxyGroups = getEnabledCustomProxyGroups(customProxyGroups);
   const resolvePolicyTarget = createPolicyTargetResolver({ availablePolicyTargets, fallbackPolicyTarget });
+  // customRuleSets 曾被「移动」进 pinned 组（target=组名）的，重定向到该组的固定目标
+  const pinnedNameToModuleId = new Map<string, string>();
+  for (const proxyModule of PROXY_GROUP_MODULES) {
+    if (proxyModule.pinned) {
+      pinnedNameToModuleId.set(resolveModuleNameFromModule(proxyModule, proxyGroupNameOverrides), proxyModule.id);
+    }
+  }
+  const remapCustomRuleSetTarget = (ruleSet: CustomRuleSetLike): CustomRuleSetLike => {
+    const name = resolveProxyGroupTargetName(ruleSet.target, {
+      moduleNames,
+      customProxyGroups: activeCustomProxyGroups,
+    });
+    const pinnedId = pinnedNameToModuleId.get(name);
+    if (!pinnedId) return ruleSet;
+    return { ...ruleSet, target: resolvePinnedTarget(pinnedId, proxyGroupNameOverrides) };
+  };
   const editableEntries = buildOrderedEditableEntries(
     customRules.filter((rule) => !customTargetIsDisabled(rule.target, customProxyGroups)),
-    customRuleSets.filter((ruleSet) => !customTargetIsDisabled(ruleSet.target, customProxyGroups)),
+    customRuleSets
+      .filter((ruleSet) => !customTargetIsDisabled(ruleSet.target, customProxyGroups))
+      .map(remapCustomRuleSetTarget),
     undefined,
     moduleNames,
     activeCustomProxyGroups,
@@ -435,7 +468,7 @@ function buildCanonicalRuleEntries(options: Omit<RulesGenerateOptions, "ruleOrde
       pushAppleTvPlusAtCanonicalPosition();
     }
 
-    if (!enabledSet.has(moduleId)) continue;
+    if (!isPinnedModule(moduleId) && !enabledSet.has(moduleId)) continue;
     processedModules.add(moduleId);
 
     const ruleModule = PROXY_GROUP_MODULES.find((item) => item.id === moduleId);
@@ -447,7 +480,7 @@ function buildCanonicalRuleEntries(options: Omit<RulesGenerateOptions, "ruleOrde
   }
 
   for (const ruleModule of PROXY_GROUP_MODULES) {
-    if (!enabledSet.has(ruleModule.id)) continue;
+    if (!isPinnedModule(ruleModule.id) && !enabledSet.has(ruleModule.id)) continue;
     if (processedModules.has(ruleModule.id)) continue;
     if (ruleModule.id === "final") continue;
 
@@ -458,8 +491,9 @@ function buildCanonicalRuleEntries(options: Omit<RulesGenerateOptions, "ruleOrde
 
   pushEditableEntries();
 
-  if (Boolean(experimentalCnUseCnRuleSet) && enabledSet.has("cn")) {
-    const target = resolvePolicyTarget(resolveModuleName("cn", proxyGroupNameOverrides));
+  // 实验性 cn 规则：cn 现为 pinned（始终 DIRECT），开关开启时追加一条指向 DIRECT 的兜底
+  if (Boolean(experimentalCnUseCnRuleSet)) {
+    const target = resolvePolicyTarget(resolvePinnedTarget("cn", proxyGroupNameOverrides));
     entries.push(
       buildSpecialRuleEntry("special:experimental-cn", `RULE-SET,${EXPERIMENTAL_CN_RULE.id},${target}`, EXPERIMENTAL_CN_RULE.name, target)
     );

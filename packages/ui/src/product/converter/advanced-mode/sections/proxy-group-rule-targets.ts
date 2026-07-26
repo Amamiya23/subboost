@@ -1,4 +1,5 @@
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
+import { isPinnedModule } from "@subboost/core/generator/rules";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { resolveProxyGroupTargetName } from "@subboost/core/proxy-group-targets";
 import type { CustomProxyGroup, CustomRule } from "@subboost/core/types/config";
@@ -55,6 +56,7 @@ export function buildManualRuleTargets({
 
   for (const proxyModule of PROXY_GROUP_MODULES) {
     if (!enabled.has(proxyModule.id) || hidden.has(proxyModule.id)) continue;
+    if (isPinnedModule(proxyModule.id)) continue;
     targets.push({
       kind: "module",
       id: proxyModule.id,

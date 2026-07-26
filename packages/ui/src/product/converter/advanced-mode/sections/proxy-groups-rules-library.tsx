@@ -15,6 +15,7 @@ import {
 import { toast } from "@subboost/ui/components/ui/toaster";
 import { cn } from "@subboost/ui/lib/utils";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
+import { isPinnedModule } from "@subboost/core/generator/rules";
 import { getModuleRuleOrderKey } from "@subboost/core/generator/module-rules";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { resolveProxyGroupTargetName } from "@subboost/core/proxy-group-targets";
@@ -61,7 +62,7 @@ export function ProxyGroupsRulesLibrary() {
   );
   const visibleProxyGroupModules = React.useMemo(() => {
     const hidden = new Set(hiddenProxyGroups);
-    return PROXY_GROUP_MODULES.filter((module) => !hidden.has(module.id));
+    return PROXY_GROUP_MODULES.filter((module) => !hidden.has(module.id) && !isPinnedModule(module.id));
   }, [hiddenProxyGroups]);
   const activeCustomProxyGroups = React.useMemo(
     () => customProxyGroups.filter((group) => group.enabled !== false),

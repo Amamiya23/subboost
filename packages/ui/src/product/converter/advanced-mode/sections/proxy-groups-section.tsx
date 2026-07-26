@@ -4,6 +4,7 @@ import * as React from "react";
 import { Layers } from "lucide-react";
 import { Badge } from "@subboost/ui/components/ui/badge";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
+import { isPinnedModule } from "@subboost/core/generator/rules";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 import { SectionHeader } from "../section-header";
 import { ProxyGroupsCategories } from "./proxy-groups-categories";
@@ -17,8 +18,9 @@ export function ProxyGroupsSection({
 }) {
   const { enabledProxyGroups, hiddenProxyGroups } = useConfigStore();
   const hiddenIds = new Set(hiddenProxyGroups);
-  const enabledCount = enabledProxyGroups.filter((id) => !hiddenIds.has(id)).length;
-  const totalCount = PROXY_GROUP_MODULES.filter((module) => !hiddenIds.has(module.id)).length;
+  const isEnabledAndVisible = (id: string) => !hiddenIds.has(id) && !isPinnedModule(id);
+  const enabledCount = enabledProxyGroups.filter(isEnabledAndVisible).length;
+  const totalCount = PROXY_GROUP_MODULES.filter((module) => isEnabledAndVisible(module.id)).length;
 
   return (
     <div>
