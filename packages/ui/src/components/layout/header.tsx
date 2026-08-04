@@ -135,6 +135,7 @@ export function Header({
                 alt="SubBoost"
                 width={28}
                 height={28}
+                priority
                 className="rounded-md transition-opacity group-hover:opacity-90"
               />
               <span className="hidden text-[15px] font-semibold leading-none tracking-tight text-white sm:inline-flex">
