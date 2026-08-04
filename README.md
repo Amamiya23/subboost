@@ -1,30 +1,6 @@
-<!-- markdownlint-disable MD033 MD041 -->
-<div align="center">
-  <p><img src="docs/assets/logo.png" alt="SubBoost" width="96"></p>
-  <h1>SubBoost · Cloudflare Workers 版</h1>
-  <p>
-    <img src="https://img.shields.io/badge/platform-Cloudflare%20Workers-F38020.svg" alt="平台：Cloudflare Workers">
-    <img src="https://img.shields.io/badge/runtime-D1%20Edge-blue.svg" alt="运行时：D1 边缘数据库">
-    <img src="https://img.shields.io/badge/tier-Free%20(%E2%89%A4%203%20MiB)-brightgreen.svg" alt="免费套餐（≤ 3 MiB）">
-    <img src="https://img.shields.io/badge/license-AGPL--3.0--only-red.svg" alt="AGPL-3.0-only">
-  </p>
-</div>
-<!-- markdownlint-enable MD033 MD041 -->
-
 **SubBoost** 是一个 **Clash/Mihomo 订阅转换、增强和管理** 工具。本分支专为零成本部署优化，可运行在 **Cloudflare Workers 免费套餐** 上，使用 **D1（SQLite 边缘数据库）** 作为存储。Worker bundle gzip 体积约 **1.66 MiB**，远低于免费版 3 MiB 上限。
 
 > 本分支为 Workers 专用，移除了原 Docker/PostgreSQL 部署路径。需要 Docker 版本请前往上游 [`SubBoost/subboost`](https://github.com/SubBoost/subboost)。
-
-## 亮点
-
-- **订阅转换**：支持订阅链接、YAML 文件和节点链接等多种格式导入。
-- **节点管理**：支持批量重命名、删除或配置监听端口。
-- **节点筛选**：可在分流组高级模式中按导入源、地区和自定义规则筛选节点。
-- **链式代理**：一键可视化配置链式代理和中转代理组。
-- **精确分流**：内置 30 多个常用代理组和 2000 多条远程规则集。
-- **规则管理**：可修改规则顺序，深度自定义。
-- **防 DNS 泄露**：默认基础和 DNS 配置可防止 DNS 泄露。
-- **自动刷新**：定时自动刷新订阅，智能匹配节点（Workers Cron 触发）。
 
 ## 部署到 Cloudflare Workers（免费版）
 
@@ -233,24 +209,7 @@ npm run local:typecheck
         定时订阅刷新 / 规则索引更新
 ```
 
-- **框架**：Next.js 16 + OpenNext for Cloudflare
-- **数据库**：Cloudflare D1（SQLite 边缘数据库，免费版 5 GB）
-- **认证**：`jose`（JWT）+ `bcryptjs`（密码哈希），均为 Workers 兼容
-- **加密**：Web Crypto API（v3 格式），支持读取原 Node.js v2 格式加密字段
-- **定时任务**：Workers Cron Triggers
-
 ## 相关链接
 
 - 上游项目：[SubBoost/subboost](https://github.com/SubBoost/subboost)（Docker/PostgreSQL 版本）
-- Cloudflare Workers 文档：[workers.cloudflare.com](https://developers.cloudflare.com/workers/)
-- D1 文档：[developers.cloudflare.com/d1](https://developers.cloudflare.com/d1/)
 
-## 开源许可
-
-SubBoost 公开源码以 [GNU Affero General Public License v3.0 only](./LICENSE) 授权。
-
-如果你修改 SubBoost 并通过网络向用户提供服务，AGPL-3.0 要求你向这些用户提供对应源码。
-
-## 免责声明
-
-本项目不提供任何代理服务，不对第三方订阅内容的可用性与合法性作出保证。
