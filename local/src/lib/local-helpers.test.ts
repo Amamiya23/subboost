@@ -14,12 +14,11 @@ const mocks = vi.hoisted(() => {
     | undefined;
 
   return {
-    prisma: {
-      localAdmin: {
-        findUnique: vi.fn(),
-        count: vi.fn(),
-      },
-    },
+    dbQueryOne: vi.fn(),
+    dbQuery: vi.fn(),
+    dbExecute: vi.fn(),
+    dbBatch: vi.fn(),
+    generateId: vi.fn(),
     readSession: vi.fn(),
     encryptEncryptedFieldV3: vi.fn(),
     decryptEncryptedFieldV3: vi.fn(),
@@ -40,7 +39,13 @@ const mocks = vi.hoisted(() => {
 });
 
 vi.mock("server-only", () => ({}));
-vi.mock("./prisma", () => ({ prisma: mocks.prisma }));
+vi.mock("./db", () => ({
+  dbQueryOne: mocks.dbQueryOne,
+  dbQuery: mocks.dbQuery,
+  dbExecute: mocks.dbExecute,
+  dbBatch: mocks.dbBatch,
+  generateId: mocks.generateId,
+}));
 vi.mock("./session", () => ({ readSession: mocks.readSession }));
 vi.mock("@subboost/server-core/crypto", () => ({
   encryptEncryptedFieldV3: mocks.encryptEncryptedFieldV3,
@@ -144,14 +149,14 @@ describe("local lib helpers", () => {
     await expect(getCurrentAdmin()).resolves.toBeNull();
 
     mocks.readSession.mockResolvedValueOnce({ adminId: "admin-1" });
-    mocks.prisma.localAdmin.findUnique.mockResolvedValueOnce({ id: "admin-1", username: "root" });
+    mocks.dbQueryOne.mockResolvedValueOnce({ id: "admin-1", username: "root" });
     await expect(getCurrentAdmin()).resolves.toEqual({ id: "admin-1", username: "root" });
-    expect(mocks.prisma.localAdmin.findUnique).toHaveBeenCalledWith({
-      where: { id: "admin-1" },
-      select: { id: true, username: true },
-    });
+    expect(mocks.dbQueryOne).toHaveBeenCalledWith(
+      "SELECT id, username FROM LocalAdmin WHERE id = ?",
+      "admin-1",
+    );
 
-    mocks.prisma.localAdmin.count.mockResolvedValueOnce(0).mockResolvedValueOnce(1);
+    mocks.dbQueryOne.mockResolvedValueOnce({ count: 0 }).mockResolvedValueOnce({ count: 1 });
     await expect(isSetupRequired()).resolves.toBe(true);
     await expect(isSetupRequired()).resolves.toBe(false);
   });

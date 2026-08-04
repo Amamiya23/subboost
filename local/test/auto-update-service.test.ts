@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { refreshNodeSnapshot } from "@subboost/server-core/subscription";
-import { prisma } from "@local/lib/prisma";
+import { dbQuery, dbBatch } from "@local/lib/db";
 import { runLocalSubscriptionAutoUpdateCron } from "@local/lib/auto-update-service";
 
 vi.mock("@local/lib/crypto", () => ({
@@ -13,17 +13,13 @@ vi.mock("@local/lib/crypto", () => ({
   encryptJson: vi.fn((value: unknown) => `encrypted:${JSON.stringify(value)}`),
 }));
 
-vi.mock("@local/lib/prisma", () => ({
-  prisma: {
-    subscription: {
-      findMany: vi.fn(),
-      update: vi.fn(async (args) => args),
-    },
-    subscriptionAutoUpdateState: {
-      upsert: vi.fn(async (args) => args),
-    },
-    $transaction: vi.fn(async (operations: Array<Promise<unknown>>) => Promise.all(operations)),
-  },
+vi.mock("@local/lib/db", () => ({
+  dbQuery: vi.fn(),
+  dbExecute: vi.fn(),
+  dbBatch: vi.fn(),
+  dbQueryOne: vi.fn(),
+  generateId: vi.fn(() => "test-id"),
+  stmt: (sql: string, ...binds: unknown[]) => ({ sql, binds }),
 }));
 
 vi.mock("@subboost/server-core/subscription", async (importActual) => {
@@ -42,13 +38,24 @@ const node = {
   password: "secret",
 };
 
-function subscription(overrides: Record<string, unknown> = {}) {
+function scheduleRawRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "sub-1",
+    autoUpdateInterval: 3600,
+    createdAt: "2026-06-01T00:00:00.000Z",
+    lastUpdatedAt: null,
+    state_lastAttemptedAt: null,
+    ...overrides,
+  };
+}
+
+function fullRawRow(overrides: Record<string, unknown> = {}) {
   return {
     id: "sub-1",
     ownerId: "admin-1",
     name: "Main",
     token: "token-1",
-    isPrimary: false,
+    isPrimary: 0,
     encryptedUrls: 'json:["https://example.com/sub.yaml"]',
     encryptedNodes: "json:[]",
     encryptedConfig: 'json:{"sources":[{"id":"src-1","type":"url","content":"https://example.com/sub.yaml"}]}',
@@ -57,36 +64,45 @@ function subscription(overrides: Record<string, unknown> = {}) {
     cacheExpiresAt: null,
     lastAccessedAt: null,
     lastUpdatedAt: null,
-    createdAt: new Date("2026-06-01T00:00:00.000Z"),
-    updatedAt: new Date("2026-06-01T00:00:00.000Z"),
-    owner: { username: "root" },
-    autoUpdateState: null,
+    createdAt: "2026-06-01T00:00:00.000Z",
+    updatedAt: "2026-06-01T00:00:00.000Z",
+    state_externalFailureCount: null,
+    state_failureSourceState: null,
+    state_lastFailedAt: null,
+    state_lastAttemptedAt: null,
+    state_disabledAt: null,
+    state_disabledReason: null,
+    state_disabledPreviousInterval: null,
+    owner_username: "root",
     ...overrides,
   };
 }
 
 beforeEach(() => {
-  vi.mocked(prisma.subscription.findMany).mockReset();
-  vi.mocked(prisma.subscription.update).mockClear();
-  vi.mocked(prisma.subscriptionAutoUpdateState.upsert).mockClear();
-  vi.mocked(prisma.$transaction).mockClear();
+  vi.mocked(dbQuery).mockReset();
+  vi.mocked(dbBatch).mockReset();
   vi.mocked(refreshNodeSnapshot).mockReset();
 });
 
 describe("local subscription auto-update service", () => {
   it("skips subscriptions that are not due yet", async () => {
-    vi.mocked(prisma.subscription.findMany).mockResolvedValue([
-      subscription({ createdAt: new Date("2026-06-02T00:00:00.000Z"), lastUpdatedAt: new Date("2026-06-02T00:00:00.000Z") }),
+    vi.mocked(dbQuery).mockResolvedValueOnce([
+      scheduleRawRow({
+        createdAt: "2026-06-02T00:00:00.000Z",
+        lastUpdatedAt: "2026-06-02T00:00:00.000Z",
+      }),
     ] as never);
 
     const summary = await runLocalSubscriptionAutoUpdateCron(new Date("2026-06-02T00:30:00.000Z"));
     expect(summary.results).toMatchObject({ total: 1, updated: 0, skipped: 1, failed: 0 });
     expect(refreshNodeSnapshot).not.toHaveBeenCalled();
-    expect(prisma.subscription.update).not.toHaveBeenCalled();
+    expect(dbBatch).not.toHaveBeenCalled();
   });
 
   it("refreshes due subscriptions and persists the refreshed cache", async () => {
-    vi.mocked(prisma.subscription.findMany).mockResolvedValue([subscription()] as never);
+    vi.mocked(dbQuery)
+      .mockResolvedValueOnce([scheduleRawRow()] as never)
+      .mockResolvedValueOnce([fullRawRow()] as never);
     vi.mocked(refreshNodeSnapshot).mockResolvedValue({
       nodes: [node],
       subscriptionInfo: { upload: 0, download: 0, total: 1024 },
@@ -110,26 +126,19 @@ describe("local subscription auto-update service", () => {
         storedNodes: [],
       })
     );
-    expect(prisma.subscription.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: "sub-1" },
-        data: expect.objectContaining({
-          encryptedNodes: expect.stringContaining("node-a"),
-          encryptedConfig: expect.stringContaining("src-1"),
-          lastUpdatedAt: expect.any(Date),
-          cacheExpiresAt: expect.any(Date),
+    expect(dbBatch).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sql: expect.stringContaining("UPDATE Subscription"),
+          binds: expect.arrayContaining([
+            expect.stringContaining("node-a"),
+            expect.stringContaining("src-1"),
+          ]),
         }),
-      })
-    );
-    expect(prisma.subscriptionAutoUpdateState.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { subscriptionId: "sub-1" },
-        update: expect.objectContaining({
-          externalFailureCount: 0,
-          lastAttemptedAt: expect.any(Date),
+        expect.objectContaining({
+          sql: expect.stringContaining("INSERT INTO SubscriptionAutoUpdateState"),
         }),
-      })
+      ])
     );
   });
 });
-

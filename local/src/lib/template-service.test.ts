@@ -9,14 +9,10 @@ const mocks = vi.hoisted(() => ({
   validateSubBoostTemplateConfig: vi.fn(),
   decryptJsonObject: vi.fn(),
   encryptJson: vi.fn(),
-  prisma: {
-    localTemplate: {
-      findMany: vi.fn(),
-      findFirst: vi.fn(),
-      create: vi.fn(),
-      delete: vi.fn(),
-    },
-  },
+  dbQuery: vi.fn(),
+  dbExecute: vi.fn(),
+  dbBatch: vi.fn(),
+  generateId: vi.fn(() => "test-id"),
 }));
 
 vi.mock("@subboost/core/config/defaults", () => ({
@@ -35,7 +31,12 @@ vi.mock("./crypto", () => ({
   decryptJsonObject: mocks.decryptJsonObject,
   encryptJson: mocks.encryptJson,
 }));
-vi.mock("./prisma", () => ({ prisma: mocks.prisma }));
+vi.mock("./db", () => ({
+  dbQuery: mocks.dbQuery,
+  dbExecute: mocks.dbExecute,
+  dbBatch: mocks.dbBatch,
+  generateId: mocks.generateId,
+}));
 
 import { createTemplate, deleteTemplate, getTemplateDetail, listTemplates } from "./template-service";
 
@@ -46,8 +47,8 @@ function row(overrides: Record<string, unknown> = {}) {
     name: "Local Template",
     description: "desc",
     encryptedConfig: "encrypted",
-    createdAt: new Date("2026-01-01T00:00:00.000Z"),
-    updatedAt: new Date("2026-01-02T00:00:00.000Z"),
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-02T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -76,6 +77,8 @@ describe("local template service", () => {
     mocks.decryptJsonObject.mockReturnValue({ enabledProxyGroups: ["auto"], ruleOrder: ["MATCH"] });
     mocks.encryptJson.mockReturnValue("encrypted-new");
     mocks.validateSubBoostTemplateConfig.mockReturnValue({ ok: true, config: { rules: [] } });
+    mocks.dbQuery.mockResolvedValue([]);
+    mocks.dbExecute.mockResolvedValue(1);
   });
 
   it("lists built-in templates and owner templates", async () => {
@@ -91,7 +94,7 @@ describe("local template service", () => {
 
     await expect(listTemplates(null, "my")).rejects.toThrow("Authentication required.");
 
-    mocks.prisma.localTemplate.findMany.mockResolvedValueOnce([row()]);
+    mocks.dbQuery.mockResolvedValueOnce([row()]);
     await expect(listTemplates("owner-1", "my", ["local-1"])).resolves.toEqual([
       {
         id: "local-1",
@@ -108,10 +111,11 @@ describe("local template service", () => {
         ruleCount: 1,
       },
     ]);
-    expect(mocks.prisma.localTemplate.findMany).toHaveBeenCalledWith({
-      where: { ownerId: "owner-1", id: { in: ["local-1"] } },
-      orderBy: { updatedAt: "desc" },
-    });
+    expect(mocks.dbQuery).toHaveBeenCalledWith(
+      expect.stringContaining("FROM LocalTemplate WHERE ownerId = ? AND id IN"),
+      "owner-1",
+      "local-1",
+    );
   });
 
   it("loads built-in and local template details", async () => {
@@ -125,7 +129,7 @@ describe("local template service", () => {
 
     await expect(getTemplateDetail(null, "local-1")).rejects.toThrow("Authentication required.");
 
-    mocks.prisma.localTemplate.findFirst.mockResolvedValueOnce(row({ description: null }));
+    mocks.dbQuery.mockResolvedValueOnce([row({ description: null })]);
     await expect(getTemplateDetail("owner-1", "local-1")).resolves.toEqual({
       id: "local-1",
       name: "Local Template",
@@ -134,7 +138,7 @@ describe("local template service", () => {
       config: { enabledProxyGroups: ["auto"], ruleOrder: ["MATCH"] },
     });
 
-    mocks.prisma.localTemplate.findFirst.mockResolvedValueOnce(null);
+    mocks.dbQuery.mockResolvedValueOnce([]);
     await expect(getTemplateDetail("owner-1", "missing")).resolves.toBeNull();
   });
 
@@ -145,7 +149,7 @@ describe("local template service", () => {
     mocks.validateSubBoostTemplateConfig.mockReturnValueOnce({ ok: false, error: "bad config" });
     await expect(createTemplate("owner-1", { name: "Template", config: {} })).rejects.toThrow("bad config");
 
-    mocks.prisma.localTemplate.create.mockResolvedValueOnce(row({ name: "Template", description: "saved" }));
+    mocks.generateId.mockReturnValueOnce("local-1");
     await expect(
       createTemplate("owner-1", {
         name: " Template ",
@@ -156,26 +160,31 @@ describe("local template service", () => {
       expect.objectContaining({
         id: "local-1",
         name: "Template",
-        description: "saved",
+        description: "x".repeat(500),
       })
     );
-    expect(mocks.prisma.localTemplate.create).toHaveBeenCalledWith({
-      data: {
-        ownerId: "owner-1",
-        name: "Template",
-        description: "x".repeat(500),
-        encryptedConfig: "encrypted-new",
-      },
-    });
+    expect(mocks.dbExecute).toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO LocalTemplate"),
+      "local-1",
+      "owner-1",
+      "Template",
+      "x".repeat(500),
+      "encrypted-new",
+      expect.any(String),
+      expect.any(String),
+    );
   });
 
   it("deletes only templates owned by the current user", async () => {
-    mocks.prisma.localTemplate.findFirst.mockResolvedValueOnce(null);
+    mocks.dbExecute.mockResolvedValueOnce(0);
     await expect(deleteTemplate("owner-1", "missing")).resolves.toBe(false);
 
-    mocks.prisma.localTemplate.findFirst.mockResolvedValueOnce({ id: "local-1" });
-    mocks.prisma.localTemplate.delete.mockResolvedValueOnce(row());
+    mocks.dbExecute.mockResolvedValueOnce(1);
     await expect(deleteTemplate("owner-1", "local-1")).resolves.toBe(true);
-    expect(mocks.prisma.localTemplate.delete).toHaveBeenCalledWith({ where: { id: "local-1" } });
+    expect(mocks.dbExecute).toHaveBeenCalledWith(
+      "DELETE FROM LocalTemplate WHERE id = ? AND ownerId = ?",
+      "local-1",
+      "owner-1",
+    );
   });
 });

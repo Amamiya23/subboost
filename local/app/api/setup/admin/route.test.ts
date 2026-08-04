@@ -5,8 +5,9 @@ const mocks = vi.hoisted(() => ({
   readJsonBody: vi.fn(),
   apiError: vi.fn((message: string, code: string, status: number) => new Response(JSON.stringify({ error: message, code }), { status })),
   getStringField: vi.fn((body: Record<string, unknown>, key: string) => (typeof body[key] === "string" ? String(body[key]).trim() : "")),
-  count: vi.fn(),
-  create: vi.fn(),
+  dbQueryOne: vi.fn(),
+  dbExecute: vi.fn(),
+  generateId: vi.fn(() => "admin-1"),
   signSession: vi.fn(),
   sessionCookieOptions: vi.fn(),
 }));
@@ -17,13 +18,10 @@ vi.mock("@local/lib/http", () => ({
   getStringField: mocks.getStringField,
   readJsonBody: mocks.readJsonBody,
 }));
-vi.mock("@local/lib/prisma", () => ({
-  prisma: {
-    localAdmin: {
-      count: mocks.count,
-      create: mocks.create,
-    },
-  },
+vi.mock("@local/lib/db", () => ({
+  dbQueryOne: mocks.dbQueryOne,
+  dbExecute: mocks.dbExecute,
+  generateId: mocks.generateId,
 }));
 vi.mock("@local/lib/session", () => ({
   SESSION_COOKIE: "subboost_local_session",
@@ -40,9 +38,9 @@ async function readJson(response: Response) {
 describe("local setup admin route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.count.mockResolvedValue(0);
+    mocks.dbQueryOne.mockResolvedValue({ count: 0 });
     mocks.hash.mockResolvedValue("hash");
-    mocks.create.mockResolvedValue({ id: "admin-1", username: "ry" });
+    mocks.dbExecute.mockResolvedValue(1);
     mocks.signSession.mockResolvedValue("signed-session");
     mocks.sessionCookieOptions.mockReturnValue({ httpOnly: true, path: "/" });
   });
@@ -55,7 +53,7 @@ describe("local setup admin route", () => {
     });
 
     mocks.readJsonBody.mockResolvedValueOnce({ username: "ry", password: "long-password", passwordConfirm: "long-password" });
-    mocks.count.mockResolvedValueOnce(1);
+    mocks.dbQueryOne.mockResolvedValueOnce({ count: 1 });
     expect(await readJson(await POST(new Request("https://local.test/api/setup/admin")))).toMatchObject({
       status: 409,
       body: { error: "已有管理员账号，请直接登录", code: "CONFLICT" },
@@ -92,10 +90,15 @@ describe("local setup admin route", () => {
     expect(result.status).toBe(200);
     expect(result.body).toEqual({ success: true, user: { id: "admin-1", username: "ry" } });
     expect(mocks.hash).toHaveBeenCalledWith("long-password", 12);
-    expect(mocks.create).toHaveBeenCalledWith({
-      data: { username: "ry", passwordHash: "hash", lastLoginAt: expect.any(Date) },
-      select: { id: true, username: true },
-    });
+    expect(mocks.dbExecute).toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO LocalAdmin"),
+      "admin-1",
+      "ry",
+      "hash",
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+    );
     expect(mocks.signSession).toHaveBeenCalledWith({ adminId: "admin-1", username: "ry" });
     expect(result.headers.get("set-cookie")).toContain("subboost_local_session=signed-session");
   });

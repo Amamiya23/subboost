@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { generateClashYaml } from "@subboost/core/generator";
 import { buildGenerateOptionsFromConfig, getEffectiveTestOptions } from "@subboost/core/subscription/config-utils";
 import { buildProxyProvidersFromConfig } from "@subboost/core/subscription/proxy-providers";
@@ -20,8 +19,9 @@ import {
   type RefreshNodeSnapshotResult,
 } from "@subboost/server-core/subscription";
 import { decryptJson, decryptJsonObject, encryptJson } from "./crypto";
+import { dbBatch, dbExecute, dbQuery, generateId, stmt, type BindValue } from "./db";
 import { getAppUrl } from "./env";
-import { prisma } from "./prisma";
+import { mapSubscriptionRow } from "./row-mappers";
 import { fetchSourceUserInfoHeadersDirect, importSourceUrlDirect } from "./source-import";
 import { normalizeLocalAutoUpdateIntervalSeconds } from "./auto-update-policy";
 
@@ -97,6 +97,22 @@ export type GeneratedSubscriptionYaml = {
   isAdmin: boolean;
 };
 
+const SUBSCRIPTION_SELECT_COLUMNS = `
+  s.id, s.ownerId, s.name, s.token, s.isPrimary, s.encryptedUrls, s.encryptedNodes,
+  s.encryptedConfig, s.encryptedSubscriptionInfo, s.autoUpdateInterval,
+  s.cacheExpiresAt, s.lastAccessedAt, s.lastUpdatedAt, s.createdAt, s.updatedAt,
+  u.externalFailureCount as state_externalFailureCount,
+  u.failureSourceState as state_failureSourceState,
+  u.lastFailedAt as state_lastFailedAt,
+  u.lastAttemptedAt as state_lastAttemptedAt,
+  u.disabledAt as state_disabledAt,
+  u.disabledReason as state_disabledReason,
+  u.disabledPreviousInterval as state_disabledPreviousInterval
+`;
+
+const SUBSCRIPTION_LEFT_JOIN =
+  "LEFT JOIN SubscriptionAutoUpdateState u ON u.subscriptionId = s.id";
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -116,7 +132,7 @@ function buildLocalSubscriptionConfig(
     },
     {
       existingConfig,
-      idFactory: randomUUID,
+      idFactory: generateId,
       splitUrlLines: true,
       defaultSmartNodeMatchingEnabled: true,
     }
@@ -159,13 +175,32 @@ export async function formatSubscriptionDetail(row: SubscriptionRow): Promise<Su
   }) as SubscriptionDetail;
 }
 
+async function fetchSubscriptionById(id: string, ownerId: string): Promise<SubscriptionRow | null> {
+  const rows = await dbQuery<Record<string, unknown>>(
+    `SELECT ${SUBSCRIPTION_SELECT_COLUMNS} FROM Subscription s ${SUBSCRIPTION_LEFT_JOIN}
+     WHERE s.id = ? AND s.ownerId = ?`,
+    id,
+    ownerId,
+  );
+  return rows.length > 0 ? mapSubscriptionRow(rows[0] as never) : null;
+}
+
+async function fetchSubscriptionByToken(token: string): Promise<SubscriptionRow | null> {
+  const rows = await dbQuery<Record<string, unknown>>(
+    `SELECT ${SUBSCRIPTION_SELECT_COLUMNS} FROM Subscription s ${SUBSCRIPTION_LEFT_JOIN}
+     WHERE s.token = ?`,
+    token,
+  );
+  return rows.length > 0 ? mapSubscriptionRow(rows[0] as never) : null;
+}
+
 export async function listSubscriptions(ownerId: string): Promise<SubscriptionSummary[]> {
-  const rows = await prisma.subscription.findMany({
-    where: { ownerId },
-    include: { autoUpdateState: true },
-    orderBy: { updatedAt: "desc" },
-  });
-  return Promise.all(rows.map(formatSubscription));
+  const rows = await dbQuery<Record<string, unknown>>(
+    `SELECT ${SUBSCRIPTION_SELECT_COLUMNS} FROM Subscription s ${SUBSCRIPTION_LEFT_JOIN}
+     WHERE s.ownerId = ? ORDER BY s.updatedAt DESC`,
+    ownerId,
+  );
+  return Promise.all(rows.map((row) => formatSubscription(mapSubscriptionRow(row as never))));
 }
 
 export async function createSubscription(ownerId: string, body: unknown): Promise<SubscriptionSummary> {
@@ -183,46 +218,66 @@ export async function createSubscription(ownerId: string, body: unknown): Promis
   const autoUpdateInterval = normalizeLocalAutoUpdateIntervalSeconds(body.autoUpdateInterval);
   const subscriptionInfo = normalizeSubscriptionInfoForPersistence(body.subscriptionInfo) ?? {};
 
-  const row = await prisma.subscription.create({
-    data: {
-      ownerId,
-      name,
-      encryptedUrls: await encryptJson(urls),
-      encryptedNodes: await encryptJson(nodes),
-      encryptedConfig: await encryptJson(config),
-      encryptedSubscriptionInfo: await encryptJson(subscriptionInfo),
-      autoUpdateInterval,
-    },
-    include: { autoUpdateState: true },
-  });
-  return formatSubscription(row);
+  const id = generateId();
+  const token = generateId();
+  const now = new Date().toISOString();
+  await dbExecute(
+    `INSERT INTO Subscription
+     (id, ownerId, name, token, isPrimary, encryptedUrls, encryptedNodes, encryptedConfig,
+      encryptedSubscriptionInfo, autoUpdateInterval, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    id,
+    ownerId,
+    name,
+    token,
+    0,
+    await encryptJson(urls),
+    await encryptJson(nodes),
+    await encryptJson(config),
+    await encryptJson(subscriptionInfo),
+    autoUpdateInterval,
+    now,
+    now,
+  );
+
+  const row = await fetchSubscriptionById(id, ownerId);
+  return formatSubscription(row!);
 }
 
-export async function updateSubscription(ownerId: string, id: string, body: unknown): Promise<SubscriptionSummary | null> {
+export async function updateSubscription(
+  ownerId: string,
+  id: string,
+  body: unknown
+): Promise<SubscriptionSummary | null> {
   if (!isRecord(body)) throw new Error("Invalid request body.");
-  const current = await prisma.subscription.findFirst({ where: { id, ownerId }, include: { autoUpdateState: true } });
+  const current = await fetchSubscriptionById(id, ownerId);
   if (!current) return null;
 
   const currentSecrets = await readSubscriptionSecrets(current);
   const name = normalizeSubscriptionName(body.name) || current.name;
-  const data: Record<string, unknown> = { name };
+  const sets: string[] = ["name = ?"];
+  const binds: BindValue[] = [name];
   const hasUrls = "urls" in body;
   const hasNodes = "nodes" in body;
   const hasConfig = "config" in body || "smartNodeMatchingEnabled" in body;
 
   if (hasUrls) {
-    data.encryptedUrls = await encryptJson(normalizeSubscriptionUrlList(body.urls));
+    sets.push("encryptedUrls = ?");
+    binds.push(await encryptJson(normalizeSubscriptionUrlList(body.urls)));
   }
   if (hasNodes) {
-    data.encryptedNodes = await encryptJson(normalizeSubscriptionNodeList(body.nodes));
+    sets.push("encryptedNodes = ?");
+    binds.push(await encryptJson(normalizeSubscriptionNodeList(body.nodes)));
   }
   if (hasConfig) {
     const config = buildLocalSubscriptionConfig(body, currentSecrets.config);
-    data.encryptedConfig = await encryptJson(config);
+    sets.push("encryptedConfig = ?");
+    binds.push(await encryptJson(config));
   }
   if ("subscriptionInfo" in body) {
-    data.encryptedSubscriptionInfo = await encryptJson(
-      normalizeSubscriptionInfoForPersistence(body.subscriptionInfo) ?? {},
+    sets.push("encryptedSubscriptionInfo = ?");
+    binds.push(
+      await encryptJson(normalizeSubscriptionInfoForPersistence(body.subscriptionInfo) ?? {}),
     );
   }
 
@@ -235,30 +290,28 @@ export async function updateSubscription(ownerId: string, id: string, body: unkn
   }
 
   if ("autoUpdateInterval" in body) {
-    data.autoUpdateInterval = normalizeLocalAutoUpdateIntervalSeconds(body.autoUpdateInterval);
+    sets.push("autoUpdateInterval = ?");
+    binds.push(normalizeLocalAutoUpdateIntervalSeconds(body.autoUpdateInterval));
   }
 
-  const row = await prisma.subscription.update({
-    where: { id: current.id },
-    data,
-    include: { autoUpdateState: true },
-  });
-  return formatSubscription(row);
+  sets.push("updatedAt = ?");
+  binds.push(new Date().toISOString());
+  binds.push(id);
+
+  await dbExecute(`UPDATE Subscription SET ${sets.join(", ")} WHERE id = ?`, ...binds);
+
+  const row = await fetchSubscriptionById(id, ownerId);
+  return row ? await formatSubscription(row) : null;
 }
 
 export async function getSubscription(ownerId: string, id: string): Promise<SubscriptionDetail | null> {
-  const row = await prisma.subscription.findFirst({
-    where: { id, ownerId },
-    include: { autoUpdateState: true },
-  });
+  const row = await fetchSubscriptionById(id, ownerId);
   return row ? await formatSubscriptionDetail(row) : null;
 }
 
 export async function deleteSubscription(ownerId: string, id: string): Promise<boolean> {
-  const row = await prisma.subscription.findFirst({ where: { id, ownerId }, select: { id: true } });
-  if (!row) return false;
-  await prisma.subscription.delete({ where: { id: row.id } });
-  return true;
+  const changes = await dbExecute("DELETE FROM Subscription WHERE id = ? AND ownerId = ?", id, ownerId);
+  return changes > 0;
 }
 
 export function buildSubscriptionFetchCallbacks() {
@@ -305,35 +358,46 @@ async function persistRefreshSuccess(params: {
   const encryptedNodes = await encryptJson(params.snapshot.nodes);
   const encryptedConfig = await encryptJson({ ...params.config, sources: params.snapshot.savedSources });
   const encryptedSubscriptionInfo = await encryptJson(params.snapshot.subscriptionInfo);
-  await prisma.$transaction([
-    prisma.subscription.update({
-      where: { id: params.subscriptionId },
-      data: {
-        encryptedNodes,
-        encryptedConfig,
-        encryptedSubscriptionInfo,
-        lastUpdatedAt: params.cachedAt,
-        cacheExpiresAt: buildSubscriptionCacheExpiry(params.cachedAt),
-      },
-    }),
-    prisma.subscriptionAutoUpdateState.upsert({
-      where: { subscriptionId: params.subscriptionId },
-      create: { subscriptionId: params.subscriptionId },
-      update: {
-        externalFailureCount: 0,
-        failureSourceState: null,
-        lastFailedAt: null,
-        lastAttemptedAt: null,
-        disabledAt: null,
-        disabledReason: null,
-        disabledPreviousInterval: null,
-      },
-    }),
+  const cacheExpiresAt = buildSubscriptionCacheExpiry(params.cachedAt).toISOString();
+  const cachedAtIso = params.cachedAt.toISOString();
+
+  await dbBatch([
+    stmt(
+      `UPDATE Subscription
+       SET encryptedNodes = ?, encryptedConfig = ?, encryptedSubscriptionInfo = ?,
+           lastUpdatedAt = ?, cacheExpiresAt = ?, updatedAt = ?
+       WHERE id = ?`,
+      encryptedNodes,
+      encryptedConfig,
+      encryptedSubscriptionInfo,
+      cachedAtIso,
+      cacheExpiresAt,
+      cachedAtIso,
+      params.subscriptionId,
+    ),
+    stmt(
+      `INSERT INTO SubscriptionAutoUpdateState
+       (subscriptionId, externalFailureCount, failureSourceState, lastFailedAt, lastAttemptedAt,
+        disabledAt, disabledReason, disabledPreviousInterval, createdAt, updatedAt)
+       VALUES (?, 0, NULL, NULL, NULL, NULL, NULL, NULL, ?, ?)
+       ON CONFLICT(subscriptionId) DO UPDATE SET
+         externalFailureCount = 0,
+         failureSourceState = NULL,
+         lastFailedAt = NULL,
+         lastAttemptedAt = NULL,
+         disabledAt = NULL,
+         disabledReason = NULL,
+         disabledPreviousInterval = NULL,
+         updatedAt = excluded.updatedAt`,
+      params.subscriptionId,
+      cachedAtIso,
+      cachedAtIso,
+    ),
   ]);
 }
 
 export async function refreshSubscription(ownerId: string, id: string) {
-  const row = await prisma.subscription.findFirst({ where: { id, ownerId }, include: { autoUpdateState: true } });
+  const row = await fetchSubscriptionById(id, ownerId);
   if (!row) return null;
 
   const secrets = await readSubscriptionSecrets(row);
@@ -373,7 +437,7 @@ export async function refreshSubscription(ownerId: string, id: string) {
 }
 
 export async function generateSubscriptionYaml(token: string): Promise<GeneratedSubscriptionYaml | null> {
-  const row = await prisma.subscription.findUnique({ where: { token }, include: { autoUpdateState: true } });
+  const row = await fetchSubscriptionByToken(token);
   if (!row) return null;
   const secrets = await readSubscriptionSecrets(row);
   const { testUrl, testInterval } = getEffectiveTestOptions(secrets.config);
@@ -385,7 +449,11 @@ export async function generateSubscriptionYaml(token: string): Promise<Generated
       proxyProviders,
     })
   );
-  await prisma.subscription.update({ where: { id: row.id }, data: { lastAccessedAt: new Date() } });
+  await dbExecute(
+    "UPDATE Subscription SET lastAccessedAt = ? WHERE id = ?",
+    new Date().toISOString(),
+    row.id,
+  );
   return {
     yaml,
     name: row.name,

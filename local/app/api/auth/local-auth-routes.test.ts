@@ -5,19 +5,11 @@ const mocks = vi.hoisted(() => ({
   clearSessionCookieOptions: vi.fn(() => ({ maxAge: 0, path: "/" })),
   getCurrentAdmin: vi.fn(),
   isSetupRequired: vi.fn(),
-  prisma: {
-    $queryRaw: vi.fn(),
-    localAdmin: {
-      findUnique: vi.fn(),
-      update: vi.fn(),
-    },
-    localTemplate: {
-      count: vi.fn(),
-    },
-    subscription: {
-      count: vi.fn(),
-    },
-  },
+  dbQueryOne: vi.fn(),
+  dbQuery: vi.fn(),
+  dbExecute: vi.fn(),
+  dbBatch: vi.fn(),
+  generateId: vi.fn(),
   sessionCookieOptions: vi.fn(() => ({ httpOnly: true, path: "/" })),
   signSession: vi.fn(async () => "signed-session"),
 }));
@@ -31,8 +23,12 @@ vi.mock("@local/lib/auth", () => ({
   isSetupRequired: mocks.isSetupRequired,
 }));
 
-vi.mock("@local/lib/prisma", () => ({
-  prisma: mocks.prisma,
+vi.mock("@local/lib/db", () => ({
+  dbQueryOne: mocks.dbQueryOne,
+  dbQuery: mocks.dbQuery,
+  dbExecute: mocks.dbExecute,
+  dbBatch: mocks.dbBatch,
+  generateId: mocks.generateId,
 }));
 
 vi.mock("@local/lib/session", () => ({
@@ -53,7 +49,7 @@ describe("local auth and health routes", () => {
 
   it("logs in a valid local admin and sets the session cookie", async () => {
     const { POST } = await import("./login/route");
-    mocks.prisma.localAdmin.findUnique.mockResolvedValueOnce({
+    mocks.dbQueryOne.mockResolvedValueOnce({
       id: "admin-1",
       username: "admin",
       passwordHash: "hash",
@@ -71,10 +67,11 @@ describe("local auth and health routes", () => {
       status: 200,
       body: { success: true, user: { id: "admin-1", username: "admin" } },
     });
-    expect(mocks.prisma.localAdmin.update).toHaveBeenCalledWith({
-      where: { id: "admin-1" },
-      data: { lastLoginAt: expect.any(Date) },
-    });
+    expect(mocks.dbExecute).toHaveBeenCalledWith(
+      "UPDATE LocalAdmin SET lastLoginAt = ? WHERE id = ?",
+      expect.any(String),
+      "admin-1",
+    );
     expect(mocks.signSession).toHaveBeenCalledWith({ adminId: "admin-1", username: "admin" });
     expect(response.headers.get("set-cookie")).toContain("subboost-local-session=signed-session");
   });
@@ -87,7 +84,7 @@ describe("local auth and health routes", () => {
       body: { error: "Invalid JSON body.", code: "BAD_REQUEST" },
     });
 
-    mocks.prisma.localAdmin.findUnique.mockResolvedValueOnce(null);
+    mocks.dbQueryOne.mockResolvedValueOnce(null);
     await expect(
       readJson(
         await POST(
@@ -116,8 +113,7 @@ describe("local auth and health routes", () => {
     const { GET } = await import("./me/route");
     mocks.isSetupRequired.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
     mocks.getCurrentAdmin.mockResolvedValueOnce({ id: "admin-1", username: "admin" }).mockResolvedValueOnce(null);
-    mocks.prisma.subscription.count.mockResolvedValueOnce(2);
-    mocks.prisma.localTemplate.count.mockResolvedValueOnce(3);
+    mocks.dbQueryOne.mockResolvedValueOnce({ count: 2 }).mockResolvedValueOnce({ count: 3 });
 
     let response = await GET();
     let payload = await response.json();
@@ -147,7 +143,7 @@ describe("local auth and health routes", () => {
       body: { ok: true, service: "subboost-local" },
     });
 
-    mocks.prisma.$queryRaw.mockResolvedValueOnce([{ "?column?": 1 }]).mockRejectedValueOnce(new Error("db down"));
+    mocks.dbQueryOne.mockResolvedValueOnce({ ok: 1 }).mockRejectedValueOnce(new Error("db down"));
     await expect(readJson(await ready.GET())).resolves.toEqual({
       status: 200,
       body: { ok: true, database: "ready" },

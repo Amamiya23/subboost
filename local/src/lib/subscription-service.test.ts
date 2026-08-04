@@ -26,20 +26,10 @@ const mocks = vi.hoisted(() => ({
   importSourceUrlDirect: vi.fn(),
   fetchSourceUserInfoHeadersDirect: vi.fn(),
   getAppUrl: vi.fn(),
-  prisma: {
-    subscription: {
-      findMany: vi.fn(),
-      create: vi.fn(),
-      findFirst: vi.fn(),
-      findUnique: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    subscriptionAutoUpdateState: {
-      upsert: vi.fn(),
-    },
-    $transaction: vi.fn(),
-  },
+  dbQuery: vi.fn(),
+  dbExecute: vi.fn(),
+  dbBatch: vi.fn(),
+  generateId: vi.fn(() => "test-id"),
 }));
 
 vi.mock("@subboost/core/generator", () => ({
@@ -91,8 +81,12 @@ vi.mock("./env", () => ({
   getAppUrl: mocks.getAppUrl,
 }));
 
-vi.mock("./prisma", () => ({
-  prisma: mocks.prisma,
+vi.mock("./db", () => ({
+  dbQuery: mocks.dbQuery,
+  dbExecute: mocks.dbExecute,
+  dbBatch: mocks.dbBatch,
+  generateId: mocks.generateId,
+  stmt: (sql: string, ...binds: unknown[]) => ({ sql, binds }),
 }));
 
 vi.mock("./source-import", () => ({
@@ -146,6 +140,39 @@ function row(overrides: Partial<SubscriptionRow> = {}): SubscriptionRow {
   };
 }
 
+function rawRow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id: "sub-1",
+    ownerId: "owner-1",
+    name: "Saved",
+    token: "token-1",
+    isPrimary: 1,
+    encryptedUrls: JSON.stringify(["https://example.com/sub"]),
+    encryptedNodes: JSON.stringify([node()]),
+    encryptedConfig: JSON.stringify({
+      sources: [{ id: "source-1", type: "url", content: "https://example.com/sub" }],
+      smartNodeMatchingEnabled: false,
+      testUrl: "https://test.example.com",
+      testInterval: 600,
+    }),
+    encryptedSubscriptionInfo: JSON.stringify({ upload: 2048, total: 4096 }),
+    autoUpdateInterval: 86400,
+    cacheExpiresAt: "2026-06-01T01:00:00.000Z",
+    lastAccessedAt: "2026-06-01T02:00:00.000Z",
+    lastUpdatedAt: "2026-06-01T03:00:00.000Z",
+    createdAt: "2026-06-01T00:00:00.000Z",
+    updatedAt: "2026-06-01T04:00:00.000Z",
+    state_externalFailureCount: 2,
+    state_failureSourceState: null,
+    state_lastFailedAt: "2026-06-01T05:00:00.000Z",
+    state_lastAttemptedAt: "2026-06-01T06:00:00.000Z",
+    state_disabledAt: null,
+    state_disabledReason: null,
+    state_disabledPreviousInterval: null,
+    ...overrides,
+  };
+}
+
 describe("local subscription service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -162,13 +189,9 @@ describe("local subscription service", () => {
     mocks.buildProxyProvidersFromConfig.mockReturnValue(null);
     mocks.buildGenerateOptionsFromConfig.mockReturnValue({ nodes: [node()] });
     mocks.generateClashYaml.mockReturnValue("mixed-port: 7890\n");
-    mocks.prisma.subscription.findMany.mockResolvedValue([row()]);
-    mocks.prisma.subscription.create.mockResolvedValue(row({ name: "Created" }));
-    mocks.prisma.subscription.findFirst.mockResolvedValue(row());
-    mocks.prisma.subscription.findUnique.mockResolvedValue(row());
-    mocks.prisma.subscription.update.mockResolvedValue(row({ name: "Updated" }));
-    mocks.prisma.subscription.delete.mockResolvedValue(row());
-    mocks.prisma.$transaction.mockImplementation(async (operations) => Promise.all(operations));
+    mocks.dbQuery.mockResolvedValue([rawRow()]);
+    mocks.dbExecute.mockResolvedValue(1);
+    mocks.dbBatch.mockResolvedValue(undefined);
     mocks.importSourceUrlDirect.mockResolvedValue({
       ok: true,
       parsedNodes: [node("Imported")],
@@ -237,26 +260,29 @@ describe("local subscription service", () => {
     });
   });
 
-  it("lists, gets, and deletes subscriptions through prisma", async () => {
+  it("lists, gets, and deletes subscriptions through db", async () => {
     await expect(listSubscriptions("owner-1")).resolves.toHaveLength(1);
-    expect(mocks.prisma.subscription.findMany).toHaveBeenCalledWith({
-      where: { ownerId: "owner-1" },
-      include: { autoUpdateState: true },
-      orderBy: { updatedAt: "desc" },
-    });
+    expect(mocks.dbQuery).toHaveBeenCalledWith(
+      expect.stringContaining("FROM Subscription s"),
+      "owner-1",
+    );
 
     await expect(getSubscription("owner-1", "sub-1")).resolves.toMatchObject({
       id: "sub-1",
       urls: ["https://example.com/sub"],
     });
 
-    mocks.prisma.subscription.findFirst.mockResolvedValueOnce(null);
+    mocks.dbQuery.mockResolvedValueOnce([]);
     await expect(getSubscription("owner-1", "missing")).resolves.toBeNull();
 
     await expect(deleteSubscription("owner-1", "sub-1")).resolves.toBe(true);
-    expect(mocks.prisma.subscription.delete).toHaveBeenCalledWith({ where: { id: "sub-1" } });
+    expect(mocks.dbExecute).toHaveBeenCalledWith(
+      "DELETE FROM Subscription WHERE id = ? AND ownerId = ?",
+      "sub-1",
+      "owner-1",
+    );
 
-    mocks.prisma.subscription.findFirst.mockResolvedValueOnce(null);
+    mocks.dbExecute.mockResolvedValueOnce(0);
     await expect(deleteSubscription("owner-1", "missing")).resolves.toBe(false);
   });
 
@@ -267,6 +293,7 @@ describe("local subscription service", () => {
       "At least one URL or node is required."
     );
 
+    mocks.dbQuery.mockResolvedValueOnce([rawRow({ name: "Created" })]);
     await expect(
       createSubscription("owner-1", {
         name: " Created ",
@@ -281,19 +308,23 @@ describe("local subscription service", () => {
       })
     ).resolves.toMatchObject({ name: "Created" });
 
-    expect(mocks.prisma.subscription.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        ownerId: "owner-1",
-        name: "Created",
-        encryptedUrls: JSON.stringify(["https://example.com/sub"]),
-        encryptedNodes: expect.stringContaining('"name":"Node"'),
-        encryptedConfig: expect.stringContaining('"smartNodeMatchingEnabled":false'),
-        encryptedSubscriptionInfo: expect.stringContaining('"total":4096'),
-        autoUpdateInterval: 3600,
-      }),
-      include: { autoUpdateState: true },
-    });
+    expect(mocks.dbExecute).toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO Subscription"),
+      expect.any(String), // id
+      "owner-1",
+      "Created",
+      expect.any(String), // token
+      0, // isPrimary
+      JSON.stringify(["https://example.com/sub"]),
+      expect.stringContaining('"name":"Node"'),
+      expect.stringContaining('"smartNodeMatchingEnabled":false'),
+      expect.stringContaining('"total":4096'),
+      3600,
+      expect.any(String), // createdAt
+      expect.any(String), // updatedAt
+    );
 
+    mocks.dbQuery.mockResolvedValueOnce([rawRow({ name: "Nodes only" })]);
     await createSubscription("owner-1", {
       name: "Nodes only",
       nodes: [node("Only")],
@@ -301,30 +332,43 @@ describe("local subscription service", () => {
       config: "ignored",
       subscriptionInfo: "ignored",
     });
-    expect(mocks.prisma.subscription.create).toHaveBeenLastCalledWith({
-      data: expect.objectContaining({
-        name: "Nodes only",
-        encryptedUrls: JSON.stringify([]),
-        encryptedNodes: expect.stringContaining('"name":"Only"'),
-        encryptedConfig: expect.stringContaining('"smartNodeMatchingEnabled":true'),
-        encryptedSubscriptionInfo: JSON.stringify({}),
-        autoUpdateInterval: null,
-      }),
-      include: { autoUpdateState: true },
-    });
+    expect(mocks.dbExecute).toHaveBeenLastCalledWith(
+      expect.stringContaining("INSERT INTO Subscription"),
+      expect.any(String), // id
+      "owner-1",
+      "Nodes only",
+      expect.any(String), // token
+      0,
+      JSON.stringify([]),
+      expect.stringContaining('"name":"Only"'),
+      expect.stringContaining('"smartNodeMatchingEnabled":true'),
+      JSON.stringify({}),
+      null,
+      expect.any(String),
+      expect.any(String),
+    );
 
+    mocks.dbQuery.mockResolvedValueOnce([rawRow({ name: "Six minutes" })]);
     await createSubscription("owner-1", {
       name: "Six minutes",
       nodes: [node("Fast")],
       autoUpdateInterval: 360,
     });
-    expect(mocks.prisma.subscription.create).toHaveBeenLastCalledWith({
-      data: expect.objectContaining({
-        name: "Six minutes",
-        autoUpdateInterval: 360,
-      }),
-      include: { autoUpdateState: true },
-    });
+    expect(mocks.dbExecute).toHaveBeenLastCalledWith(
+      expect.stringContaining("INSERT INTO Subscription"),
+      expect.any(String),
+      "owner-1",
+      "Six minutes",
+      expect.any(String),
+      0,
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+      360,
+      expect.any(String),
+      expect.any(String),
+    );
 
     await expect(
       createSubscription("owner-1", {
@@ -338,7 +382,7 @@ describe("local subscription service", () => {
   it("updates subscriptions and preserves existing values when fields are omitted", async () => {
     await expect(updateSubscription("owner-1", "missing", { name: "A" })).resolves.toMatchObject({ id: "sub-1" });
 
-    mocks.prisma.subscription.findFirst.mockResolvedValueOnce(null);
+    mocks.dbQuery.mockResolvedValueOnce([]);
     await expect(updateSubscription("owner-1", "missing", { name: "A" })).resolves.toBeNull();
 
     await expect(updateSubscription("owner-1", "sub-1", null)).rejects.toThrow("Invalid request body.");
@@ -356,18 +400,17 @@ describe("local subscription service", () => {
       autoUpdateInterval: "",
     });
 
-    expect(mocks.prisma.subscription.update).toHaveBeenCalledWith({
-      where: { id: "sub-1" },
-      data: expect.objectContaining({
-        name: "Updated",
-        encryptedUrls: JSON.stringify(["https://new.example/sub"]),
-        encryptedNodes: expect.stringContaining('"name":"New"'),
-        encryptedConfig: expect.stringContaining('"smartNodeMatchingEnabled":true'),
-        encryptedSubscriptionInfo: expect.stringContaining('"download":4096'),
-        autoUpdateInterval: null,
-      }),
-      include: { autoUpdateState: true },
-    });
+    expect(mocks.dbExecute).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE Subscription"),
+      "Updated",
+      JSON.stringify(["https://new.example/sub"]),
+      expect.stringContaining('"name":"New"'),
+      expect.stringContaining('"smartNodeMatchingEnabled":true'),
+      expect.stringContaining('"download":4096'),
+      null,
+      expect.any(String),
+      "sub-1",
+    );
 
     await updateSubscription("owner-1", "sub-1", {
       name: "   ",
@@ -375,16 +418,15 @@ describe("local subscription service", () => {
       smartNodeMatchingEnabled: false,
       autoUpdateInterval: "7200",
     });
-    expect(mocks.prisma.subscription.update).toHaveBeenLastCalledWith({
-      where: { id: "sub-1" },
-      data: expect.objectContaining({
-        name: "Saved",
-        encryptedNodes: expect.stringContaining('"name":"Node only update"'),
-        encryptedConfig: expect.stringContaining('"smartNodeMatchingEnabled":false'),
-        autoUpdateInterval: 7200,
-      }),
-      include: { autoUpdateState: true },
-    });
+    expect(mocks.dbExecute).toHaveBeenLastCalledWith(
+      expect.stringContaining("UPDATE Subscription"),
+      "Saved",
+      expect.stringContaining('"name":"Node only update"'),
+      expect.stringContaining('"smartNodeMatchingEnabled":false'),
+      7200,
+      expect.any(String),
+      "sub-1",
+    );
   });
 
   it("builds fetch callbacks for refresh source imports", async () => {
@@ -449,7 +491,7 @@ describe("local subscription service", () => {
       ok: true,
       body: { ok: true, nodeCount: 1 },
     });
-    expect(mocks.prisma.$transaction).toHaveBeenCalled();
+    expect(mocks.dbBatch).toHaveBeenCalled();
 
     mocks.prepareRefreshCacheResult.mockReturnValueOnce({ ok: false, reason: "too_many_nodes" });
     await expect(refreshSubscription("owner-1", "sub-1")).resolves.toEqual({
@@ -457,7 +499,7 @@ describe("local subscription service", () => {
       response: { error: "refresh failed" },
     });
 
-    mocks.prisma.subscription.findFirst.mockResolvedValueOnce(null);
+    mocks.dbQuery.mockResolvedValueOnce([]);
     await expect(refreshSubscription("owner-1", "missing")).resolves.toBeNull();
   });
 
@@ -474,23 +516,27 @@ describe("local subscription service", () => {
       expect.objectContaining({ sources: expect.any(Array) }),
       expect.objectContaining({ nodes: [expect.objectContaining({ name: "Node" })], proxyProviders: null })
     );
-    expect(mocks.prisma.subscription.update).toHaveBeenCalledWith({
-      where: { id: "sub-1" },
-      data: { lastAccessedAt: expect.any(Date) },
-    });
+    expect(mocks.dbExecute).toHaveBeenCalledWith(
+      "UPDATE Subscription SET lastAccessedAt = ? WHERE id = ?",
+      expect.any(String),
+      "sub-1",
+    );
 
-    mocks.prisma.subscription.findUnique.mockResolvedValueOnce(null);
+    mocks.dbQuery.mockResolvedValueOnce([]);
     await expect(generateSubscriptionYaml("missing")).resolves.toBeNull();
 
-    mocks.prisma.subscription.findUnique.mockResolvedValueOnce(
-      row({ encryptedNodes: JSON.stringify([]), encryptedConfig: JSON.stringify({}) })
-    );
+    mocks.dbQuery.mockResolvedValueOnce([
+      rawRow({ encryptedNodes: JSON.stringify([]), encryptedConfig: JSON.stringify({}) }),
+    ]);
     mocks.buildProxyProvidersFromConfig.mockReturnValueOnce(null);
     await expect(generateSubscriptionYaml("empty")).resolves.toBeNull();
 
-    mocks.prisma.subscription.findUnique.mockResolvedValueOnce(
-      row({ encryptedNodes: JSON.stringify([]), encryptedConfig: JSON.stringify({ proxyProviders: { provider: {} } }) })
-    );
+    mocks.dbQuery.mockResolvedValueOnce([
+      rawRow({
+        encryptedNodes: JSON.stringify([]),
+        encryptedConfig: JSON.stringify({ proxyProviders: { provider: {} } }),
+      }),
+    ]);
     mocks.buildProxyProvidersFromConfig.mockReturnValueOnce({ provider: { url: "https://example.com/provider.yaml" } });
     await expect(generateSubscriptionYaml("provider-only")).resolves.toMatchObject({ yaml: "mixed-port: 7890\n" });
   });

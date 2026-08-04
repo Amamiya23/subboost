@@ -1,15 +1,15 @@
 import { getCurrentAdmin, isSetupRequired } from "@local/lib/auth";
+import { dbQueryOne } from "@local/lib/db";
 import { json } from "@local/lib/http";
-import { prisma } from "@local/lib/prisma";
 
 export async function GET() {
   const [setupRequired, admin] = await Promise.all([isSetupRequired(), getCurrentAdmin()]);
-  const [subscriptionCount, templateCount] = admin
-    ? await Promise.all([
-        prisma.subscription.count({ where: { ownerId: admin.id } }),
-        prisma.localTemplate.count({ where: { ownerId: admin.id } }),
-      ])
-    : [0, 0];
+  const subCount = admin
+    ? Number((await dbQueryOne<{ count: number }>("SELECT COUNT(*) as count FROM Subscription WHERE ownerId = ?", admin.id))?.count ?? 0)
+    : 0;
+  const tplCount = admin
+    ? Number((await dbQueryOne<{ count: number }>("SELECT COUNT(*) as count FROM LocalTemplate WHERE ownerId = ?", admin.id))?.count ?? 0)
+    : 0;
   const now = new Date().toISOString();
   return json({
     setupRequired,
@@ -38,8 +38,8 @@ export async function GET() {
             maxImportSourcesPerType: 9999,
             canUseSubscriptionLink: true,
           },
-          subscriptionCount,
-          templateCount,
+          subscriptionCount: subCount,
+          templateCount: tplCount,
         }
       : null,
   });

@@ -1,9 +1,9 @@
+import { dbQueryOne } from "@local/lib/db";
 import { json } from "@local/lib/http";
-import { prisma } from "@local/lib/prisma";
 
 export async function GET() {
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await dbQueryOne("SELECT 1 as ok");
     return json({ ok: true, database: "ready" });
   } catch {
     return json({ ok: false, database: "unavailable" }, 503);

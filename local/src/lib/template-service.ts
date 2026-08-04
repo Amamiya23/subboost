@@ -9,7 +9,8 @@ import { validateSubBoostTemplateConfig } from "@subboost/core/templates/config-
 import type { SubBoostTemplateConfig } from "@subboost/core/types/template-config";
 import type { TemplateTab } from "@subboost/server-core/templates";
 import { decryptJsonObject, encryptJson } from "./crypto";
-import { prisma } from "./prisma";
+import { dbExecute, dbQuery, generateId } from "./db";
+import { mapTemplateRow } from "./row-mappers";
 
 type LocalTemplateTab = Extract<TemplateTab, "default" | "my">;
 
@@ -99,11 +100,20 @@ export async function listTemplates(
   if (tab === "default") return filterByIds(builtinSummaries(), ids);
   if (!ownerId) throw new Error("Authentication required.");
 
-  const rows = await prisma.localTemplate.findMany({
-    where: { ownerId, ...(ids.length > 0 ? { id: { in: ids } } : {}) },
-    orderBy: { updatedAt: "desc" },
-  });
-  return Promise.all(rows.map(formatLocalTemplate));
+  const rows = ids.length > 0
+    ? await dbQuery<LocalTemplateRow>(
+        `SELECT id, ownerId, name, description, encryptedConfig, createdAt, updatedAt
+         FROM LocalTemplate WHERE ownerId = ? AND id IN (${ids.map(() => "?").join(",")})
+         ORDER BY updatedAt DESC`,
+        ownerId,
+        ...ids,
+      )
+    : await dbQuery<LocalTemplateRow>(
+        `SELECT id, ownerId, name, description, encryptedConfig, createdAt, updatedAt
+         FROM LocalTemplate WHERE ownerId = ? ORDER BY updatedAt DESC`,
+        ownerId,
+      );
+  return Promise.all(rows.map((row) => formatLocalTemplate(mapTemplateRow(row as never))));
 }
 
 export async function getTemplateDetail(ownerId: string | null, id: string): Promise<LocalTemplateDetail | null> {
@@ -120,8 +130,14 @@ export async function getTemplateDetail(ownerId: string | null, id: string): Pro
   }
 
   if (!ownerId) throw new Error("Authentication required.");
-  const row = await prisma.localTemplate.findFirst({ where: { id, ownerId } });
-  if (!row) return null;
+  const raw = await dbQuery<LocalTemplateRow>(
+    `SELECT id, ownerId, name, description, encryptedConfig, createdAt, updatedAt
+     FROM LocalTemplate WHERE id = ? AND ownerId = ?`,
+    id,
+    ownerId,
+  );
+  if (raw.length === 0) return null;
+  const row = mapTemplateRow(raw[0] as never);
   return {
     id: row.id,
     name: row.name,
@@ -141,20 +157,39 @@ export async function createTemplate(ownerId: string, body: unknown): Promise<Lo
   const validated = validateSubBoostTemplateConfig(payload.config);
   if (!validated.ok) throw new Error(validated.error);
 
-  const row = await prisma.localTemplate.create({
-    data: {
-      ownerId,
-      name,
-      description: asString(payload.description).slice(0, 500),
-      encryptedConfig: await encryptJson(validated.config),
-    },
+  const id = generateId();
+  const now = new Date().toISOString();
+  const description = asString(payload.description).slice(0, 500);
+  const encryptedConfig = await encryptJson(validated.config);
+
+  await dbExecute(
+    `INSERT INTO LocalTemplate (id, ownerId, name, description, encryptedConfig, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    id,
+    ownerId,
+    name,
+    description,
+    encryptedConfig,
+    now,
+    now,
+  );
+
+  return formatLocalTemplate({
+    id,
+    ownerId,
+    name,
+    description: description || null,
+    encryptedConfig,
+    createdAt: new Date(now),
+    updatedAt: new Date(now),
   });
-  return formatLocalTemplate(row);
 }
 
 export async function deleteTemplate(ownerId: string, id: string): Promise<boolean> {
-  const row = await prisma.localTemplate.findFirst({ where: { id, ownerId }, select: { id: true } });
-  if (!row) return false;
-  await prisma.localTemplate.delete({ where: { id: row.id } });
-  return true;
+  const changes = await dbExecute(
+    "DELETE FROM LocalTemplate WHERE id = ? AND ownerId = ?",
+    id,
+    ownerId,
+  );
+  return changes > 0;
 }

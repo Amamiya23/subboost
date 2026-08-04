@@ -19,7 +19,7 @@ import {
   type SubscriptionAutoUpdateStateFields,
 } from "@subboost/server-core/subscription";
 import { encryptJson } from "./crypto";
-import { prisma } from "./prisma";
+import { dbBatch, dbQuery, stmt, type BindValue } from "./db";
 import {
   buildSubscriptionCacheExpiry,
   buildSubscriptionFetchCallbacks,
@@ -27,6 +27,7 @@ import {
   readSubscriptionSecrets,
   type SubscriptionRow,
 } from "./subscription-service";
+import { mapSubscriptionWithOwnerRow } from "./row-mappers";
 import { LOCAL_AUTO_UPDATE_MIN_SECONDS } from "./auto-update-policy";
 
 type AutoUpdateSubscriptionRow = SubscriptionRow & {
@@ -73,16 +74,51 @@ async function writeAutoUpdateState(
   state: SubscriptionAutoUpdateStateFields,
   extraSubscriptionData: Record<string, unknown> = {}
 ) {
-  await prisma.$transaction([
-    prisma.subscription.update({
-      where: { id: subscriptionId },
-      data: extraSubscriptionData,
-    }),
-    prisma.subscriptionAutoUpdateState.upsert({
-      where: { subscriptionId },
-      create: { subscriptionId, ...state },
-      update: state,
-    }),
+  const now = new Date().toISOString();
+  const setClauses = Object.keys(extraSubscriptionData).map((key) => `${key} = ?`);
+  const subscriptionUpdateBinds: BindValue[] = [
+    ...(Object.values(extraSubscriptionData) as BindValue[]),
+    now,
+    subscriptionId,
+  ];
+
+  const stateSetClauses = [
+    "externalFailureCount = excluded.externalFailureCount",
+    "failureSourceState = excluded.failureSourceState",
+    "lastFailedAt = excluded.lastFailedAt",
+    "lastAttemptedAt = excluded.lastAttemptedAt",
+    "disabledAt = excluded.disabledAt",
+    "disabledReason = excluded.disabledReason",
+    "disabledPreviousInterval = excluded.disabledPreviousInterval",
+    "updatedAt = excluded.updatedAt",
+  ];
+
+  const subscriptionStmt = setClauses.length > 0
+    ? stmt(
+        `UPDATE Subscription SET ${setClauses.join(", ")}, updatedAt = ? WHERE id = ?`,
+        ...subscriptionUpdateBinds,
+      )
+    : stmt("UPDATE Subscription SET updatedAt = ? WHERE id = ?", now, subscriptionId);
+
+  await dbBatch([
+    subscriptionStmt,
+    stmt(
+      `INSERT INTO SubscriptionAutoUpdateState
+       (subscriptionId, externalFailureCount, failureSourceState, lastFailedAt, lastAttemptedAt,
+        disabledAt, disabledReason, disabledPreviousInterval, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(subscriptionId) DO UPDATE SET ${stateSetClauses.join(", ")}`,
+      subscriptionId,
+      state.externalFailureCount,
+      state.failureSourceState,
+      state.lastFailedAt?.toISOString() ?? null,
+      state.lastAttemptedAt?.toISOString() ?? null,
+      state.disabledAt?.toISOString() ?? null,
+      state.disabledReason,
+      state.disabledPreviousInterval,
+      now,
+      now,
+    ),
   ]);
 }
 
@@ -164,8 +200,8 @@ async function completeSuccess(params: {
     encryptedNodes: await encryptJson(refreshResult.cacheEntry.nodes),
     encryptedConfig: await encryptJson(config),
     encryptedSubscriptionInfo: await encryptJson(refreshResult.cacheEntry.subscriptionInfo),
-    lastUpdatedAt: cachedAt,
-    cacheExpiresAt: buildSubscriptionCacheExpiry(cachedAt),
+    lastUpdatedAt: cachedAt.toISOString(),
+    cacheExpiresAt: buildSubscriptionCacheExpiry(cachedAt).toISOString(),
     ...(decision.nextAutoUpdateState.shouldDisableAutoUpdate ? { autoUpdateInterval: null } : {}),
   });
 
@@ -234,17 +270,42 @@ async function recordUnexpectedFailure(params: {
   return completion.outcome;
 }
 
+const SCHEDULE_SELECT_COLUMNS = `
+  s.id, s.autoUpdateInterval, s.createdAt, s.lastUpdatedAt,
+  u.lastAttemptedAt as state_lastAttemptedAt
+`;
+
+const FULL_SELECT_COLUMNS = `
+  s.id, s.ownerId, s.name, s.token, s.isPrimary, s.encryptedUrls, s.encryptedNodes,
+  s.encryptedConfig, s.encryptedSubscriptionInfo, s.autoUpdateInterval,
+  s.cacheExpiresAt, s.lastAccessedAt, s.lastUpdatedAt, s.createdAt, s.updatedAt,
+  u.externalFailureCount as state_externalFailureCount,
+  u.failureSourceState as state_failureSourceState,
+  u.lastFailedAt as state_lastFailedAt,
+  u.lastAttemptedAt as state_lastAttemptedAt,
+  u.disabledAt as state_disabledAt,
+  u.disabledReason as state_disabledReason,
+  u.disabledPreviousInterval as state_disabledPreviousInterval`;
+
+const STATE_LEFT_JOIN = "LEFT JOIN SubscriptionAutoUpdateState u ON u.subscriptionId = s.id";
+
 export async function runLocalSubscriptionAutoUpdateCron(now = new Date()): Promise<FinalCronUpdateSummary> {
-  const candidates = (await prisma.subscription.findMany({
-    where: { autoUpdateInterval: { not: null } },
-    select: {
-      id: true,
-      autoUpdateInterval: true,
-      createdAt: true,
-      lastUpdatedAt: true,
-      autoUpdateState: { select: { lastAttemptedAt: true } },
-    },
-  })) as AutoUpdateScheduleCandidate[];
+  const rawCandidates = await dbQuery<Record<string, unknown>>(
+    `SELECT ${SCHEDULE_SELECT_COLUMNS}
+     FROM Subscription s
+     LEFT JOIN SubscriptionAutoUpdateState u ON u.subscriptionId = s.id
+     WHERE s.autoUpdateInterval IS NOT NULL`,
+  );
+
+  const candidates: AutoUpdateScheduleCandidate[] = rawCandidates.map((row) => ({
+    id: row.id as string,
+    autoUpdateInterval: row.autoUpdateInterval === null ? null : Number(row.autoUpdateInterval),
+    createdAt: new Date(row.createdAt as string),
+    lastUpdatedAt: row.lastUpdatedAt === null ? null : new Date(row.lastUpdatedAt as string),
+    autoUpdateState: row.state_lastAttemptedAt === null || row.state_lastAttemptedAt === undefined
+      ? null
+      : { lastAttemptedAt: new Date(row.state_lastAttemptedAt as string) },
+  }));
 
   const accumulator = createCronUpdateAccumulator(candidates.length);
   const dueCandidates: DueAutoUpdateCandidate[] = [];
@@ -271,13 +332,17 @@ export async function runLocalSubscriptionAutoUpdateCron(now = new Date()): Prom
 
   for (let offset = 0; offset < dueCandidates.length; offset += AUTO_UPDATE_FULL_ROW_BATCH_SIZE) {
     const batch = dueCandidates.slice(offset, offset + AUTO_UPDATE_FULL_ROW_BATCH_SIZE);
-    const subscriptions = (await prisma.subscription.findMany({
-      where: {
-        id: { in: batch.map(({ id }) => id) },
-        autoUpdateInterval: { not: null },
-      },
-      include: { owner: { select: { username: true } }, autoUpdateState: true },
-    })) as AutoUpdateSubscriptionRow[];
+    const placeholders = batch.map(() => "?").join(",");
+    const rawRows = await dbQuery<Record<string, unknown>>(
+      `SELECT ${FULL_SELECT_COLUMNS},
+              a.username as owner_username
+       FROM Subscription s
+       ${STATE_LEFT_JOIN}
+       LEFT JOIN LocalAdmin a ON a.id = s.ownerId
+       WHERE s.id IN (${placeholders}) AND s.autoUpdateInterval IS NOT NULL`,
+      ...batch.map((c) => c.id),
+    );
+    const subscriptions = rawRows.map((row) => mapSubscriptionWithOwnerRow(row as never));
     const subscriptionById = new Map(subscriptions.map((subscription) => [subscription.id, subscription]));
 
     for (const dueCandidate of batch) {

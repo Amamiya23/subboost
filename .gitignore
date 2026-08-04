@@ -14,6 +14,7 @@ local/src/generated/
 .env.*
 !.env.example
 .dev.vars
+.dev.vars.*
 *.pem
 data/
 .tmp/
@@ -22,3 +23,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+
+# Trellis / AI agent tooling (not part of the deployable Worker)
+.agents/
+.codex/
+.opencode/
+.trellis/
+AGENTS.md
+
+# Local DB exports (contain personal subscription data)
+*.sql
+!local/prisma/migrations-d1/**/*.sql
+!local/prisma/migrations/**/*.sql

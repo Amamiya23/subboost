@@ -1,4 +1,4 @@
-import { prisma } from "./prisma";
+import { dbQuery, dbQueryOne } from "./db";
 import { readSession } from "./session";
 
 export type CurrentAdmin = {
@@ -9,14 +9,14 @@ export type CurrentAdmin = {
 export async function getCurrentAdmin(): Promise<CurrentAdmin | null> {
   const session = await readSession();
   if (!session) return null;
-  const admin = await prisma.localAdmin.findUnique({
-    where: { id: session.adminId },
-    select: { id: true, username: true },
-  });
-  return admin;
+  const row = await dbQueryOne<{ id: string; username: string }>(
+    "SELECT id, username FROM LocalAdmin WHERE id = ?",
+    session.adminId,
+  );
+  return row ? { id: row.id, username: row.username } : null;
 }
 
 export async function isSetupRequired(): Promise<boolean> {
-  const count = await prisma.localAdmin.count();
-  return count === 0;
+  const row = await dbQueryOne<{ count: number }>("SELECT COUNT(*) as count FROM LocalAdmin");
+  return Number(row?.count ?? 0) === 0;
 }

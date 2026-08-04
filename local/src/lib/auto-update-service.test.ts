@@ -10,16 +10,8 @@ const mocks = vi.hoisted(() => ({
   extractHostsFromSubscriptionUrls: vi.fn(),
   finalizeCronUpdateSummary: vi.fn(),
   prepareRefreshCacheResult: vi.fn(),
-  prisma: {
-    $transaction: vi.fn(),
-    subscription: {
-      findMany: vi.fn(),
-      update: vi.fn(),
-    },
-    subscriptionAutoUpdateState: {
-      upsert: vi.fn(),
-    },
-  },
+  dbQuery: vi.fn(),
+  dbBatch: vi.fn(),
   readSubscriptionSecrets: vi.fn(),
   recordCronUpdateSkipped: vi.fn(),
   refreshNodeSnapshot: vi.fn(),
@@ -45,7 +37,11 @@ vi.mock("@subboost/server-core/subscription", () => ({
   resolveSubscriptionAutoUpdateState: mocks.resolveSubscriptionAutoUpdateState,
 }));
 vi.mock("./crypto", () => ({ encryptJson: mocks.encryptJson }));
-vi.mock("./prisma", () => ({ prisma: mocks.prisma }));
+vi.mock("./db", () => ({
+  dbQuery: mocks.dbQuery,
+  dbBatch: mocks.dbBatch,
+  stmt: (sql: string, ...binds: unknown[]) => ({ sql, binds }),
+}));
 vi.mock("./subscription-service", () => ({
   buildSubscriptionCacheExpiry: mocks.buildSubscriptionCacheExpiry,
   buildSubscriptionFetchCallbacks: mocks.buildSubscriptionFetchCallbacks,
@@ -73,6 +69,44 @@ function makeSubscription(id: string) {
   };
 }
 
+function scheduleRawRow(id = "sub-1") {
+  return {
+    id,
+    autoUpdateInterval: 60,
+    createdAt: "2026-06-05T00:00:00.000Z",
+    lastUpdatedAt: null,
+    state_lastAttemptedAt: null,
+  };
+}
+
+function fullRawRow(id = "sub-1") {
+  return {
+    id,
+    ownerId: "admin-1",
+    name: `Subscription ${id}`,
+    token: "token-1",
+    isPrimary: 0,
+    encryptedUrls: "encrypted-urls",
+    encryptedNodes: "encrypted-nodes",
+    encryptedConfig: "encrypted-config",
+    encryptedSubscriptionInfo: "encrypted-info",
+    autoUpdateInterval: 60,
+    cacheExpiresAt: null,
+    lastAccessedAt: null,
+    lastUpdatedAt: null,
+    createdAt: "2026-06-05T00:00:00.000Z",
+    updatedAt: "2026-06-05T00:00:00.000Z",
+    state_externalFailureCount: null,
+    state_failureSourceState: null,
+    state_lastFailedAt: null,
+    state_lastAttemptedAt: null,
+    state_disabledAt: null,
+    state_disabledReason: null,
+    state_disabledPreviousInterval: null,
+    owner_username: "ry",
+  };
+}
+
 function accumulator(total: number) {
   return { total, skipped: 0, outcomes: [] as unknown[] };
 }
@@ -92,10 +126,7 @@ describe("local subscription auto update service", () => {
       acc.outcomes.push(outcome);
     });
     mocks.finalizeCronUpdateSummary.mockImplementation((acc, options) => ({ ...acc, options }));
-    mocks.prisma.subscription.findMany.mockResolvedValue([subscription]);
-    mocks.prisma.subscription.update.mockReturnValue({ update: true });
-    mocks.prisma.subscriptionAutoUpdateState.upsert.mockReturnValue({ upsert: true });
-    mocks.prisma.$transaction.mockResolvedValue([]);
+    mocks.dbBatch.mockResolvedValue(undefined);
     mocks.resolveSubscriptionAutoUpdateState.mockReturnValue({ lastAttemptedAt: null, externalFailureCount: 0 });
     mocks.resolveAutoUpdateScheduleState.mockReturnValue({ due: true });
     mocks.readSubscriptionSecrets.mockReturnValue({ config: { rules: [] }, urls: ["https://airport.example/sub"], nodes: [] });
@@ -129,6 +160,10 @@ describe("local subscription auto update service", () => {
   });
 
   it("uses the local six-minute minimum interval when saved values are lower", async () => {
+    mocks.dbQuery
+      .mockResolvedValueOnce([scheduleRawRow()])
+      .mockResolvedValueOnce([fullRawRow()]);
+
     await runLocalSubscriptionAutoUpdateCron(now);
 
     expect(mocks.resolveAutoUpdateScheduleState).toHaveBeenCalledWith(
@@ -137,6 +172,7 @@ describe("local subscription auto update service", () => {
   });
 
   it("skips subscriptions that are not due", async () => {
+    mocks.dbQuery.mockResolvedValueOnce([scheduleRawRow()]);
     mocks.resolveAutoUpdateScheduleState.mockReturnValueOnce({ due: false });
 
     await expect(runLocalSubscriptionAutoUpdateCron(now)).resolves.toEqual(
@@ -145,20 +181,17 @@ describe("local subscription auto update service", () => {
 
     expect(mocks.refreshNodeSnapshot).not.toHaveBeenCalled();
     expect(mocks.applyCronUpdateOutcome).not.toHaveBeenCalled();
-    expect(mocks.prisma.subscription.findMany).toHaveBeenCalledTimes(1);
-    expect(mocks.prisma.subscription.findMany).toHaveBeenCalledWith({
-      where: { autoUpdateInterval: { not: null } },
-      select: {
-        id: true,
-        autoUpdateInterval: true,
-        createdAt: true,
-        lastUpdatedAt: true,
-        autoUpdateState: { select: { lastAttemptedAt: true } },
-      },
-    });
+    expect(mocks.dbQuery).toHaveBeenCalledTimes(1);
+    expect(mocks.dbQuery).toHaveBeenCalledWith(
+      expect.stringContaining("FROM Subscription s"),
+    );
   });
 
   it("refreshes due subscriptions and writes encrypted cache state", async () => {
+    mocks.dbQuery
+      .mockResolvedValueOnce([scheduleRawRow()])
+      .mockResolvedValueOnce([fullRawRow()]);
+
     const result = await runLocalSubscriptionAutoUpdateCron(now);
 
     expect(result).toEqual(expect.objectContaining({ total: 1, outcomes: [{ kind: "updated", subscriptionId: "sub-1" }] }));
@@ -169,54 +202,54 @@ describe("local subscription auto update service", () => {
         storedNodes: [],
       })
     );
-    expect(mocks.prisma.subscription.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: "sub-1" },
-        data: expect.objectContaining({
-          encryptedNodes: { encrypted: [{ name: "A" }] },
-          encryptedConfig: { encrypted: { rules: [], sources: [{ url: "https://airport.example/sub" }] } },
-          encryptedSubscriptionInfo: { encrypted: { upload: 1 } },
+    expect(mocks.dbBatch).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sql: expect.stringContaining("UPDATE Subscription"),
+          binds: expect.arrayContaining([
+            { encrypted: [{ name: "A" }] },
+            { encrypted: { rules: [], sources: [{ url: "https://airport.example/sub" }] } },
+            { encrypted: { upload: 1 } },
+          ]),
         }),
-      })
+        expect.objectContaining({
+          sql: expect.stringContaining("INSERT INTO SubscriptionAutoUpdateState"),
+        }),
+      ])
     );
-    expect(mocks.prisma.subscriptionAutoUpdateState.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { subscriptionId: "sub-1" } })
+    expect(mocks.dbQuery).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining("FROM Subscription s"),
+      "sub-1",
     );
-    expect(mocks.prisma.subscription.findMany).toHaveBeenNthCalledWith(2, {
-      where: {
-        id: { in: ["sub-1"] },
-        autoUpdateInterval: { not: null },
-      },
-      include: { owner: { select: { username: true } }, autoUpdateState: true },
-    });
   });
 
   it("loads due subscriptions in bounded batches and restores candidate order", async () => {
-    const candidates = Array.from({ length: 11 }, (_, index) => makeSubscription(`sub-${index + 1}`));
-    mocks.prisma.subscription.findMany
-      .mockResolvedValueOnce(candidates)
-      .mockResolvedValueOnce([...candidates.slice(0, 10)].reverse())
-      .mockResolvedValueOnce(candidates.slice(10));
+    const ids = Array.from({ length: 11 }, (_, index) => `sub-${index + 1}`);
+    mocks.dbQuery
+      .mockResolvedValueOnce(ids.map((id) => scheduleRawRow(id)))
+      .mockResolvedValueOnce(ids.slice(0, 10).reverse().map((id) => fullRawRow(id)))
+      .mockResolvedValueOnce([fullRawRow(ids[10])]);
 
     await runLocalSubscriptionAutoUpdateCron(now);
 
-    expect(mocks.prisma.subscription.findMany).toHaveBeenCalledTimes(3);
-    expect(mocks.prisma.subscription.findMany).toHaveBeenNthCalledWith(
+    expect(mocks.dbQuery).toHaveBeenCalledTimes(3);
+    expect(mocks.dbQuery).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ where: expect.objectContaining({ id: { in: candidates.slice(0, 10).map(({ id }) => id) } }) })
+      expect.stringContaining("FROM Subscription s"),
+      ...ids.slice(0, 10),
     );
-    expect(mocks.prisma.subscription.findMany).toHaveBeenNthCalledWith(
+    expect(mocks.dbQuery).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ where: expect.objectContaining({ id: { in: ["sub-11"] } }) })
+      expect.stringContaining("FROM Subscription s"),
+      "sub-11",
     );
-    expect(mocks.readSubscriptionSecrets.mock.calls.map(([row]) => row.id)).toEqual(
-      candidates.map(({ id }) => id)
-    );
+    expect(mocks.readSubscriptionSecrets.mock.calls.map(([row]) => row.id)).toEqual(ids);
   });
 
   it("counts due candidates that disappear before the full-row read as skipped", async () => {
-    mocks.prisma.subscription.findMany
-      .mockResolvedValueOnce([subscription])
+    mocks.dbQuery
+      .mockResolvedValueOnce([scheduleRawRow()])
       .mockResolvedValueOnce([]);
 
     await expect(runLocalSubscriptionAutoUpdateCron(now)).resolves.toEqual(
@@ -226,6 +259,9 @@ describe("local subscription auto update service", () => {
   });
 
   it("records all-source failures and disables auto update when requested", async () => {
+    mocks.dbQuery
+      .mockResolvedValueOnce([scheduleRawRow()])
+      .mockResolvedValueOnce([fullRawRow()]);
     mocks.prepareRefreshCacheResult.mockReturnValueOnce({ ok: false, reason: "no_nodes" });
     mocks.resolveAutomaticRefreshCompletionDecision.mockReturnValueOnce({
       kind: "all_sources_failed",
@@ -240,10 +276,13 @@ describe("local subscription auto update service", () => {
       expect.objectContaining({ outcomes: [{ kind: "disabled", subscriptionId: "sub-1" }] })
     );
 
-    expect(mocks.prisma.subscription.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ autoUpdateInterval: null }),
-      })
+    expect(mocks.dbBatch).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sql: expect.stringContaining("UPDATE Subscription"),
+          binds: expect.arrayContaining([null]),
+        }),
+      ])
     );
     expect(console.warn).toHaveBeenCalledWith(
       "[local-subscription-cron] auto update disabled",
@@ -252,6 +291,9 @@ describe("local subscription auto update service", () => {
   });
 
   it("records attempted state for partial refresh failures", async () => {
+    mocks.dbQuery
+      .mockResolvedValueOnce([scheduleRawRow()])
+      .mockResolvedValueOnce([fullRawRow()]);
     mocks.prepareRefreshCacheResult.mockReturnValueOnce({ ok: false, reason: "partial" });
     mocks.resolveAutomaticRefreshCompletionDecision.mockReturnValueOnce({
       kind: "retry",
@@ -261,11 +303,13 @@ describe("local subscription auto update service", () => {
 
     await runLocalSubscriptionAutoUpdateCron(now);
 
-    expect(mocks.prisma.subscriptionAutoUpdateState.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        create: expect.objectContaining({ externalFailureCount: 1 }),
-        update: expect.objectContaining({ externalFailureCount: 1 }),
-      })
+    expect(mocks.dbBatch).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sql: expect.stringContaining("INSERT INTO SubscriptionAutoUpdateState"),
+          binds: expect.arrayContaining(["sub-1", 1]),
+        }),
+      ])
     );
     expect(mocks.applyCronUpdateOutcome).toHaveBeenCalledWith(expect.anything(), {
       kind: "failed",
@@ -274,10 +318,13 @@ describe("local subscription auto update service", () => {
   });
 
   it("captures unexpected failures and keeps the cron summary going", async () => {
+    mocks.dbQuery
+      .mockResolvedValueOnce([scheduleRawRow()])
+      .mockResolvedValueOnce([fullRawRow()]);
     mocks.readSubscriptionSecrets.mockImplementationOnce(() => {
       throw new Error("decrypt failed");
     });
-    mocks.prisma.$transaction.mockRejectedValueOnce(new Error("state write failed"));
+    mocks.dbBatch.mockRejectedValueOnce(new Error("state write failed"));
 
     await expect(runLocalSubscriptionAutoUpdateCron(now)).resolves.toEqual(
       expect.objectContaining({ outcomes: [{ kind: "failed", subscriptionId: "sub-1" }] })
