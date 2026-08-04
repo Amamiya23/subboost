@@ -18,7 +18,7 @@
     {
       "binding": "DB",
       "database_name": "subboost-db",
-      "database_id": "45cb5ac4-5e0f-4656-ac08-b18a8801cf89",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
       "migrations_dir": "prisma/migrations-d1",
       "migrations_pattern": "prisma/migrations-d1/*/migration.sql"
     }
