@@ -57,31 +57,54 @@ npm run db:migrate:d1:local
 
 ### 步骤 4：设置 Secrets
 
-需要设置 4 个环境变量。**如果你从 Docker 版本迁移**，必须使用与原部署**完全一致**的 `ENCRYPTION_KEY` 和 `JWT_SECRET`，否则已加密的订阅数据无法解密。
+本服务需要 4 个环境变量：
+
+| Secret | 用途 |
+|---|---|
+| `ENCRYPTION_KEY` | 加密订阅 URL、节点、配置等敏感字段 |
+| `JWT_SECRET` | 签名管理员会话 token |
+| `CRON_SECRET` | 保护定时刷新 API |
+| `APP_URL` | 应用外部访问 URL（用于生成订阅链接，例如 `https://subboost-local.<your-subdomain>.workers.dev`） |
+
+#### 全新部署（一键生成）
+
+仓库提供了一个辅助脚本，自动生成 3 个强随机密钥并上传到 Cloudflare：
 
 ```bash
-# 加密密钥：用于加密订阅 URL、节点、配置等敏感字段
-# 必须与原 Docker 部署一致（如迁移）；新部署请生成强随机字符串
+cd local
+./scripts/setup-secrets.sh
+```
+
+脚本会提示你输入 Workers URL（其余密钥自动生成），最后打印所有值——**请保存到密码管理器**，未来重新部署或迁移数据时需要复用。
+
+#### 从 Docker 版本迁移（复用原有密钥）
+
+如果你已有 Docker 部署，`ENCRYPTION_KEY` 和 `JWT_SECRET` **必须与原部署完全一致**，否则已加密的订阅数据无法解密、已登录用户需重新登录：
+
+```bash
+cd local
+MIGRATE=1 ./scripts/setup-secrets.sh
+# 按提示输入原有的 ENCRYPTION_KEY 和 JWT_SECRET
+```
+
+原值可以从 Docker 容器环境变量读取：
+
+```bash
+docker exec $(docker ps -qf "name=subboost") env | grep -E "ENCRYPTION_KEY|JWT_SECRET"
+```
+
+#### 手动设置（可选）
+
+如不使用脚本，可逐个交互式设置：
+
+```bash
 npx wrangler secret put ENCRYPTION_KEY
-
-# JWT 签名密钥：用于管理员会话 token
-# 必须与原 Docker 部署一致（如迁移）；否则已登录用户需重新登录
 npx wrangler secret put JWT_SECRET
-
-# Cron 鉴权密钥：保护定时刷新 API
 npx wrangler secret put CRON_SECRET
-
-# 应用外部访问 URL：用于生成订阅链接
-# 替换成你部署后的 Workers 域名
 npx wrangler secret put APP_URL
-# 输入例如：https://subboost-local.<your-subdomain>.workers.dev
 ```
 
-**生成强随机密钥**：
-
-```bash
-openssl rand -base64 32
-```
+生成强随机密钥：`openssl rand -base64 32`
 
 ### 步骤 5：构建并部署
 
@@ -147,6 +170,9 @@ Cloudflare Workers 免费套餐每月提供 100,000 次请求和 1,000 次 Cron 
 
 ```bash
 cd local
+
+# 一键生成并设置所有 secrets（全新部署）
+./scripts/setup-secrets.sh
 
 # 本地开发预览（需先 build:worker）
 npm run preview:worker
