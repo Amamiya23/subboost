@@ -56,6 +56,7 @@ vi.mock("lucide-react", () => ({
   Library: () => React.createElement("span", null, "library-icon"),
   HelpCircle: () => React.createElement("span", null, "help-icon"),
   Menu: () => React.createElement("span", null, "menu-icon"),
+  Settings2: () => React.createElement("span", null, "settings-icon"),
   X: () => React.createElement("span", null, "x-icon"),
   LogIn: () => React.createElement("span", null, "login-icon"),
   Shield: () => React.createElement("span", null, "shield-icon"),

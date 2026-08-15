@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   LogIn,
+  Settings2,
   Shield,
   type LucideIcon,
 } from "lucide-react";
@@ -40,6 +41,7 @@ type NavItem = {
 
 const sharedNavItems: NavItem[] = [
   { href: "/", label: "首页", icon: Home },
+  { href: "/builder", label: "配置生成器", icon: Settings2 },
   { href: "/dashboard", label: "我的订阅", icon: LayoutDashboard, authOnly: true },
   { href: "/templates", label: "模板库", icon: Library },
 ];
@@ -124,7 +126,7 @@ export function Header({
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-[#0a0a0a]/85 border-b border-white/8">
+    <header className="sticky top-0 z-50 backdrop-blur-md bg-ink/90 border-b border-white/8">
       <div className="w-full max-w-[clamp(1200px,95vw,2400px)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
@@ -138,7 +140,7 @@ export function Header({
                 priority
                 className="rounded-md transition-opacity group-hover:opacity-90"
               />
-              <span className="hidden text-[15px] font-semibold leading-none tracking-tight text-white sm:inline-flex">
+              <span className="hidden font-display text-[16px] font-semibold leading-none tracking-tight text-bone sm:inline-flex">
                 SubBoost
               </span>
             </Link>
@@ -150,7 +152,7 @@ export function Header({
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-0.5 rounded-md border border-white/8 bg-white/[0.03] p-0.5">
-            {visibleNavItems.map((item) => {
+            {visibleNavItems.map((item, index) => {
               const isActive = isNavItemActive(pathname, item.href);
               return (
                 <Link
@@ -163,7 +165,9 @@ export function Header({
                       : "text-white/55 hover:bg-white/8 hover:text-white"
                   )}
                 >
-                  <item.icon className={cn("h-3.5 w-3.5", isActive ? "text-white/80" : "text-white/40")} />
+                  <span className={cn("mono-label", isActive ? "text-acid" : "text-white/30")}>
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                   {item.label}
                 </Link>
               );

@@ -93,6 +93,7 @@ describe("MobileNav", () => {
   it("renders guest default navigation and handles home hash clicks", () => {
     const scrollIntoView = vi.fn();
     const preventDefault = vi.fn();
+    mocks.pathname = "/builder";
     vi.stubGlobal("document", {
       getElementById: vi.fn(() => ({ scrollIntoView })),
     });
@@ -108,10 +109,10 @@ describe("MobileNav", () => {
     expect(html).not.toContain("我的");
     expect(html).toContain("text-white");
 
-    links.find((link) => link.href === "/#config").onClick({ preventDefault });
+    links.find((link) => link.href === "/builder#config").onClick({ preventDefault });
     expect(preventDefault).toHaveBeenCalled();
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
-    expect(window.history.replaceState).toHaveBeenCalledWith(null, "", "/#config");
+    expect(window.history.replaceState).toHaveBeenCalledWith(null, "", "/builder#config");
     expect(setter).toHaveBeenCalledWith("config");
   });
 
@@ -125,7 +126,7 @@ describe("MobileNav", () => {
     expect(html).toContain("AI");
     expect(html).toContain("我的");
     expect(html).toContain("text-white");
-    links.find((link) => link.href === "/#ai").onClick({ preventDefault });
+    links.find((link) => link.href === "/builder#ai").onClick({ preventDefault });
     expect(preventDefault).not.toHaveBeenCalled();
   });
 

@@ -1,30 +1,96 @@
 @import "tailwindcss" source("../../../..");
 
-@theme {
-  /* v1 视觉系统：primary 退役为白系（保留键名兼容既有 primary-* 引用） */
-  --color-primary: #ffffff;
-  --color-primary-50: #ffffff;
-  --color-primary-100: #fafafa;
-  --color-primary-200: #f5f5f5;
-  --color-primary-300: #e5e5e5;
-  --color-primary-400: #d4d4d4;
-  --color-primary-500: #ffffff;
-  --color-primary-600: #fafafa;
-  --color-primary-700: #e5e5e5;
-  --color-primary-800: #a3a3a3;
-  --color-primary-900: #737373;
+/* ============ 自托管字体（local/public/fonts，经 CF Static Assets 分发，不计入 Worker 体积） ============ */
+/* 只保留实际使用的字重文件，最小化首屏字体负载 */
+/* Clash Display — 标题（Fontshare，免费商用授权）；单 600 文件，其余字重由浏览器合成 */
+@font-face {
+  font-family: "Clash Display";
+  src: url("/fonts/clash-display-600.woff2") format("woff2");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+/* Switzer — 正文（Fontshare） */
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/switzer-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/switzer-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/switzer-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+/* JetBrains Mono — 技术标注（Google Fonts，OFL；latin 子集可变字重） */
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
+}
 
-  --color-dark: #0a0a0a;
-  --color-dark-50: #141414;
-  --color-dark-100: #1a1a1a;
-  --color-dark-200: #262626;
-  --color-dark-300: #404040;
-  --color-dark-400: #525252;
-  --color-dark-500: #737373;
-  --color-dark-600: #a3a3a3;
-  --color-dark-700: #d4d4d4;
-  --color-dark-800: #e5e5e5;
-  --color-dark-900: #ededed;
+@theme {
+  /* ============ SIGNAL LAB 视觉系统 v2 ============ */
+  /* 中性色全部向酸绿相 tint（OKLCH 感知均匀） */
+  --color-ink: oklch(14% 0.01 130);
+  --color-ink-50: oklch(17.5% 0.011 130);
+  --color-ink-100: oklch(21% 0.012 130);
+  --color-ink-200: oklch(26% 0.013 130);
+  --color-ink-300: oklch(34% 0.014 130);
+  --color-ink-400: oklch(44% 0.014 130);
+  --color-ink-500: oklch(58% 0.013 130);
+  --color-ink-600: oklch(72% 0.012 130);
+  --color-ink-700: oklch(84% 0.01 130);
+  --color-ink-800: oklch(91% 0.008 130);
+  --color-ink-900: oklch(95% 0.006 130);
+
+  --color-bone: oklch(93% 0.008 120);
+
+  --color-acid: oklch(88% 0.21 128);
+  --color-acid-dim: oklch(72% 0.17 128);
+
+  /* primary 退役为骨白系（保留键名兼容既有 primary-* 引用） */
+  --color-primary: var(--color-bone);
+  --color-primary-50: var(--color-bone);
+  --color-primary-100: oklch(95% 0.007 120);
+  --color-primary-200: oklch(91% 0.008 120);
+  --color-primary-300: oklch(84% 0.01 120);
+  --color-primary-400: oklch(72% 0.012 120);
+  --color-primary-500: var(--color-bone);
+  --color-primary-600: oklch(91% 0.008 120);
+  --color-primary-700: oklch(84% 0.01 120);
+  --color-primary-800: oklch(62% 0.012 120);
+  --color-primary-900: oklch(48% 0.013 120);
+
+  --color-dark: oklch(14% 0.01 130);
+  --color-dark-50: var(--color-ink-50);
+  --color-dark-100: var(--color-ink-100);
+  --color-dark-200: var(--color-ink-200);
+  --color-dark-300: var(--color-ink-300);
+  --color-dark-400: var(--color-ink-400);
+  --color-dark-500: var(--color-ink-500);
+  --color-dark-600: var(--color-ink-600);
+  --color-dark-700: var(--color-ink-700);
+  --color-dark-800: var(--color-ink-800);
+  --color-dark-900: var(--color-ink-900);
+
+  /* 字体：Clash Display（标题）/ Switzer（正文）/ JetBrains Mono（技术标注） */
+  --font-display: "Clash Display", "Switzer", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-sans: "Switzer", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
 
   --animate-fade-in: fadeIn 0.3s ease-in-out;
   --animate-slide-up: slideUp 0.3s ease-out;
@@ -33,14 +99,17 @@
 }
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --primary: #ffffff;
-  --primary-hover: #fafafa;
-  --card: #141414;
-  --card-hover: #1a1a1a;
-  --border: #262626;
-  --muted: #737373;
+  --background: oklch(14% 0.01 130);
+  --foreground: var(--color-bone);
+  --primary: var(--color-bone);
+  --primary-hover: oklch(95% 0.006 120);
+  --card: oklch(17.5% 0.011 130);
+  --card-hover: oklch(21% 0.012 130);
+  --border: oklch(26% 0.013 130);
+  --muted: oklch(58% 0.013 130);
+  --acid: oklch(88% 0.21 128);
+  --line: rgba(237, 238, 230, 0.09);
+  --line-strong: rgba(237, 238, 230, 0.16);
 
   /* react-remove-scroll(-bar) 支持：用于在锁定滚动时补偿滚动条占位，避免水平抖动 */
   --removed-body-scroll-bar-size: 0px;
@@ -48,19 +117,33 @@
 
 @layer base {
   * {
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(237, 238, 230, 0.08);
   }
 
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-sans);
     min-height: 100vh;
     /* 保持滚动条占位，避免路由切换/加载时出现整体水平位移 */
     overflow-y: scroll;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.005em;
+  }
+
+  /* grain 噪点：全站胶片颗粒层，不可交互 */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -50%;
+    z-index: 90;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+    opacity: 0.035;
+    will-change: transform;
+    animation: grainShift 0.9s steps(3) infinite;
   }
 
   html body[data-scroll-locked] {
@@ -92,13 +175,13 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(237, 238, 230, 0.08);
   border-radius: 0;
   border: 3px solid var(--background);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(237, 238, 230, 0.14);
 }
 
 /* 动画 */
@@ -121,16 +204,137 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* ============ SIGNAL LAB 动效 ============ */
+
+/* 噪点微位移（让颗粒活起来） */
+@keyframes grainShift {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(-2%, 1.5%); }
+  66% { transform: translate(1.5%, -2%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ease-out-expo：自然减速，无弹跳 */
+@keyframes rise {
+  0% { opacity: 0; transform: translateY(26px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes riseFade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* 恒动 marquee */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* live 状态点 */
+@keyframes liveBlink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(205, 255, 77, 0.5); }
+  50% { opacity: 0.6; box-shadow: 0 0 0 5px rgba(205, 255, 77, 0); }
+}
+
+.reveal {
+  animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.reveal-fade {
+  animation: riseFade 1.2s ease-out both;
+}
+
+.reveal-d1 { animation-delay: 0.08s; }
+.reveal-d2 { animation-delay: 0.18s; }
+.reveal-d3 { animation-delay: 0.3s; }
+.reveal-d4 { animation-delay: 0.44s; }
+.reveal-d5 { animation-delay: 0.6s; }
+
+/* ============ SIGNAL LAB 版式 ============ */
+
+/* 巨型描边字（outline display type） */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(237, 238, 230, 0.5);
+}
+
+@media (min-width: 1024px) {
+  .text-outline {
+    -webkit-text-stroke-width: 2px;
+  }
+}
+
+/* 技术标注：等宽小字号 + 字距 */
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+/* live 状态点 */
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--acid);
+  animation: liveBlink 2.2s ease-in-out infinite;
+}
+
+/* hairline 分割 */
+.hairline {
+  border-color: var(--line);
+}
+
+/* marquee 滚动字幕 */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* 蓝图网格底纹 */
+.blueprint-grid {
+  background-image:
+    linear-gradient(to right, rgba(237, 238, 230, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(237, 238, 230, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* 无障碍：减少动态 */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-fade {
+    animation: none;
+  }
+
+  .marquee-track {
+    animation: none;
+  }
+
+  body::after {
+    animation: none;
+  }
+
+  .live-dot {
+    animation: none;
+  }
+}
+
 @layer components {
-  /* v1：毛玻璃 / 发光边框 / 渐变文字 / 紫色背景 全部退役。
-     保留类名做空实现（仅保留必要的圆角/边框以维持既有布局），
-     避免破坏既有引用；新代码不应再使用。 */
+  /* v1 毛玻璃遗留类名：保留空实现避免破坏既有引用；新代码不应再使用。 */
   .glass-card {
-    @apply bg-[#141414] border border-white/10 rounded-md;
+    @apply bg-ink-50 border border-white/10 rounded-md;
   }
 
   .glass-card-hover {
-    @apply bg-[#141414] border border-white/10 rounded-md transition-colors duration-150 hover:bg-[#1a1a1a];
+    @apply bg-ink-50 border border-white/10 rounded-md transition-colors duration-150 hover:bg-ink-100;
   }
 
   .glow-border,
@@ -139,12 +343,12 @@
   }
 
   .text-gradient {
-    @apply text-white;
+    @apply text-bone;
   }
 
-  /* 按钮：默认 = 白底黑字（Vercel 反向强调） */
+  /* 按钮：主按钮 = acid 底黑字（信号灯式强调） */
   .btn-primary {
-    @apply border border-transparent bg-white text-black font-medium px-4 py-2 rounded-md transition-colors duration-150 hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply border border-transparent bg-acid text-black font-semibold px-4 py-2 rounded-md transition-all duration-150 hover:brightness-110 hover:shadow-[0_0_24px_rgba(205,255,77,0.25)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none;
   }
 
   .btn-secondary {
@@ -175,7 +379,7 @@
   }
 
   .tag-accent {
-    @apply bg-white/10 text-white/80 border-white/15;
+    @apply bg-acid/12 text-acid border-acid/25;
   }
 
   /* 统计块 */
@@ -319,9 +523,9 @@
 }
 
 @layer utilities {
-  /* 文本选择：低透明白 */
+  /* 文本选择：acid 低透明 */
   ::selection {
-    @apply bg-white/20 text-white;
+    @apply bg-acid/25 text-white;
   }
 
   /* 隐藏滚动条但保持滚动功能 */
@@ -337,7 +541,7 @@
   /* 安静的中性灰滚动条 */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+    scrollbar-color: rgba(237, 238, 230, 0.12) transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -350,11 +554,11 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(237, 238, 230, 0.12);
     border-radius: 0;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(237, 238, 230, 0.2);
   }
 }

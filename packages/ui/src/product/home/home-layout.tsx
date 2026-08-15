@@ -128,24 +128,12 @@ export function HomeLayout({
   }, [interactions]);
 
   return (
-    <div className="w-full max-w-[clamp(1200px,95vw,2400px)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-3 lg:py-5 [@media(max-height:1000px)]:py-3 min-h-[calc(100vh-64px)] flex flex-col">
+    <div className="w-full max-w-[clamp(1200px,95vw,2400px)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-3 lg:py-5 min-h-[calc(100vh-64px)] flex flex-col">
       {renderAnnouncement?.({
         placement: configTab === "advanced" ? "advanced" : "home",
         authChecked,
         user,
       })}
-
-      {/* Hero */}
-      <div className="text-center mb-2 lg:mb-3 [@media(max-height:1000px)]:mb-1.5">
-        <h1 className="font-bold leading-[1.08] mb-1 text-[clamp(1.25rem,2vw,2rem)] [@media(max-height:1000px)]:text-[clamp(1.25rem,1.7vw,1.75rem)]">
-          <span className="bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent">
-            SubBoost
-          </span>
-        </h1>
-        <p className="text-white/50 max-w-2xl mx-auto leading-snug text-[clamp(0.75rem,1vw,0.95rem)] [@media(max-height:1000px)]:text-[0.875rem]">
-          Clash 订阅转换、生成与管理服务，支持链式代理、智能分流、多协议和多订阅聚合
-        </p>
-      </div>
 
       {noticeSlot}
 
@@ -167,6 +155,7 @@ export function HomeLayout({
               <CardHeader className="pb-3 flex-shrink-0">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle className="text-base lg:text-lg flex items-center gap-2 min-w-0">
+                    <span className="mono-label text-acid/90">01</span>
                     <Settings2 className="h-5 w-5 text-white/65" />
                     <span className="shrink-0">配置生成器</span>
                     {isLoadingEditingSubscription && editSubscriptionId && (
@@ -256,6 +245,7 @@ export function HomeLayout({
               <CardHeader className="pb-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base lg:text-lg flex items-center gap-2">
+                    <span className="mono-label text-acid/90">02</span>
                     <Eye className="h-5 w-5 text-white/65" />
                     预览
                   </CardTitle>
@@ -341,7 +331,7 @@ export function HomeLayout({
                   <Button
                     className="h-10 border-rose-500/50 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 hover:border-rose-400/70"
                     variant="outline"
-                    onClick={() => (window.location.href = "/")}
+                    onClick={() => (window.location.href = "/builder")}
                     title="退出编辑模式"
                   >
                     退出编辑
@@ -357,10 +347,13 @@ export function HomeLayout({
           <div id="ai" className={`lg:col-span-4 xl:col-span-4 flex flex-col gap-3 min-h-0 ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}>
             <Card className={`w-full flex-1 flex flex-col overflow-hidden min-h-0 ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}>
               <CardHeader className="pb-3 flex-shrink-0">
-                <CardTitle className="text-base lg:text-lg text-white">AI 助手</CardTitle>
+                <CardTitle className="text-base lg:text-lg flex items-center gap-2 text-white">
+                  <span className="mono-label text-acid/90">03</span>
+                  AI 助手
+                </CardTitle>
               </CardHeader>
               <CardContent className={`flex-1 min-h-0 flex items-center justify-center ${DESKTOP_PANEL_CONTENT_MIN_HEIGHT_CLASS}`}>
-                <p className="text-sm text-white/60">AI 助手施工中</p>
+                <p className="mono-label text-white/40">AI 助手施工中</p>
               </CardContent>
             </Card>
           </div>

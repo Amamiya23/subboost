@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("lucide-react", () => ({
+  ArrowRight: () => React.createElement("span", null, "ArrowRight"),
   LogOut: () => React.createElement("span", null, "LogOut"),
   ServerCog: () => React.createElement("span", null, "ServerCog"),
   ShieldCheck: () => React.createElement("span", null, "ShieldCheck"),
@@ -70,11 +71,12 @@ vi.mock("@local/components/local-login", () => ({
   LocalLogin: () => React.createElement("main", null, "LocalLogin"),
 }));
 
+import BuilderPage from "./builder/page";
 import DashboardPage from "./dashboard/page";
+import LandingPage from "./page";
 import LoginPage from "./login/page";
 import SettingsPage from "./dashboard/settings/page";
 import manifest from "./manifest";
-import HomePage from "./page";
 import TemplatesPage from "./templates/page";
 
 describe("local app pages and adapters", () => {
@@ -109,6 +111,14 @@ describe("local app pages and adapters", () => {
     expect(renderToStaticMarkup(React.createElement(LoginPage))).toBe("<main>LocalLogin</main>");
   });
 
+  it("renders the landing hero with the builder CTA", () => {
+    const html = renderToStaticMarkup(React.createElement(LandingPage));
+    expect(html).toContain("SUB");
+    expect(html).toContain("BOOST");
+    expect(html).toContain("进入配置生成器");
+    expect(html).toContain('href="/builder"');
+  });
+
   it("connects the local home adapter to local API routes", async () => {
     const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
@@ -118,7 +128,7 @@ describe("local app pages and adapters", () => {
       .mockResolvedValueOnce({ items: [{ id: "rule-1" }], totalRules: 7, totalMatched: 1, source: "remote" })
       .mockResolvedValueOnce({ items: [{ key: "cn" }] });
 
-    renderToStaticMarkup(React.createElement(HomePage));
+    renderToStaticMarkup(React.createElement(BuilderPage));
     const adapter = mocks.homeAdapter;
 
     await expect(adapter.productApi.sourceImport.importSource({ url: "https://example.test/sub" })).resolves.toEqual({

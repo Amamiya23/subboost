@@ -225,11 +225,24 @@ function HomeSurfaceInner({ adapter }: Props) {
   );
 }
 
+/**
+ * SSR 骨架：工作台占位保持大致高度，减少布局抖动。
+ */
+function HomeSurfaceFallback() {
+  return (
+    <div className="w-full max-w-[clamp(1200px,95vw,2400px)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-3 lg:py-5 min-h-[calc(100vh-64px)] flex flex-col">
+      <div className="mono-label flex h-[clamp(26rem,60vh,39rem)] items-center justify-center rounded-md border border-white/8 bg-white/[0.02] text-white/30">
+        INITIALIZING WORKSPACE…
+      </div>
+    </div>
+  );
+}
+
 export function HomeSurface({ adapter }: Props) {
   return (
     <ProductApiAdapterProvider adapter={adapter?.productApi}>
       <ProductInteractionAdapterProvider adapter={adapter?.interactions}>
-        <React.Suspense fallback={null}>
+        <React.Suspense fallback={<HomeSurfaceFallback />}>
           <HomeSurfaceInner adapter={adapter} />
         </React.Suspense>
       </ProductInteractionAdapterProvider>

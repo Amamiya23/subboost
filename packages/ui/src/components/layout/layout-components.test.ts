@@ -60,7 +60,6 @@ vi.mock("@subboost/ui/store/user-store", () => ({
   useUserStore: () => mocks.userState,
 }));
 
-import { Footer } from "./footer";
 import { Header } from "./header";
 import { MobileNav } from "./mobile-nav";
 
@@ -98,39 +97,6 @@ describe("shared layout components", () => {
     expect(html).toContain("我的订阅");
     expect(html).not.toContain("FAQ");
     expect(html).toContain("UserMenu:Privileged");
-  });
-
-  it("renders footer links according to mode and auth state", () => {
-    let html = renderToStaticMarkup(React.createElement(Footer, { mode: "local", buildVersion: "2.3.17" }));
-    expect(html).toContain("开源仓库");
-    expect(html).toContain("https://github.com/SubBoost/subboost");
-    expect(html).toContain("配置教程");
-    expect(html).toContain("https://subboost.org/faq");
-    expect(html).not.toContain("本地管理员入口");
-    expect(html).not.toContain("我的订阅");
-    expect(html).toContain("SubBoost v2.3.17");
-
-    mocks.userState = { user: { id: "user-1" } };
-    html = renderToStaticMarkup(
-      React.createElement(Footer, {
-        brandLinks: [{ href: "https://example.test", label: "Example", iconSrc: "/example.png" }],
-        helpLinks: [{ href: "/help", label: "Help" }],
-      })
-    );
-    expect(html).toContain("我的订阅");
-    expect(html).toContain("Help");
-    expect(html).toContain("/example.png");
-
-    mocks.userState = { user: { id: "admin-1", isAdmin: true, isBanned: false } };
-    html = renderToStaticMarkup(React.createElement(Footer, { buildVersion: "2.3.17" }));
-    expect(html).toContain("开源仓库");
-    expect(html).toContain("https://github.com/SubBoost/subboost");
-    expect(html).toContain('data-brand-icon="github"');
-    expect(html).toContain("RyanVan&#x27;s Blog");
-    expect(html).toContain("https://linux.do");
-    expect(html).toContain("https://subboost.org/terms");
-    expect(html).not.toContain("源代码");
-    expect(html).toContain("SubBoost v2.3.17");
   });
 
   it("renders mobile nav items for anonymous and authenticated users", () => {

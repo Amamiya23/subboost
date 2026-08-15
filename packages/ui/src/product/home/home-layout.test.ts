@@ -206,7 +206,6 @@ describe("HomeLayout", () => {
       authChecked: false,
       user: null,
     });
-    expect(html).toContain("SubBoost");
     expect(html).toContain("quick-mode");
     expect(html).toContain("advanced-mode");
     expect(html).toContain("visual-graph");

@@ -18,14 +18,15 @@ type MobileNavItem = {
 };
 
 const defaultMobileNavItems: MobileNavItem[] = [
-  { id: "config", href: "/#config", label: "配置", icon: Settings2, hash: "config" },
-  { id: "preview", href: "/#preview", label: "预览", icon: Eye, hash: "preview" },
-  { id: "ai", href: "/#ai", label: "AI", icon: Bot, hash: "ai", authOnly: true },
+  { id: "config", href: "/builder#config", label: "配置", icon: Settings2, hash: "config" },
+  { id: "preview", href: "/builder#preview", label: "预览", icon: Eye, hash: "preview" },
+  { id: "ai", href: "/builder#ai", label: "AI", icon: Bot, hash: "ai", authOnly: true },
   { id: "dashboard", href: "/dashboard", label: "我的", icon: User, authOnly: true },
 ];
 
 const localMobileNavItems: MobileNavItem[] = [
   { id: "home", href: "/", label: "首页", icon: Home },
+  { id: "config", href: "/builder", label: "生成", icon: Settings2 },
   { id: "dashboard", href: "/dashboard", label: "订阅", icon: User, authOnly: true },
   { id: "templates", href: "/templates", label: "模板", icon: Library },
 ];
@@ -43,7 +44,7 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
     return () => window.removeEventListener("hashchange", update);
   }, []);
 
-  const isHome = pathname === "/";
+  const isBuilder = pathname === "/builder";
   const items = mode === "local" ? localMobileNavItems : defaultMobileNavItems;
   const visibleItems = user ? items : items.filter((i) => !i.authOnly);
 
@@ -59,7 +60,7 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
         {visibleItems.map((item) => {
           const isAnchor = Boolean(item.hash);
           const isActive = isAnchor
-            ? isHome && activeHash === item.hash
+            ? isBuilder && activeHash === item.hash
             : item.href === "/"
               ? pathname === "/"
               : pathname.startsWith(item.href);
@@ -69,11 +70,11 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
               key={item.href}
               href={item.href}
               onClick={(event) => {
-                if (item.hash && isHome) {
+                if (item.hash && isBuilder) {
                   event.preventDefault();
                   const el = document.getElementById(item.hash);
                   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  window.history.replaceState(null, "", `/#${item.hash}`);
+                  window.history.replaceState(null, "", `/builder#${item.hash}`);
                   setActiveHash(item.hash);
                 }
               }}

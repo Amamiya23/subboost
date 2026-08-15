@@ -344,8 +344,8 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
   if (userLoading) return <DashboardSkeleton />;
   if (!user) return <LoginPrompt loginHref={adapter.loginHref ?? "/login"} />;
 
-  const newSubscriptionHref = adapter.newSubscriptionHref ?? "/?newSubscription=1";
-  const editSubscriptionHref = adapter.editSubscriptionHref ?? ((sub: Subscription) => `/?editSubscriptionId=${sub.id}`);
+  const newSubscriptionHref = adapter.newSubscriptionHref ?? "/builder?newSubscription=1";
+  const editSubscriptionHref = adapter.editSubscriptionHref ?? ((sub: Subscription) => `/builder?editSubscriptionId=${sub.id}`);
 
   return (
     <div className="container mx-auto px-4 py-8">

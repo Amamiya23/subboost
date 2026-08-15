@@ -14,14 +14,14 @@ vi.mock("@subboost/ui/product/client-response", () => ({
   readSourceImportResponse: mocks.readSourceImportResponse,
 }));
 
-import Page from "./page";
+import Page from "./builder/page";
 
 function adapter() {
   const element = Page() as React.ReactElement<{ adapter: any }>;
   return element.props.adapter;
 }
 
-describe("local home page adapter", () => {
+describe("local builder page adapter", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true })));
