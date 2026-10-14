@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
   pull_request:
@@ -19,3 +22,60 @@ jobs:
       - run: npm run lint
       - run: npm run test:unit
       - run: npm run local:typecheck
+
+  deploy:
+    name: Deploy Cloudflare Worker
+    needs: check
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: cloudflare-worker-production
+      cancel-in-progress: false
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22.19.0"
+          cache: npm
+      - name: Check this is the latest main commit
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          if [ "$current_sha" = "$GITHUB_SHA" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "A newer main commit exists; skipping this deployment." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Validate deployment credentials
+        if: steps.latest.outputs.deploy == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          for key in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [ -z "${!key}" ]; then
+              echo "::error::Missing GitHub Actions secret: $key"
+              exit 1
+            fi
+          done
+      - run: npm ci
+        if: steps.latest.outputs.deploy == 'true'
+      - name: Build Worker
+        if: steps.latest.outputs.deploy == 'true'
+        run: npm --workspace @subboost/local run build:worker
+      - name: Deploy Worker
+        if: steps.latest.outputs.deploy == 'true'
+        working-directory: local
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --no-install wrangler deploy

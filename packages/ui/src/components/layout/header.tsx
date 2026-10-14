@@ -39,8 +39,8 @@ type NavItem = {
 };
 
 const sharedNavItems: NavItem[] = [
-  { href: "/", label: "配置生成器", icon: Settings2 },
-  { href: "/dashboard", label: "我的订阅", icon: LayoutDashboard, authOnly: true },
+  { href: "/", label: "我的订阅", icon: LayoutDashboard },
+  { href: "/builder", label: "配置生成器", icon: Settings2 },
   { href: "/templates", label: "模板库", icon: Library },
 ];
 
@@ -54,7 +54,7 @@ const localNavItems: NavItem[] = [
 ];
 
 function isNavItemActive(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
+  if (href === "/") return pathname === "/" || pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

@@ -18,7 +18,7 @@ async function readJson<T>(response: Response): Promise<T> {
 }
 
 function getPostLoginHref(): string {
-  return hasAuthConfigHandoff() ? "/" : "/dashboard";
+  return hasAuthConfigHandoff() ? "/builder" : "/";
 }
 
 export function LocalLogin() {

@@ -152,7 +152,7 @@ describe("local login component", () => {
 
     expect(globalThis.fetch).toHaveBeenCalledWith("/api/auth/me", { cache: "no-store" });
     expect(setters[0]).toHaveBeenCalledWith({ setupRequired: false, authenticated: true });
-    expect(win.location.href).toBe("/");
+    expect(win.location.href).toBe("/builder");
   });
 
   it("shows setup mismatch errors before sending a request", async () => {
@@ -220,7 +220,7 @@ describe("local login component", () => {
         body: JSON.stringify({ username: "admin", password: "secret", passwordConfirm: "" }),
       }),
     );
-    expect(win.location.href).toBe("/dashboard");
+    expect(win.location.href).toBe("/");
     expect(setters[5]).toHaveBeenLastCalledWith(false);
   });
 

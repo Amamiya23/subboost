@@ -86,20 +86,20 @@ describe("MobileNav", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllGlobals();
-    mocks.pathname = "/";
+    mocks.pathname = "/builder";
     mocks.userState = { user: null };
   });
 
   it("renders guest default navigation and handles home hash clicks", () => {
     const scrollIntoView = vi.fn();
     const preventDefault = vi.fn();
-    mocks.pathname = "/";
+    mocks.pathname = "/builder";
     vi.stubGlobal("document", {
       getElementById: vi.fn(() => ({ scrollIntoView })),
     });
     vi.stubGlobal("window", {
       history: { replaceState: vi.fn() },
-      location: { pathname: "/", search: "?editSubscriptionId=sub-1" },
+      location: { pathname: "/builder", search: "?editSubscriptionId=sub-1" },
     });
 
     const { html, links, setter } = renderMobileNav({}, { activeHash: "config" });
@@ -107,13 +107,13 @@ describe("MobileNav", () => {
     expect(html).toContain("配置");
     expect(html).toContain("预览");
     expect(html).not.toContain("AI");
-    expect(html).not.toContain("我的");
+    expect(html).toContain("我的");
     expect(html).toContain("text-white");
 
-    links.find((link) => link.href === "/#config").onClick({ preventDefault });
+    links.find((link) => link.href === "/builder#config").onClick({ preventDefault });
     expect(preventDefault).toHaveBeenCalled();
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
-    expect(window.history.replaceState).toHaveBeenCalledWith(null, "", "/?editSubscriptionId=sub-1#config");
+    expect(window.history.replaceState).toHaveBeenCalledWith(null, "", "/builder?editSubscriptionId=sub-1#config");
     expect(setter).toHaveBeenCalledWith("config");
   });
 
@@ -127,7 +127,7 @@ describe("MobileNav", () => {
     expect(html).toContain("AI");
     expect(html).toContain("我的");
     expect(html).toContain("text-white");
-    links.find((link) => link.href === "/#ai").onClick({ preventDefault });
+    links.find((link) => link.href === "/builder#ai").onClick({ preventDefault });
     expect(preventDefault).not.toHaveBeenCalled();
   });
 
@@ -136,13 +136,13 @@ describe("MobileNav", () => {
     expect(result.html).toContain("生成");
     expect(result.html).not.toContain("首页");
     expect(result.html).toContain("模板");
-    expect(result.html).not.toContain("订阅");
+    expect(result.html).toContain("订阅");
 
     mocks.pathname = "/dashboard/settings";
     mocks.userState = { user: { id: "u1" } };
     result = renderMobileNav({ mode: "local" });
     expect(result.html).toContain("订阅");
-    expect(result.links.some((link) => link.href === "/dashboard")).toBe(true);
+    expect(result.links.some((link) => link.href === "/")).toBe(true);
   });
 
   it("syncs active hash from the browser and unregisters the listener", () => {

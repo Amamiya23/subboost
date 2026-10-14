@@ -127,6 +127,23 @@ Deployed subboost-local triggers
 2. 首次访问会跳转到设置页面，输入管理员用户名和密码。
 3. 设置完成后用该账号登录即可使用。
 
+## GitHub Actions 自动部署
+
+仓库的 `.github/workflows/ci.yml` 会在推送到 `main` 后，依次运行 lint、单元测试、类型检查、OpenNext 构建和 Workers 部署。PR 只执行检查；也可以在 GitHub Actions 的 CI 页面选择 `main` 手动运行。部署任务串行执行，并跳过已被更新提交替代的版本。
+
+首次启用时，在仓库 **Settings → Secrets and variables → Actions → New repository secret** 添加：
+
+| Secret | 值 |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API Token，使用 **Edit Cloudflare Workers** 模板，并限定到部署账户；本项目使用 D1，Token 还需具备该账户的 **D1: Edit** 权限 |
+| `CLOUDFLARE_ACCOUNT_ID` | 部署 Worker 和 D1 所在的 Cloudflare Account ID |
+
+部署目标来自 `local/wrangler.jsonc`，当前为 `subboost-local`。首次部署前仍需按上面的步骤创建 D1、初始化数据库，并设置 Worker 的 `ENCRYPTION_KEY`、`JWT_SECRET`、`CRON_SECRET` 和 `APP_URL`。这些运行时密钥保留在 Cloudflare 中，不需要复制到 GitHub；工作流不会重新生成它们或自动执行数据库迁移。
+
+之后执行 `git push origin main` 即可触发自动部署；仅在本地 `git commit` 不会触发。检查或构建失败时不会发布。
+
+参考：[Cloudflare 官方 GitHub Actions 部署文档](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)。
+
 ## 从 Docker 版本迁移数据
 
 如果你之前在 Docker/PostgreSQL 上运行过 SubBoost，可以把数据迁移到 D1。

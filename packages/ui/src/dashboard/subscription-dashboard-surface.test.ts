@@ -284,11 +284,11 @@ describe("SubscriptionDashboardSurface", () => {
     const { html } = renderSurface(createAdapter(), { 0: [subscription], 1: false });
     expect(html).toContain("复制配置");
     const copyButton = mocks.captures.menuItems.find((props: any) => props.asChild);
-    expect(copyButton.children.props.href).toBe("/?copySubscriptionId=sub-1");
+    expect(copyButton.children.props.href).toBe("/builder?copySubscriptionId=sub-1");
 
     renderSurface(createAdapter(), { 0: [{ ...subscription, id: "sub /1" }], 1: false });
     expect(mocks.captures.menuItems.find((props: any) => props.asChild).children.props.href)
-      .toBe("/?copySubscriptionId=sub%20%2F1");
+      .toBe("/builder?copySubscriptionId=sub%20%2F1");
   });
 
   it("runs mount effects, handles fetch failures, and shows disabled auto-update notices", async () => {

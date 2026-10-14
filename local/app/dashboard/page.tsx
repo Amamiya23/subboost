@@ -19,7 +19,7 @@ function resolveLocalDashboardDownloadUrl(subscription: Subscription): string {
 
 const localDashboardAdapter: DashboardSurfaceAdapter = {
   loginHref: "/login",
-  newSubscriptionHref: "/?newSubscription=1",
+  newSubscriptionHref: "/builder?newSubscription=1",
   templatesHref: "/templates",
   settingsHref: "/dashboard/settings",
   settingsDescription: "查看本地管理员和运行状态",

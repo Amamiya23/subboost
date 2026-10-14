@@ -322,15 +322,19 @@ export function NodeManagementNodeList({
               })}
 
               {visibleDeletedMarkedNodes.length > 0 && (
-                <div
+                <details
                   className={cn(
                     "pt-2 mt-2 border-t border-white/10",
                     visibleNodes.length === 0 && "pt-0 mt-0 border-t-0"
                   )}
                 >
-                  <div className="text-[10px] text-white/40 mb-1">
-                    已删除节点（不会生成到配置；点击“恢复”可立即恢复；若缺少来源信息可能需要重新导入）
-                  </div>
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded text-sm text-white/60 hover:text-white/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acid [&::-webkit-details-marker]:hidden">
+                    <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    已删除节点（{visibleDeletedMarkedNodes.length}）
+                  </summary>
+                  <p className="mb-2 text-xs leading-relaxed text-white/50">
+                    不会生成到配置；点击“恢复”可立即恢复。缺少来源信息时可能需要重新导入。
+                  </p>
                   <div className="space-y-1">
                     {visibleDeletedMarkedNodes.map(({ originName, name }) => (
                       <div
@@ -364,7 +368,7 @@ export function NodeManagementNodeList({
                       </div>
                     ))}
                   </div>
-                </div>
+                </details>
               )}
             </div>
           )}

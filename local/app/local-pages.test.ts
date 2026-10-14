@@ -71,7 +71,7 @@ vi.mock("@local/components/local-login", () => ({
   LocalLogin: () => React.createElement("main", null, "LocalLogin"),
 }));
 
-import BuilderPage from "./page";
+import BuilderPage from "./builder/page";
 import DashboardPage from "./dashboard/page";
 import LandingPage from "./page";
 import LoginPage from "./login/page";
@@ -111,9 +111,9 @@ describe("local app pages and adapters", () => {
     expect(renderToStaticMarkup(React.createElement(LoginPage))).toBe("<main>LocalLogin</main>");
   });
 
-  it("opens the configuration workbench directly at the root", () => {
-    const html = renderToStaticMarkup(React.createElement(LandingPage));
-    expect(html).toContain("HomeSurface");
+  it("opens subscriptions directly at the root", async () => {
+    const html = renderToStaticMarkup(await LandingPage({ searchParams: Promise.resolve({}) }));
+    expect(html).toContain("DashboardSurface");
     expect(html).not.toContain("进入配置生成器");
   });
 

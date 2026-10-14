@@ -361,7 +361,7 @@ export function HomeLayout({
                     variant="outline"
                     title="退出编辑模式"
                   >
-                    <Link href="/">返回新建</Link>
+                    <Link href="/builder">返回新建</Link>
                   </Button>
                 )}
               </CardFooter>

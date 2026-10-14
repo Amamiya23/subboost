@@ -121,7 +121,7 @@ describe("Header", () => {
     expect(html).not.toContain("首页");
     expect(html).toContain("模板库");
     expect(html).toContain("FAQ");
-    expect(html).not.toContain("我的订阅");
+    expect(html).toContain("我的订阅");
     expect(html).toContain("menu-icon");
     expect(mocks.userMenuProps[0]).toEqual({ privilegedMenuItem: undefined });
   });
@@ -184,7 +184,7 @@ describe("Header", () => {
 
     expect(html).toContain("x-icon");
     expect(html).toContain("管理");
-    const mobileDashboard = mocks.links.find((link) => link.href === "/dashboard" && typeof link.onClick === "function");
+    const mobileDashboard = mocks.links.find((link) => link.href === "/" && typeof link.onClick === "function");
     const mobileAdmin = mocks.links.find((link) => link.href === adminPath && typeof link.onClick === "function");
 
     mobileDashboard.onClick();
