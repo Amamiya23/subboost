@@ -29,11 +29,20 @@ export function LocalLogin() {
   const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [authRetry, setAuthRetry] = React.useState(0);
 
   React.useEffect(() => {
     let cancelled = false;
+    setError("");
     void fetch("/api/auth/me", { cache: "no-store" })
-      .then((response) => readJson<AuthState>(response))
+      .then(async (response) => {
+        if (!response.ok) throw new Error("无法连接服务，请稍后重试");
+        const data = await readJson<AuthState>(response);
+        if (typeof data.authenticated !== "boolean" || typeof data.setupRequired !== "boolean") {
+          throw new Error("无法读取登录状态，请重试");
+        }
+        return data;
+      })
       .then((nextAuth) => {
         if (!cancelled) {
           setAuth(nextAuth);
@@ -46,7 +55,7 @@ export function LocalLogin() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [authRetry]);
 
   const setupRequired = auth?.setupRequired === true;
 
@@ -92,7 +101,9 @@ export function LocalLogin() {
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-md p-6 space-y-4">
           {auth ? (
             <form onSubmit={handleSubmit} className="space-y-3">
+              <label htmlFor="admin-username" className="block text-sm text-white/80">管理员账号</label>
               <input
+                id="admin-username"
                 type="text"
                 autoComplete="username"
                 placeholder="管理员账号"
@@ -100,8 +111,10 @@ export function LocalLogin() {
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
               />
+              <label htmlFor="admin-password" className="block text-sm text-white/80">密码</label>
               <div className="relative">
                 <input
+                  id="admin-password"
                   type={showPassword ? "text" : "password"}
                   autoComplete={setupRequired ? "new-password" : "current-password"}
                   aria-describedby={setupRequired ? "local-admin-password-help" : undefined}
@@ -112,6 +125,8 @@ export function LocalLogin() {
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                  aria-pressed={showPassword}
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
                 >
@@ -124,7 +139,11 @@ export function LocalLogin() {
                 </p>
               ) : null}
               {setupRequired ? (
+                <label htmlFor="admin-password-confirm" className="block text-sm text-white/80">确认密码</label>
+              ) : null}
+              {setupRequired ? (
                 <input
+                  id="admin-password-confirm"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   placeholder="确认密码"
@@ -149,6 +168,13 @@ export function LocalLogin() {
                 {setupRequired ? "创建管理员" : "登录"}
               </button>
             </form>
+          ) : error ? (
+            <div className="space-y-4 text-center">
+              <p role="alert" className="text-sm text-red-300">{error}</p>
+              <button type="button" className="btn-primary" onClick={() => { setError(""); setAuthRetry((value) => value + 1); }}>
+                重试
+              </button>
+            </div>
           ) : (
             <div className="h-36 animate-pulse rounded-md bg-white/5" />
           )}

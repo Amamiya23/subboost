@@ -192,37 +192,33 @@ export function TemplatesSection() {
   return (
     <>
       {/* Template Selection */}
-      <div className="space-y-1.5">
-        <label className="text-xs text-white/50">选择模板</label>
-        <div className="grid gap-1.5">
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-bone/85">选择模板</p>
+        <div className="grid gap-2">
           {templates.map((template) => (
             <Card
               key={template.id}
               className={cn(
-                "p-2.5 cursor-pointer transition-all border-2",
-                selectedTemplate === template.id ? "border-white/25 bg-white/8" : "border-transparent hover:border-white/20"
+                "relative rounded-lg p-3 sm:p-3.5 cursor-pointer transition-colors border focus-within:ring-2 focus-within:ring-acid/60",
+                selectedTemplate === template.id ? "border-acid/35 bg-acid/5" : "border-bone/10 bg-transparent hover:border-bone/25 hover:bg-bone/3"
               )}
-              onClick={() => {
-                setTemplate(template.id);
-                interactions.templateSelected?.({
-                  source: "builtin",
-                  templateType: template.id,
-                });
-              }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "w-4 h-4 rounded-full border-2 flex items-center justify-center",
-                      selectedTemplate === template.id ? "border-white/25" : "border-white/30"
-                    )}
-                  >
-                    {selectedTemplate === template.id && <div className="w-2 h-2 rounded-full bg-white" />}
-                  </div>
+                  <input
+                    type="radio"
+                    name="builtin-template"
+                    id={`builtin-template-${template.id}`}
+                    checked={selectedTemplate === template.id}
+                    onChange={() => {
+                      setTemplate(template.id);
+                      interactions.templateSelected?.({ source: "builtin", templateType: template.id });
+                    }}
+                    className="size-4 shrink-0 accent-acid"
+                  />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white">{template.name}</span>
+                      <label htmlFor={`builtin-template-${template.id}`} className="cursor-pointer text-sm font-medium text-white after:absolute after:inset-0">{template.name}</label>
                       {builtinEngagementEnabled && (
                         <button
                           onClick={(e) => {
@@ -231,7 +227,7 @@ export function TemplatesSection() {
                           }}
                           disabled={!user}
                           className={cn(
-                            "inline-flex items-center gap-0.5 text-xs transition-colors",
+                            "relative z-10 inline-flex items-center gap-0.5 text-xs transition-colors",
                             builtinEngagement[template.id]?.isEngaged ? "text-red-400" : "text-white/40 hover:text-red-400",
                             !user && "cursor-not-allowed opacity-50"
                           )}
@@ -242,10 +238,10 @@ export function TemplatesSection() {
                         </button>
                       )}
                     </div>
-                    <p className="text-xs text-white/40 mt-0.5">{template.description}</p>
+                    <p className="text-sm leading-relaxed text-ink-600 mt-1">{template.description}</p>
                   </div>
                 </div>
-                <div className="text-right text-xs text-white/40 space-y-0.5">
+                <div className="shrink-0 pl-3 text-right text-xs text-ink-600 tabular-nums space-y-1">
                   <div>{template.groups} 代理组</div>
                   <div>{template.rules} 规则集</div>
                 </div>
@@ -254,8 +250,9 @@ export function TemplatesSection() {
           ))}
 
           {catalogEnabled && (
-            <Card
-              className="p-2.5 cursor-pointer transition-all border-2 border-dashed border-white/15 hover:border-white/25 bg-white/5"
+            <button
+              type="button"
+              className="rounded-lg p-3 sm:p-3.5 text-left cursor-pointer transition-colors border border-dashed border-bone/15 hover:border-bone/30 bg-transparent focus-visible:ring-2 focus-visible:ring-acid/60"
               onClick={() => {
                 setCatalogOpen(true);
                 interactions.templateCatalogOpened?.({ mode: "quick" });
@@ -275,7 +272,7 @@ export function TemplatesSection() {
                   <div>{catalogSelectAction}</div>
                 </div>
               </div>
-            </Card>
+            </button>
           )}
         </div>
       </div>

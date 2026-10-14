@@ -296,6 +296,39 @@ describe("HomeLayout", () => {
     });
   });
 
+  it.each([true, false])("opens copied drafts in advanced mode and blocks actions while loading=%s", (loading) => {
+    const html = renderToStaticMarkup(React.createElement(HomeLayout, {
+      ...baseProps,
+      user: baseUser,
+      authChecked: true,
+      copySubscriptionId: "sub-1",
+      isLoadingEditingSubscription: loading,
+      generatedYaml: "proxies: []",
+      hasValidSources: true,
+      subscription: createSubscription({ subscriptionName: "myself - 副本" }),
+    }));
+    expect(mocks.tabs[0]).toMatchObject({ value: "advanced" });
+    expect(html).toContain(loading ? "正在复制配置" : "原订阅不会被修改");
+    expect(mocks.subscriptionDialog.isEditingExistingSubscription).toBe(false);
+    const saveButton = mocks.buttons.find((props: any) => props.children?.includes?.("生成订阅链接"));
+    expect(saveButton.disabled).toBe(loading);
+  });
+
+  it("blocks saving a copy when the source configuration could not be loaded", () => {
+    const html = renderToStaticMarkup(React.createElement(HomeLayout, {
+      ...baseProps,
+      user: baseUser,
+      authChecked: true,
+      copySubscriptionId: "sub-1",
+      generatedYaml: "old draft",
+      subscriptionLoadError: "加载订阅失败",
+      hasValidSources: true,
+      subscription: createSubscription({ subscriptionName: "" }),
+    }));
+    expect(html).toContain("配置未能复制");
+    expect(mocks.buttons.filter((props: any) => props.disabled).length).toBe(4);
+  });
+
   it("renders generated YAML errors instead of the preview highlighter", () => {
     const html = renderToStaticMarkup(
       React.createElement(HomeLayout, {

@@ -153,7 +153,7 @@ describe("useEditingSubscriptionLoader", () => {
     const isLoading = useEditingSubscriptionLoader(options);
     await flushAsync();
 
-    expect(isLoading).toBe(false);
+    expect(isLoading).toEqual({ isLoading: false, error: null });
     expect(options.loadSubscription).not.toHaveBeenCalled();
     expect(mocks.useConfigStore.setState).not.toHaveBeenCalled();
   });
@@ -172,11 +172,13 @@ describe("useEditingSubscriptionLoader", () => {
     expect(mocks.useConfigStore.setState).not.toHaveBeenCalled();
   });
 
-  it("hydrates a saved subscription config into the editor store", async () => {
+  it.each(["edit", "copy"])("hydrates a saved subscription config into the editor store in %s mode", async (mode) => {
     const { reset, generateConfig } = resetStoreState({
       enabledProxyGroups: ["select", "auto", "ai", "youtube"],
     });
     const options = makeOptions({
+      editSubscriptionId: mode === "edit" ? "sub-1" : null,
+      copySubscriptionId: mode === "copy" ? "sub-1" : null,
       loadSubscription: vi.fn(async () =>
         response(200, {
           subscription: {
@@ -226,6 +228,7 @@ describe("useEditingSubscriptionLoader", () => {
               dialerProxyGroups: [{ id: "dialer-1", name: "Relay", relayNodes: ["Remote"], targetNodes: [] }],
               proxyGroupNameOverrides: { ai: "Labs" },
               proxyGroupOrder: ["module:ai", "module:ai", ""],
+              proxyGroupAdvanced: { auto: { includeRegex: "HK", sourceIds: ["source-url"] } },
               listenerPorts: { Remote: 41000, Deleted: 41001 },
               appliedTemplateId: "template-1",
               dnsYaml: "dns: {}",
@@ -283,6 +286,7 @@ describe("useEditingSubscriptionLoader", () => {
       moduleRuleEditWarningAccepted: true,
       proxyGroupNameOverrides: { ai: "Labs" },
       proxyGroupOrder: ["module:ai"],
+      proxyGroupAdvanced: { auto: { includeRegex: "HK", sourceIds: ["source-url"] } },
       listenerPorts: { Remote: 41000 },
       appliedTemplateId: "template-1",
       dnsYaml: "dns: {}",
@@ -292,14 +296,18 @@ describe("useEditingSubscriptionLoader", () => {
       cnIpNoResolve: false,
       experimentalCnUseCnRuleSet: true,
     });
-    expect(options.setEditingSubscription).toHaveBeenCalledWith({
+    expect(options.loadSubscription).toHaveBeenCalledWith("sub-1");
+    expect(options.setEditingSubscription).toHaveBeenLastCalledWith(mode === "copy" ? null : {
       id: "sub-1",
       token: "token-1",
       name: "Saved",
       autoUpdateInterval: 7200,
       smartNodeMatchingEnabled: false,
     });
-    expect(options.setSubscriptionName).toHaveBeenCalledWith("Saved");
+    if (mode === "copy") {
+      expect(options.setEditingSubscription.mock.calls.every(([value]: [unknown]) => value === null)).toBe(true);
+    }
+    expect(options.setSubscriptionName).toHaveBeenLastCalledWith(mode === "copy" ? "Saved - 副本" : "Saved");
     expect(options.setSubscriptionUrl).toHaveBeenCalledWith("");
     expect(options.setCopied).toHaveBeenCalledWith(false);
   });
@@ -567,6 +575,21 @@ describe("useEditingSubscriptionLoader", () => {
     ]);
   });
 
+  it("clears the previous edit target even when copying fails", async () => {
+    const options = makeOptions({
+      editSubscriptionId: null,
+      copySubscriptionId: "missing",
+      loadSubscription: vi.fn(async () => response(404, { error: "订阅不存在" })),
+    });
+    useEditingSubscriptionLoader(options);
+    expect(options.setEditingSubscription).toHaveBeenCalledWith(null);
+    expect(options.setSubscriptionUrl).toHaveBeenCalledWith("");
+    await flushAsync();
+    expect(mocks.bag.stateSetters[1]).toHaveBeenLastCalledWith("订阅不存在");
+    expect(mocks.useConfigStore.setState).not.toHaveBeenCalled();
+    expect(options.setEditingSubscription.mock.calls.every(([value]: [unknown]) => value === null)).toBe(true);
+  });
+
   it("reports malformed subscription payloads through toast", async () => {
     const options = makeOptions({
       loadSubscription: vi.fn(async () =>
@@ -643,6 +666,8 @@ describe("useEditingSubscriptionLoader", () => {
     await flushAsync();
 
     expect(options.setEditingSubscription).not.toHaveBeenCalled();
+    expect(mocks.useConfigStore.setState).not.toHaveBeenCalled();
+    expect(mocks.bag.storeState.reset).not.toHaveBeenCalled();
     expect(mocks.bag.stateSetters[0]).toHaveBeenCalledWith(true);
     expect(mocks.bag.stateSetters[0]).not.toHaveBeenCalledWith(false);
   });

@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { getConfigSnapshot } from "./config-save-state";
+import { computeGeneratedYaml } from "@subboost/ui/store/config-store/generated-yaml";
 import { toast, ToastAction } from "@subboost/ui/components/ui/toaster";
 import type { ParsedNode } from "@subboost/core/types/node";
 import {
@@ -185,10 +187,10 @@ export function useSubscriptionLink({
       ? Math.max(autoUpdatePolicy.minHours, autoUpdateIntervalSecondsToHours(currentAutoUpdateInterval))
       : autoUpdatePolicy.defaultHours;
 
-    setSubscriptionName(
+    setSubscriptionName((currentName) =>
       isEditingExistingSubscription
         ? editingSubscription?.name || ""
-        : `我的配置 ${formatDateInBeijing(new Date())}`
+        : currentName.trim() || `我的配置 ${formatDateInBeijing(new Date())}`
     );
     setAutoUpdateEnabled(nextAutoUpdateEnabled);
     setAutoUpdateHours(nextAutoUpdateHours);
@@ -398,6 +400,12 @@ export function useSubscriptionLink({
           },
         };
 
+      const submittedState = useConfigStore.getState();
+      // The API persists structured configuration, not manual preview edits.
+      const submittedSnapshot = getConfigSnapshot({
+        ...submittedState,
+        generatedYaml: computeGeneratedYaml(submittedState),
+      });
       const response = await subscriptionAdapter.saveSubscription({
         isEditing: isEditingExistingSubscription,
         subscriptionId: editingSubscription?.id ?? null,
@@ -425,6 +433,7 @@ export function useSubscriptionLink({
       }
 
       if (response.ok) {
+        useConfigStore.setState({ savedConfigSnapshot: submittedSnapshot });
         const token = data?.subscription?.token || editingSubscription?.token;
         const url =
           typeof data?.subscription?.subscriptionUrl === "string"

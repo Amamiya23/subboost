@@ -116,7 +116,7 @@ describe("YamlPreviewEditor", () => {
     expect(mocks.textareas).toHaveLength(1);
     expect(mocks.textareas[0]).toMatchObject({ value: "mixed-port: 7890" });
     expect(typeof mocks.textareas[0].onChange).toBe("function");
-    expect(html).toContain("编辑模式");
+    expect(html).toContain("手动修改仅用于下载");
     expect(html).toContain("保存");
     expect(html).toContain("取消");
 

@@ -91,6 +91,10 @@ function stubBrowser(webdriver = false) {
       mocks.listeners.delete(type);
     }),
   });
+  vi.stubGlobal("document", {
+    addEventListener: vi.fn((type: string, listener: EventListener) => { mocks.listeners.set(type, listener); }),
+    removeEventListener: vi.fn(),
+  });
 }
 
 function renderPrompt(overrides: Record<number, unknown> = {}) {
@@ -127,12 +131,12 @@ describe("UnsavedPrompt", () => {
     expect(event.returnValue).toBe("您有未保存的配置更改，确定要离开吗？");
   });
 
-  it("skips beforeunload in webdriver environments", () => {
+  it("keeps beforeunload protection in automated browsers too", () => {
     stubBrowser(true);
     mocks.storeState = { nodes: [{ name: "node-1" }], sources: [] };
     renderPrompt();
 
-    expect(mocks.listeners.has("beforeunload")).toBe(false);
+    expect(mocks.listeners.has("beforeunload")).toBe(true);
   });
 
   it("renders the dialog and handles cancel/confirm callbacks", () => {
@@ -152,7 +156,7 @@ describe("UnsavedPrompt", () => {
     mocks.storeState = { nodes: [], sources: [] };
     expect(useUnsavedChanges()).toBe(false);
 
-    mocks.storeState = { nodes: [], sources: [{ pending: true }] };
+    mocks.storeState = { nodes: [], sources: [{ content: "ss://example", pending: true }] };
     expect(useUnsavedChanges()).toBe(true);
 
     mocks.storeState = { nodes: [{ name: "node-1" }], sources: [] };

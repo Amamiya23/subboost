@@ -48,6 +48,7 @@ vi.mock("lucide-react", () => ({
   Check: () => null,
   Clock: () => null,
   Copy: () => null,
+  CopyPlus: () => null,
   Download: () => null,
   ExternalLink: () => null,
   FileCode: () => null,
@@ -62,7 +63,7 @@ vi.mock("lucide-react", () => ({
 vi.mock("@subboost/ui/components/ui/button", () => ({
   Button: (props: any) => {
     mocks.captures.buttons.push(props);
-    return null;
+    return props.asChild ? props.children : null;
   },
 }));
 vi.mock("@subboost/ui/components/ui/card", () => ({
@@ -70,6 +71,16 @@ vi.mock("@subboost/ui/components/ui/card", () => ({
   CardContent: (props: any) => props.children,
   CardHeader: (props: any) => props.children,
   CardTitle: (props: any) => props.children,
+}));
+vi.mock("@subboost/ui/components/ui/dropdown-menu", () => ({
+  DropdownMenu: (props: any) => props.children,
+  DropdownMenuTrigger: (props: any) => props.children,
+  DropdownMenuContent: (props: any) => props.children,
+  DropdownMenuSeparator: () => null,
+  DropdownMenuItem: (props: any) => {
+    (mocks.captures.menuItems ??= []).push(props);
+    return props.children;
+  },
 }));
 vi.mock("@subboost/ui/components/ui/confirm-dialog", () => ({ confirmDialog: mocks.confirmDialog }));
 vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
@@ -173,6 +184,7 @@ function renderSurface(adapter = createAdapter(), overrides: Record<number, unkn
   stateMock.setters = [];
   stateMock.runEffects = options.runEffects ?? false;
   mocks.captures.buttons = [];
+  mocks.captures.menuItems = [];
   mocks.captures.stats = undefined;
   mocks.captures.settingsDialog = undefined;
   try {
@@ -268,6 +280,17 @@ describe("SubscriptionDashboardSurface", () => {
     expect(mocks.captures.settingsDialog).toEqual(expect.objectContaining({ open: false, userIsAdmin: false }));
   });
 
+  it("links copying a configuration to a new draft instead of editing the original", () => {
+    const { html } = renderSurface(createAdapter(), { 0: [subscription], 1: false });
+    expect(html).toContain("复制配置");
+    const copyButton = mocks.captures.menuItems.find((props: any) => props.asChild);
+    expect(copyButton.children.props.href).toBe("/?copySubscriptionId=sub-1");
+
+    renderSurface(createAdapter(), { 0: [{ ...subscription, id: "sub /1" }], 1: false });
+    expect(mocks.captures.menuItems.find((props: any) => props.asChild).children.props.href)
+      .toBe("/?copySubscriptionId=sub%20%2F1");
+  });
+
   it("runs mount effects, handles fetch failures, and shows disabled auto-update notices", async () => {
     const adapter = createAdapter({ fetchSubscriptions: vi.fn(async () => [subscription]) });
     const mounted = renderSurface(adapter, {}, { runEffects: true });
@@ -316,20 +339,20 @@ describe("SubscriptionDashboardSurface", () => {
     expect(setters[2]).toHaveBeenCalledWith("sub-1");
     expect(setters[2]).toHaveBeenCalledWith(null);
 
-    mocks.captures.buttons.find((props: any) => props.className?.includes("text-red-400")).onClick();
+    mocks.captures.menuItems.find((props: any) => props.className?.includes("text-red-300")).onSelect();
     await flushPromises();
     expect(mocks.confirmDialog).toHaveBeenCalledWith(expect.objectContaining({ confirmText: "删除" }));
     expect(adapter.deleteSubscription).toHaveBeenCalledWith("sub-1");
     expect(setters[0]).toHaveBeenCalledWith(expect.any(Function));
 
-    mocks.captures.buttons.find((props: any) => props.title === "重新生成配置并刷新缓存").onClick();
+    mocks.captures.menuItems.find((props: any) => props.title === "重新生成配置并刷新缓存").onSelect();
     await flushPromises();
     expect(setters[3]).toHaveBeenCalledWith("sub-1");
     expect(adapter.refreshSubscription).toHaveBeenCalledWith("sub-1");
     expect(adapter.fetchSubscriptions).toHaveBeenCalled();
     expect(mocks.toast).toHaveBeenCalledWith({ title: "刷新成功", variant: "success" });
 
-    mocks.captures.buttons.find((props: any) => props.title === "订阅设置（改名 / 自动更新）").onClick();
+    mocks.captures.menuItems.find((props: any) => props.title === "订阅设置（改名 / 自动更新）").onSelect();
     expect(setters[5]).toHaveBeenCalledWith(subscription);
     expect(setters[6]).toHaveBeenCalledWith("Primary");
     expect(setters[7]).toHaveBeenCalledWith(true);
@@ -337,8 +360,8 @@ describe("SubscriptionDashboardSurface", () => {
     expect(setters[9]).toHaveBeenCalledWith(24);
     expect(setters[4]).toHaveBeenCalledWith(true);
 
-    const settingsButtons = mocks.captures.buttons.filter((props: any) => props.title === "订阅设置（改名 / 自动更新）");
-    settingsButtons[1].onClick();
+    const settingsButtons = mocks.captures.menuItems.filter((props: any) => props.title === "订阅设置（改名 / 自动更新）");
+    settingsButtons[1].onSelect();
     expect(setters[5]).toHaveBeenCalledWith(disabledSubscription);
     expect(setters[8]).toHaveBeenCalledWith(false);
     expect(setters[9]).toHaveBeenCalledWith(24);
@@ -374,7 +397,7 @@ describe("SubscriptionDashboardSurface", () => {
     vi.stubGlobal("URL", TestURL);
 
     renderSurface(createAdapter(), { 0: [subscription], 1: false, 2: null, 3: null });
-    await mocks.captures.buttons.find((props: any) => props.title === "下载订阅配置").onClick();
+    await mocks.captures.menuItems.find((props: any) => props.title === "下载订阅配置").onSelect();
     await flushPromises();
 
     expect(fetchMock).toHaveBeenCalledWith("https://example.com/sub");
@@ -395,7 +418,7 @@ describe("SubscriptionDashboardSurface", () => {
     }));
 
     renderSurface(createAdapter(), { 0: [subscription], 1: false, 2: null, 3: null });
-    await mocks.captures.buttons.find((props: any) => props.title === "下载订阅配置").onClick();
+    await mocks.captures.menuItems.find((props: any) => props.title === "下载订阅配置").onSelect();
     await flushPromises();
 
     expect(dom.createElement).not.toHaveBeenCalledWith("a");
@@ -426,7 +449,7 @@ describe("SubscriptionDashboardSurface", () => {
       2: null,
       3: null,
     });
-    await mocks.captures.buttons.find((props: any) => props.title === "下载订阅配置").onClick();
+    await mocks.captures.menuItems.find((props: any) => props.title === "下载订阅配置").onSelect();
     await flushPromises();
 
     expect(resolveDownloadUrl).toHaveBeenCalledWith(crossOriginSubscription);
@@ -437,29 +460,29 @@ describe("SubscriptionDashboardSurface", () => {
   it("guards cancelled delete and in-flight refresh failures", async () => {
     const adapter = createAdapter({ refreshSubscription: vi.fn(async () => { throw new Error("refresh failed"); }) });
     renderSurface(adapter, { 0: [subscription], 1: false, 2: null, 3: "sub-1" });
-    mocks.captures.buttons.find((props: any) => props.title === "重新生成配置并刷新缓存").onClick();
+    mocks.captures.menuItems.find((props: any) => props.title === "重新生成配置并刷新缓存").onSelect();
     await flushPromises();
     expect(adapter.refreshSubscription).not.toHaveBeenCalled();
 
     renderSurface(adapter, { 0: [subscription], 1: false, 2: null, 3: null });
-    mocks.captures.buttons.find((props: any) => props.title === "重新生成配置并刷新缓存").onClick();
+    mocks.captures.menuItems.find((props: any) => props.title === "重新生成配置并刷新缓存").onSelect();
     await flushPromises();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "refresh failed", variant: "destructive" }));
 
     mocks.confirmDialog.mockResolvedValueOnce(false);
-    mocks.captures.buttons.find((props: any) => props.className?.includes("text-red-400")).onClick();
+    mocks.captures.menuItems.find((props: any) => props.className?.includes("text-red-300")).onSelect();
     await flushPromises();
     expect(adapter.deleteSubscription).not.toHaveBeenCalled();
 
     const badRefreshAdapter = createAdapter({ refreshSubscription: vi.fn(async () => { throw "bad"; }) });
     renderSurface(badRefreshAdapter, { 0: [subscription], 1: false, 2: null, 3: null });
-    mocks.captures.buttons.find((props: any) => props.title === "重新生成配置并刷新缓存").onClick();
+    mocks.captures.menuItems.find((props: any) => props.title === "重新生成配置并刷新缓存").onSelect();
     await flushPromises();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "刷新失败，请稍后重试", variant: "destructive" }));
 
     const deleteFailAdapter = createAdapter({ deleteSubscription: vi.fn(async () => { throw new Error("delete failed"); }) });
     renderSurface(deleteFailAdapter, { 0: [subscription], 1: false, 2: null, 3: null });
-    mocks.captures.buttons.find((props: any) => props.className?.includes("text-red-400")).onClick();
+    mocks.captures.menuItems.find((props: any) => props.className?.includes("text-red-300")).onSelect();
     await flushPromises();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "删除失败，请稍后重试", variant: "destructive" }));
   });

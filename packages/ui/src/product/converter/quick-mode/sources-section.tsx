@@ -39,7 +39,7 @@ export function SourcesSection() {
   return (
     <>
       {/* Sources List */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-5">
         {sources.map((source, index) => {
           const typeInfo = sourceTypeInfo[source.type];
           const sourceDisplayLabel = buildSourceDisplayLabel({
@@ -53,11 +53,11 @@ export function SourcesSection() {
           const hasUserInfoDisplay = Boolean(userInfoDisplay && (userInfoDisplay.traffic || userInfoDisplay.expire));
 
           return (
-            <div key={source.id} className="flex flex-col gap-1.5 flex-shrink-0">
+            <div key={source.id} className="source-editor">
               {/* Source Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
+                <div className="source-editor-header">
+                  <div className="source-editor-heading">
+                  <div className="source-type-picker">
                     {(Object.keys(sourceTypeInfo) as SourceType[]).map((type) => {
                       const info = sourceTypeInfo[type];
                       const Icon = info.icon;
@@ -66,19 +66,21 @@ export function SourcesSection() {
                           key={type}
                           onClick={() => updateSourceType(source.id, type)}
                           className={cn(
-                            "p-1 rounded transition-colors",
+                              "source-type-button",
                             source.type === type
                               ? "bg-white/12 text-white/65"
                               : "text-white/30 hover:text-white/50 hover:bg-white/5"
                           )}
                           title={info.label}
+                            aria-label={info.label}
+                            aria-pressed={source.type === type}
                         >
                           <Icon className="h-3.5 w-3.5" />
                         </button>
                       );
                     })}
                   </div>
-                  <span className="text-xs text-white/50">
+                  <span className="source-editor-label">
                     {sourceDisplayLabel}
                   </span>
                   {source.parsed && source.nodeCount !== undefined && (
@@ -124,12 +126,12 @@ export function SourcesSection() {
                     <SubscriptionImportErrorBadge errorInfo={source.errorInfo} errorMessage={source.error} />
                   )}
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="flex flex-col">
+                <div className="source-editor-actions">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => moveSource(source.id, "up")}
                       disabled={index <= 0}
-                      className="flex h-3.5 w-4 items-center justify-center text-white/30 transition-colors hover:text-white/70 disabled:cursor-not-allowed disabled:opacity-30"
+                      className="source-icon-button"
                       title="上移"
                       aria-label="上移"
                     >
@@ -138,7 +140,7 @@ export function SourcesSection() {
                     <button
                       onClick={() => moveSource(source.id, "down")}
                       disabled={index >= sources.length - 1}
-                      className="flex h-3.5 w-4 items-center justify-center text-white/30 transition-colors hover:text-white/70 disabled:cursor-not-allowed disabled:opacity-30"
+                      className="source-icon-button"
                       title="下移"
                       aria-label="下移"
                     >
@@ -147,8 +149,9 @@ export function SourcesSection() {
                   </div>
                   <button
                     onClick={() => setExpandedSourceId(source.id)}
-                    className="p-1 rounded transition-colors text-white/30 hover:text-white/60 hover:bg-white/5"
+                    className="source-icon-button"
                     title="高级编辑"
+                    aria-label="高级编辑"
                   >
                     <Maximize2 className="h-3.5 w-3.5" />
                   </button>
@@ -156,30 +159,23 @@ export function SourcesSection() {
                   <button
                     onClick={() => void handleImportSource(source.id)}
                     disabled={!source.content.trim() || source.parsing}
-                    className={cn(
-                      "p-1 rounded transition-colors disabled:opacity-100",
-                      source.parsing
-                        ? "text-white/65"
-                        : source.parsed
-                          ? "text-green-400 hover:text-green-300"
-                          : source.content.trim()
-                            ? "text-white/50 hover:text-white/65 hover:bg-white/8"
-                            : "text-white/50 cursor-not-allowed"
-                    )}
+                    className="inline-flex h-11 sm:h-8 shrink-0 items-center gap-1.5 rounded border border-white/20 px-3 text-xs text-white/90 hover:bg-white/8 focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed"
                     title={source.parsing ? "导入中..." : source.parsed ? "重新导入" : "导入此源"}
                   >
                     {source.parsing ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
-                      <Check className="h-3.5 w-3.5" />
+                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
                     )}
+                    {source.parsing ? "导入中…" : source.parsed ? "重新导入" : "导入"}
                   </button>
                   {/* 删除按钮 */}
                   {sources.length > 1 && (
                     <button
                       onClick={() => removeSource(source.id)}
-                      className="p-1 text-white/50 hover:text-red-400 transition-colors"
+                      className="source-icon-button hover:text-red-300"
                       title="删除"
+                      aria-label="删除来源"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -189,19 +185,21 @@ export function SourcesSection() {
 
               {/* Source Input */}
               {source.type === "url" ? (
-                <Input
-                  value={source.content}
+                  <Input
+                    aria-label={sourceDisplayLabel}
+                    value={source.content}
                   onChange={(e) => updateSource(source.id, e.target.value)}
                   placeholder={typeInfo.placeholder}
-                  className="text-xs h-9"
+                  className="source-editor-input h-11 sm:h-10"
                 />
               ) : (
-                <Textarea
-                  value={source.content}
+                  <Textarea
+                    aria-label={sourceDisplayLabel}
+                    value={source.content}
                   onChange={(e) => updateSource(source.id, e.target.value)}
                   placeholder={typeInfo.placeholder}
                   className={cn(
-                    "text-xs resize-none",
+                    "source-editor-input resize-y",
                     sources.length === 1 ? "flex-1 min-h-[100px]" : "min-h-[140px] md:min-h-[180px] xl:min-h-[80px]"
                   )}
                 />
@@ -215,7 +213,7 @@ export function SourcesSection() {
           <Button
             variant="outline"
             size="sm"
-            className="w-full h-8 text-xs border-dashed border-white/20 text-white/50 hover:text-white/70 hover:border-white/30"
+            className="w-full h-11 sm:h-9 text-sm border-dashed border-bone/15 text-ink-700 hover:text-bone hover:border-bone/30"
             onClick={() => setShowAddMenu(!showAddMenu)}
           >
             <Plus className="h-3.5 w-3.5 mr-1.5" />

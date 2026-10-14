@@ -66,14 +66,18 @@ type Props = {
 
   editingSubscription: EditingSubscription | null;
   isLoadingEditingSubscription: boolean;
+  subscriptionLoadError?: string | null;
   editSubscriptionId: string | null;
+  copySubscriptionId?: string | null;
 
   generatedYaml: string;
   generatedYamlError: string | null;
   configLoading: boolean;
+  pendingSourceCount?: number;
+  hasImportedNodes?: boolean;
   hasValidSources: boolean;
 
-  handleGenerate: (mode: ProductMode) => void;
+  handleGenerate: (mode: ProductMode, importPending?: boolean) => void;
   handleDownload: (mode: ProductMode) => void;
   onGeneratedYamlChange: (yaml: string) => void;
 
@@ -98,10 +102,14 @@ export function HomeLayout({
   authChecked,
   editingSubscription,
   isLoadingEditingSubscription,
+  subscriptionLoadError,
   editSubscriptionId,
+  copySubscriptionId,
   generatedYaml,
   generatedYamlError,
   configLoading,
+  pendingSourceCount = 0,
+  hasImportedNodes = false,
   hasValidSources,
   handleGenerate,
   handleDownload,
@@ -113,13 +121,14 @@ export function HomeLayout({
   templateUploadHref = "/templates?upload=1",
   onTemplateUploadOpen,
 }: Props) {
-  const [configTab, setConfigTab] = React.useState<"quick" | "advanced">(editSubscriptionId ? "advanced" : "quick");
+  const [configTab, setConfigTab] = React.useState<"quick" | "advanced">(editSubscriptionId || copySubscriptionId ? "advanced" : "quick");
   const interactions = useProductInteractionAdapter();
+  const copyNotReady = Boolean(copySubscriptionId && subscriptionLoadError);
 
   React.useEffect(() => {
-    if (!editSubscriptionId) return;
+    if (!editSubscriptionId && !copySubscriptionId) return;
     setConfigTab("advanced");
-  }, [editSubscriptionId]);
+  }, [editSubscriptionId, copySubscriptionId]);
 
   const handleConfigTabChange = React.useCallback((value: string) => {
     const nextMode: ProductMode = value === "advanced" ? "advanced" : "quick";
@@ -128,7 +137,7 @@ export function HomeLayout({
   }, [interactions]);
 
   return (
-    <div className="w-full max-w-[clamp(1200px,95vw,2400px)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-3 lg:py-5 min-h-[calc(100vh-64px)] flex flex-col">
+    <div className="builder-workspace w-full max-w-[clamp(1200px,95vw,2400px)] mx-auto px-3 sm:px-6 lg:px-8 xl:px-12 py-4 lg:py-6 min-h-[calc(100vh-64px)] flex flex-col">
       {renderAnnouncement?.({
         placement: configTab === "advanced" ? "advanced" : "home",
         authChecked,
@@ -136,6 +145,15 @@ export function HomeLayout({
       })}
 
       {noticeSlot}
+      {copySubscriptionId && !editingSubscription && (
+        <div role="status" className="mb-4 rounded-md border border-primary-500/20 bg-primary-500/5 px-4 py-3 text-sm text-white/75">
+          {isLoadingEditingSubscription
+            ? "正在复制配置…"
+            : copyNotReady
+              ? "配置未能复制，请返回我的订阅重试。"
+              : "复用配置创建新订阅：请在订阅源中替换链接或节点，重新导入后生成订阅链接。规则、分组和 DNS 设置已保留，原订阅不会被修改。"}
+        </div>
+      )}
 
       {/* Main Content - Three Column Layout */}
       <div className={`grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 lg:flex-1 ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}>
@@ -151,14 +169,14 @@ export function HomeLayout({
             onValueChange={handleConfigTabChange}
             className={`flex flex-col lg:flex-1 ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}
           >
-            <Card className={`w-full flex flex-col overflow-visible lg:flex-1 lg:overflow-hidden ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}>
-              <CardHeader className="pb-3 flex-shrink-0">
+            <Card className={`workspace-panel w-full flex flex-col overflow-visible lg:flex-1 lg:overflow-hidden ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}>
+              <CardHeader className="workspace-panel-header flex-shrink-0">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle className="text-base lg:text-lg flex items-center gap-2 min-w-0">
                     <span className="mono-label text-acid/90">01</span>
                     <Settings2 className="h-5 w-5 text-white/65" />
-                    <span className="shrink-0">配置生成器</span>
-                    {isLoadingEditingSubscription && editSubscriptionId && (
+                    <span className="shrink-0">{editingSubscription ? "编辑订阅" : "配置生成器"}</span>
+                    {isLoadingEditingSubscription && (editSubscriptionId || copySubscriptionId) && (
                       <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] text-white/85">
                         <Loader2 className="h-3 w-3 animate-spin" />
                         加载订阅中...
@@ -166,7 +184,6 @@ export function HomeLayout({
                     )}
                     {editingSubscription && (
                       <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] text-white/85 min-w-0">
-                        <span className="shrink-0">编辑中</span>
                         <span className="max-w-[10rem] sm:max-w-[16rem] truncate">
                           {editingSubscription.name}
                         </span>
@@ -200,7 +217,12 @@ export function HomeLayout({
                 </TabsContent>
               </CardContent>
               <CardFooter className="justify-center gap-2 flex-shrink-0 pt-3 flex-row flex-wrap">
-                <Button className="h-10" onClick={() => handleGenerate(configTab)} disabled={configLoading || !hasValidSources}>
+                {pendingSourceCount > 0 && (
+                  <p role="status" className="w-full text-center text-xs text-amber-200">
+                    {pendingSourceCount} 个来源尚未导入。导入后才能保存最新订阅。
+                  </p>
+                )}
+                <Button variant={editingSubscription ? "outline" : "default"} className="h-10" onClick={() => handleGenerate(configTab)} disabled={configLoading || isLoadingEditingSubscription || copyNotReady || !hasValidSources}>
                   {configLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -209,10 +231,15 @@ export function HomeLayout({
                   ) : (
                     <>
                       <Zap className="h-4 w-4 mr-2" />
-                      生成配置
+                      {pendingSourceCount > 0 ? "导入并生成" : "生成配置"}
                     </>
                   )}
                 </Button>
+                {pendingSourceCount > 0 && hasImportedNodes && (
+                  <Button variant="ghost" className="h-10" disabled={configLoading || isLoadingEditingSubscription || copyNotReady} onClick={() => handleGenerate(configTab, false)}>
+                    仅使用当前节点
+                  </Button>
+                )}
                 {user && templateUploadHref && (
                   <Link href={templateUploadHref}>
                     <Button
@@ -241,19 +268,19 @@ export function HomeLayout({
           } flex flex-col gap-3 min-h-0 ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}
         >
           <Tabs defaultValue="visual" className={`w-full flex flex-col lg:flex-1 ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}>
-            <Card className={`w-full flex flex-col lg:flex-1 ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}>
-              <CardHeader className="pb-3 flex-shrink-0">
+            <Card className={`workspace-panel w-full flex flex-col lg:flex-1 ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}>
+              <CardHeader className="workspace-panel-header flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base lg:text-lg flex items-center gap-2">
                     <span className="mono-label text-acid/90">02</span>
                     <Eye className="h-5 w-5 text-white/65" />
                     预览
                   </CardTitle>
-                  <TabsList className="h-8">
-                    <TabsTrigger value="yaml" className="text-xs px-3 h-6">
+                  <TabsList className={artisticTabsListClassName}>
+                    <TabsTrigger value="yaml" className={artisticTabsTriggerClassName}>
                       YAML
                     </TabsTrigger>
-                    <TabsTrigger value="visual" className="text-xs px-3 h-6">
+                    <TabsTrigger value="visual" className={artisticTabsTriggerClassName}>
                       可视化
                     </TabsTrigger>
                   </TabsList>
@@ -312,7 +339,8 @@ export function HomeLayout({
               <CardFooter className="justify-center gap-2 flex-shrink-0 pt-3 flex-row flex-wrap">
                 <Button
                   className="h-10"
-                  disabled={!generatedYaml || Boolean(generatedYamlError)}
+                  variant="outline"
+                  disabled={configLoading || isLoadingEditingSubscription || copyNotReady || !generatedYaml || Boolean(generatedYamlError)}
                   onClick={() => handleDownload(configTab)}
                 >
                   <Download className="mr-2 h-4 w-4" />
@@ -320,21 +348,20 @@ export function HomeLayout({
                 </Button>
                 <Button
                   className="h-10"
-                  variant="outline"
-                  disabled={!generatedYaml || Boolean(generatedYamlError) || !authChecked}
+                  variant="default"
+                  disabled={configLoading || pendingSourceCount > 0 || isLoadingEditingSubscription || copyNotReady || !generatedYaml || Boolean(generatedYamlError) || !authChecked}
                   onClick={() => subscription.handleGenerateSubscription(configTab)}
                 >
                   {user && subscription.isEditingExistingSubscription ? "保存订阅" : "生成订阅链接"}
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
                 {subscription.isEditingExistingSubscription && (
-                  <Button
-                    className="h-10 border-rose-500/50 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 hover:border-rose-400/70"
+                  <Button asChild
+                    className="h-10"
                     variant="outline"
-                    onClick={() => (window.location.href = "/builder")}
                     title="退出编辑模式"
                   >
-                    退出编辑
+                    <Link href="/">返回新建</Link>
                   </Button>
                 )}
               </CardFooter>
@@ -357,6 +384,22 @@ export function HomeLayout({
               </CardContent>
             </Card>
           </div>
+        )}
+      </div>
+
+      <div className="h-20 md:hidden" aria-hidden="true" />
+      <div className="fixed bottom-16 inset-x-0 z-40 flex items-center justify-end gap-2 border-t border-white/10 bg-ink-50 px-4 py-3 md:hidden" aria-label="配置操作">
+        <Button variant="outline" onClick={() => document.getElementById("preview")?.scrollIntoView({ block: "start" })}>
+          查看预览
+        </Button>
+        {!generatedYaml || pendingSourceCount > 0 ? (
+          <Button onClick={() => handleGenerate(configTab)} disabled={configLoading || isLoadingEditingSubscription || copyNotReady || !hasValidSources}>
+            {configLoading ? "处理中…" : pendingSourceCount > 0 ? "导入并生成" : "生成配置"}
+          </Button>
+        ) : (
+          <Button onClick={() => subscription.handleGenerateSubscription(configTab)} disabled={configLoading || isLoadingEditingSubscription || copyNotReady || Boolean(generatedYamlError) || !authChecked || subscription.isCreatingSubscription}>
+            {subscription.isCreatingSubscription ? "保存中…" : subscription.isEditingExistingSubscription ? "保存订阅" : "生成订阅链接"}
+          </Button>
         )}
       </div>
 

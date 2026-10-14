@@ -3,7 +3,6 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
-import { useShallow } from "zustand/react/shallow";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +12,7 @@ import {
   DialogTitle,
 } from "@subboost/ui/components/ui/dialog";
 import { Button } from "@subboost/ui/components/ui/button";
-import { isSourcePendingImport } from "@subboost/ui/product/subscription/source-import-state";
+import { hasUnsavedConfig } from "./config-save-state";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 
 /**
@@ -21,30 +20,14 @@ import { useConfigStore } from "@subboost/ui/store/config-store";
  * 监听页面离开事件，如果有未保存的更改则提示用户
  */
 export function UnsavedPrompt() {
-  const { nodes, sources } = useConfigStore(
-    useShallow((state) => ({ nodes: state.nodes, sources: state.sources }))
-  );
+  const hasUnsavedChanges = useUnsavedChanges();
   const [showDialog, setShowDialog] = React.useState(false);
   const [pendingNavigation, setPendingNavigation] = React.useState<string | null>(null);
   const router = useRouter();
 
-  // 检测是否有未保存的更改
-  const hasUnsavedChanges = React.useMemo(() => {
-    // 有节点但没有生成配置，或者有有效的订阅源但没有解析
-    const hasNodes = nodes.length > 0;
-    const hasUnparsedSources = sources.some(isSourcePendingImport);
-    
-    // 如果有节点或未解析的源，但没有下载过配置（这里简化处理）
-    return hasNodes || hasUnparsedSources;
-  }, [nodes, sources]);
 
   // 监听 beforeunload 事件（浏览器关闭/刷新）
   React.useEffect(() => {
-    // 自动化/测试环境（如 Playwright）下禁用 beforeunload，避免阻塞自动化回归与开发调试
-    if (typeof navigator !== "undefined" && (navigator as unknown as { webdriver?: boolean }).webdriver) {
-      return;
-    }
-
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
@@ -55,6 +38,25 @@ export function UnsavedPrompt() {
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  React.useEffect(() => {
+    const handleLink = (event: MouseEvent) => {
+      if (!hasUnsavedChanges || event.defaultPrevented || event.button !== 0 ||
+          event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = event.target instanceof Element ? event.target.closest("a[href]") : null;
+      if (!(anchor instanceof HTMLAnchorElement) || anchor.hasAttribute("download") ||
+          (anchor.target && anchor.target !== "_self")) return;
+      const next = new URL(anchor.href, window.location.href);
+      if (next.origin !== window.location.origin ||
+          (next.pathname === window.location.pathname && next.search === window.location.search)) return;
+      event.preventDefault();
+      // 保留链接自身的 onClick（例如登录前保存配置交接），只阻止导航。
+      setPendingNavigation(next.pathname + next.search + next.hash);
+      setShowDialog(true);
+    };
+    document.addEventListener("click", handleLink, true);
+    return () => document.removeEventListener("click", handleLink, true);
   }, [hasUnsavedChanges]);
 
   // 处理确认离开
@@ -91,7 +93,7 @@ export function UnsavedPrompt() {
             未保存的更改
           </DialogTitle>
           <DialogDescription>
-            您有未保存的配置更改。如果现在离开，这些更改将会丢失。
+            当前配置尚未保存为订阅。离开后无法保证恢复这些修改；下载文件不会保存订阅。
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
@@ -99,7 +101,7 @@ export function UnsavedPrompt() {
             继续编辑
           </Button>
           <Button variant="destructive" onClick={handleConfirmLeave}>
-            放弃更改
+            离开页面
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -111,14 +113,6 @@ export function UnsavedPrompt() {
  * Hook: 检查是否有未保存的更改
  */
 export function useUnsavedChanges() {
-  const { nodes, sources } = useConfigStore(
-    useShallow((state) => ({ nodes: state.nodes, sources: state.sources }))
-  );
-  
-  return React.useMemo(() => {
-    const hasNodes = nodes.length > 0;
-    const hasUnparsedSources = sources.some(isSourcePendingImport);
-    return hasNodes || hasUnparsedSources;
-  }, [nodes, sources]);
+  return useConfigStore(hasUnsavedConfig);
 }
 

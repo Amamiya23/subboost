@@ -14,7 +14,7 @@ vi.mock("@subboost/ui/product/client-response", () => ({
   readSourceImportResponse: mocks.readSourceImportResponse,
 }));
 
-import Page from "./builder/page";
+import Page from "./page";
 
 function adapter() {
   const element = Page() as React.ReactElement<{ adapter: any }>;

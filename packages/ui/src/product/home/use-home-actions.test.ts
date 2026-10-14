@@ -12,6 +12,8 @@ const mocks = vi.hoisted(() => {
       dnsYaml: "",
       listenerPorts: {} as Record<string, unknown>,
       generatedYamlError: null as string | null,
+      isLoading: false,
+      parseSingleSource: vi.fn(async (_id: string) => undefined),
     },
     interactions: {
       configDownloaded: vi.fn(),
@@ -20,6 +22,7 @@ const mocks = vi.hoisted(() => {
     },
   };
   useConfigStore.getState = vi.fn(() => bag.storeState);
+  useConfigStore.setState = vi.fn((patch) => Object.assign(bag.storeState, patch));
 
   return {
     bag,
@@ -96,12 +99,41 @@ describe("useHomeActions", () => {
       dnsYaml: "",
       listenerPorts: {},
       generatedYamlError: null,
+      isLoading: false,
+      parseSingleSource: vi.fn(async (_id: string) => undefined),
     };
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+  });
+
+  it("imports pending sources without clearing existing nodes", async () => {
+    const existing = { name: "Existing node" };
+    const pending = makeSource();
+    mocks.bag.storeState.nodes = [existing];
+    mocks.bag.storeState.sources = [pending];
+    mocks.bag.storeState.parseSingleSource.mockImplementation(async () => {
+      pending.parsed = true;
+      mocks.bag.storeState.nodes.push({ name: "Imported node" });
+    });
+    const options = makeOptions({ nodes: [existing], storeSources: [pending] });
+    await useHomeActions(options).handleGenerate("quick");
+    expect(options.clearNodes).not.toHaveBeenCalled();
+    expect(mocks.bag.storeState.nodes).toContain(existing);
+    expect(options.generateConfig).toHaveBeenCalledOnce();
+    expect(mocks.bag.storeState.isLoading).toBe(false);
+  });
+
+  it("keeps failed pending sources visible and does not report successful generation", async () => {
+    const pending = makeSource();
+    mocks.bag.storeState.sources = [pending];
+    const options = makeOptions({ nodes: [{ name: "Existing" }], storeSources: [pending] });
+    await useHomeActions(options).handleGenerate("quick");
+    expect(options.generateConfig).not.toHaveBeenCalled();
+    expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "配置尚未就绪", variant: "warning" }));
+    expect(mocks.bag.storeState.isLoading).toBe(false);
   });
 
   it("downloads generated YAML and records the interaction", () => {
@@ -165,13 +197,13 @@ describe("useHomeActions", () => {
     });
 
     expect(hasValidSources).toBe(true);
-    await handleGenerate("advanced");
+    await handleGenerate("advanced", false);
 
     expect(generateConfig).toHaveBeenCalled();
     expect(parseMultipleSources).not.toHaveBeenCalled();
     expect(mocks.toast).toHaveBeenCalledWith({
       title: "已生成配置（存在待导入源）",
-      description: "当前配置仅基于已导入的节点生成。请先点击每条源右侧 ✅ 导入，再重新生成配置。",
+      description: "本次仅使用当前节点，未导入的来源不会包含在下载配置中。",
       variant: "info",
     });
     expect(mocks.bag.interactions.configGenerated).toHaveBeenCalledWith(
@@ -280,11 +312,12 @@ describe("useHomeActions", () => {
       expect.objectContaining({ mode: "quick", result: "validationError" })
     );
     expect(mocks.toast).toHaveBeenCalledWith({
-      title: "已导入并生成配置（2 节点）",
-      variant: "success",
+      title: "已导入 2 个节点，部分来源未完成",
+      description: "还有 2 个来源未导入，请检查来源提示后重试。",
+      variant: "warning",
     });
     expect(mocks.bag.interactions.configGenerated).toHaveBeenCalledWith(
-      expect.objectContaining({ mode: "quick", result: "success" })
+      expect.objectContaining({ mode: "quick", result: "validationError" })
     );
   });
 

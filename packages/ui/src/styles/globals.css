@@ -522,6 +522,89 @@
   }
 }
 
+/* Workbench chrome stays scoped so landing and admin pages keep their own density. */
+@layer utilities {
+  .builder-workspace .workspace-panel {
+    @apply rounded-xl border-bone/10 bg-ink-50 p-4 sm:p-5 lg:p-6;
+  }
+
+  .builder-workspace .workspace-panel-header {
+    @apply mb-5 border-b border-bone/10 pb-5;
+  }
+
+  .builder-workspace .source-editor {
+    @apply flex min-w-0 flex-col gap-2.5;
+  }
+
+  .builder-workspace .source-editor + .source-editor {
+    @apply border-t border-bone/10 pt-5;
+  }
+
+  .builder-workspace .source-editor-header {
+    @apply flex min-w-0 flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-2;
+  }
+
+  .builder-workspace .source-editor-heading {
+    @apply flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2;
+  }
+
+  .builder-workspace .source-editor-label {
+    @apply min-w-0 flex-1 break-words text-sm font-medium leading-5 text-bone/85;
+  }
+
+  .builder-workspace .source-type-picker {
+    @apply inline-flex shrink-0 items-center rounded-lg bg-ink-100 p-0.5;
+  }
+
+  .builder-workspace .source-type-button {
+    @apply inline-flex size-11 items-center justify-center rounded-md transition-colors sm:size-8;
+  }
+
+  .builder-workspace .source-type-button[aria-pressed="true"] {
+    @apply bg-bone/10 text-bone;
+  }
+
+  .builder-workspace .source-type-button[aria-pressed="false"] {
+    @apply text-ink-600 hover:bg-bone/5 hover:text-bone;
+  }
+
+  .builder-workspace .source-editor-actions {
+    @apply flex shrink-0 items-center justify-end gap-1 sm:ml-auto;
+  }
+
+  .builder-workspace .source-icon-button {
+    @apply inline-flex size-11 shrink-0 items-center justify-center rounded-md text-ink-600 transition-colors hover:bg-bone/5 hover:text-bone disabled:cursor-not-allowed disabled:opacity-30 sm:size-8;
+  }
+
+  .builder-workspace .source-icon-button svg {
+    @apply size-4;
+  }
+
+  .builder-workspace .source-type-button:focus-visible,
+  .builder-workspace .source-icon-button:focus-visible {
+    @apply outline-2 outline-offset-2 outline-acid;
+  }
+
+  .builder-workspace .source-editor-input {
+    @apply rounded-lg border-bone/10 bg-ink text-sm leading-relaxed text-bone placeholder:text-ink-600 focus-visible:border-bone/30 focus-visible:ring-bone/15;
+  }
+
+  .builder-workspace [aria-label="配置操作"] {
+    @apply gap-3 border-bone/10 px-4 py-3 shadow-[0_-8px_24px_rgb(0_0_0/0.12)];
+  }
+
+  .builder-workspace [aria-label="配置操作"] button {
+    @apply h-11 flex-1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .builder-workspace .source-type-button,
+    .builder-workspace .source-icon-button {
+      transition: none;
+    }
+  }
+}
+
 @layer utilities {
   /* 文本选择：acid 低透明 */
   ::selection {

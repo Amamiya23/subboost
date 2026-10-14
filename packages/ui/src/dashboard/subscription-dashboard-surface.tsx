@@ -7,6 +7,7 @@ import {
   Check,
   Clock,
   Copy,
+  CopyPlus,
   Download,
   ExternalLink,
   FileCode,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@subboost/ui/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@subboost/ui/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/ui/card";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
 import { toast } from "@subboost/ui/components/ui/toaster";
@@ -51,6 +53,7 @@ export type DashboardSurfaceAdapter = {
   settingsDescription?: string;
   autoUpdateIntervalPolicy?: AutoUpdateIntervalPolicyOverride;
   editSubscriptionHref?: (subscription: Subscription) => string;
+  copySubscriptionHref?: (subscription: Subscription) => string;
   fetchSubscriptions: () => Promise<Subscription[]>;
   deleteSubscription: (id: string) => Promise<void>;
   refreshSubscription: (id: string) => Promise<RefreshSubscriptionResponse>;
@@ -344,8 +347,9 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
   if (userLoading) return <DashboardSkeleton />;
   if (!user) return <LoginPrompt loginHref={adapter.loginHref ?? "/login"} />;
 
-  const newSubscriptionHref = adapter.newSubscriptionHref ?? "/builder?newSubscription=1";
-  const editSubscriptionHref = adapter.editSubscriptionHref ?? ((sub: Subscription) => `/builder?editSubscriptionId=${sub.id}`);
+  const newSubscriptionHref = adapter.newSubscriptionHref ?? "/?newSubscription=1";
+  const editSubscriptionHref = adapter.editSubscriptionHref ?? ((sub: Subscription) => `/?editSubscriptionId=${encodeURIComponent(sub.id)}`);
+  const copySubscriptionHref = adapter.copySubscriptionHref ?? ((sub: Subscription) => `/?copySubscriptionId=${encodeURIComponent(sub.id)}`);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -413,6 +417,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
                   copiedId={copiedId}
                   refreshingId={refreshingId}
                   editHref={editSubscriptionHref(sub)}
+                  copyHref={copySubscriptionHref(sub)}
                   onCopy={copyToClipboard}
                   onDelete={deleteSubscription}
                   onDownload={downloadSubscription}
@@ -505,6 +510,7 @@ function SubscriptionRow({
   copiedId,
   refreshingId,
   editHref,
+  copyHref,
   onCopy,
   onDelete,
   onDownload,
@@ -515,6 +521,7 @@ function SubscriptionRow({
   copiedId: string | null;
   refreshingId: string | null;
   editHref: string;
+  copyHref: string;
   onCopy: (subscriptionUrl: string, id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onDownload: (sub: Subscription) => Promise<void>;
@@ -522,16 +529,16 @@ function SubscriptionRow({
   onSettings: (sub: Subscription) => void;
 }) {
   return (
-    <div className="flex flex-col gap-3 p-4 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+    <div className="flex flex-col gap-4 p-4 sm:p-5 rounded-xl bg-ink-50 border border-bone/10 hover:border-bone/20 transition-colors sm:flex-row sm:items-center sm:justify-between sm:gap-5">
       <div className="flex min-w-0 flex-1 items-start gap-4 sm:items-center">
-        <div className="p-2 rounded-lg bg-white/10">
-          <FileCode className="h-5 w-5 text-primary-500" />
+        <div className="shrink-0 py-1 text-ink-600">
+          <FileCode className="h-5 w-5" />
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="min-w-0 flex-1 truncate font-medium">{sub.name}</h3>
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/50">
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm leading-relaxed text-ink-600 tabular-nums">
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
               创建于 {formatDashboardDate(sub.createdAt)}
@@ -557,72 +564,47 @@ function SubscriptionRow({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
-        <Link href={editHref}>
-          <Button variant="ghost" size="sm" className="gap-0 sm:gap-2" title="回到首页编辑该订阅（更新后链接不变）">
+        <Button asChild variant="ghost" size="sm" className="gap-2" title="进入配置生成器编辑该订阅（更新后链接不变）">
+          <Link href={editHref}>
             <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">编辑</span>
-          </Button>
-        </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onSettings(sub)}
-          className="gap-0 sm:gap-2"
-          title="订阅设置（改名 / 自动更新）"
-        >
-          <MoreVertical className="h-4 w-4" />
-          <span className="hidden sm:inline">设置</span>
+            编辑
+          </Link>
         </Button>
         <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => void onRefresh(sub.id)}
-          disabled={refreshingId === sub.id}
-          className="gap-0 sm:gap-2"
-          title="重新生成配置并刷新缓存"
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshingId === sub.id ? "animate-spin" : ""}`} />
-          <span className="hidden sm:inline">刷新</span>
-        </Button>
-        <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={() => void onCopy(sub.subscriptionUrl, sub.id)}
-          className="gap-0 sm:gap-2"
+          className="gap-2"
           title="复制订阅链接"
         >
           {copiedId === sub.id ? (
             <>
               <Check className="h-4 w-4 text-green-500" />
-              <span className="hidden sm:inline text-green-500">已复制</span>
+              <span className="text-green-500" role="status">已复制</span>
             </>
           ) : (
             <>
               <Copy className="h-4 w-4" />
-              <span className="hidden sm:inline">链接</span>
+              <span>复制链接</span>
             </>
           )}
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => void onDownload(sub)}
-          className="gap-0 sm:gap-2"
-          title="下载订阅配置"
-        >
-          <Download className="h-4 w-4" />
-          <span className="hidden sm:inline">下载</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => void onDelete(sub.id)}
-          className="gap-0 text-red-400 hover:text-red-300 hover:bg-red-500/10 sm:gap-2"
-          title="删除订阅"
-        >
-          <Trash2 className="h-4 w-4" />
-          <span className="hidden sm:inline">删除</span>
-        </Button>
+        {refreshingId === sub.id && (
+          <span role="status" className="inline-flex items-center gap-1 text-xs text-white/70"><RefreshCw className="h-3.5 w-3.5 animate-spin" />刷新中…</span>
+        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" aria-label={`${sub.name}的更多操作`}><MoreVertical className="h-4 w-4" />更多</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild><Link href={copyHref}><CopyPlus className="mr-2 h-4 w-4" />复制配置</Link></DropdownMenuItem>
+            <DropdownMenuItem title="订阅设置（改名 / 自动更新）" onSelect={() => onSettings(sub)}><Settings className="mr-2 h-4 w-4" />订阅设置</DropdownMenuItem>
+            <DropdownMenuItem title="重新生成配置并刷新缓存" disabled={refreshingId === sub.id} onSelect={() => void onRefresh(sub.id)}><RefreshCw className="mr-2 h-4 w-4" />刷新订阅</DropdownMenuItem>
+            <DropdownMenuItem title="下载订阅配置" onSelect={() => void onDownload(sub)}><Download className="mr-2 h-4 w-4" />下载配置</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-red-300 focus:text-red-200" onSelect={() => void onDelete(sub.id)}><Trash2 className="mr-2 h-4 w-4" />删除订阅</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

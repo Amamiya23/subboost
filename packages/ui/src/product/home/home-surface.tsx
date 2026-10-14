@@ -6,6 +6,8 @@ import { setConfigDraftUserScope, useConfigStore } from "@subboost/ui/store/conf
 import { consumeAuthConfigHandoff } from "@subboost/ui/store/config-store/auth-handoff";
 import { useUserStore, type User } from "@subboost/ui/store/user-store";
 import { useUIStore } from "@subboost/ui/store/ui-store";
+import { isSourcePendingImport } from "@subboost/ui/product/subscription/source-import-state";
+import { getConfigSnapshot } from "./config-save-state";
 import { HomeLayout } from "@subboost/ui/product/home/home-layout";
 import { useHomeActions } from "@subboost/ui/product/home/use-home-actions";
 import { useCleanNewSubscriptionIntent } from "@subboost/ui/product/home/use-clean-new-subscription-intent";
@@ -88,6 +90,7 @@ function HomeSurfaceInner({ adapter }: Props) {
   const setEditingSubscription = useUIStore((state) => state.setEditingSubscription);
   const searchParams = useSearchParams();
   const editSubscriptionId = searchParams.get("editSubscriptionId");
+  const copySubscriptionId = editSubscriptionId ? null : searchParams.get("copySubscriptionId");
 
   const showAiColumn = Boolean(user?.aiAssistantEnabled);
   const [authChecked, setAuthChecked] = React.useState(false);
@@ -141,6 +144,10 @@ function HomeSurfaceInner({ adapter }: Props) {
 
   React.useEffect(() => {
     setConfigDraftUserScope(userId);
+    const scopedState = useConfigStore.getState();
+    if (!scopedState.nodes.length && !scopedState.sources.some((source) => source.content.trim())) {
+      useConfigStore.setState({ savedConfigSnapshot: getConfigSnapshot(scopedState) });
+    }
     if (!userId) return;
 
     const handoff = consumeAuthConfigHandoff();
@@ -173,8 +180,9 @@ function HomeSurfaceInner({ adapter }: Props) {
     setSubscriptionUrl,
   });
 
-  const isLoadingEditingSubscription = useEditingSubscriptionLoader({
+  const { isLoading: isLoadingEditingSubscription, error: subscriptionLoadError } = useEditingSubscriptionLoader({
     editSubscriptionId,
+    copySubscriptionId,
     loadSubscription: adapter?.loadSubscription,
     loginHref: adapter?.loginHref ?? adapter?.subscription?.loginHref,
     setCopied,
@@ -203,10 +211,14 @@ function HomeSurfaceInner({ adapter }: Props) {
       authChecked={authChecked}
       editingSubscription={editingSubscription}
       isLoadingEditingSubscription={isLoadingEditingSubscription}
+      subscriptionLoadError={subscriptionLoadError}
       editSubscriptionId={editSubscriptionId}
+      copySubscriptionId={copySubscriptionId}
       generatedYaml={generatedYaml}
       generatedYamlError={generatedYamlError}
-      configLoading={configLoading}
+      configLoading={configLoading || storeSources.some((source) => source.parsing)}
+      pendingSourceCount={storeSources.filter(isSourcePendingImport).length}
+      hasImportedNodes={nodes.length > 0}
       hasValidSources={hasValidSources}
       handleGenerate={handleGenerate}
       handleDownload={handleDownload}

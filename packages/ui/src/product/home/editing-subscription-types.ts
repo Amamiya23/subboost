@@ -10,6 +10,7 @@ export type EditingSubscription = {
 
 export type EditingSubscriptionLoaderOptions = {
   editSubscriptionId: string | null;
+  copySubscriptionId?: string | null;
   loadSubscription?: (id: string) => Promise<Response>;
   loginHref?: string;
   setCopied: (copied: boolean) => void;

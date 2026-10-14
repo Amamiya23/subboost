@@ -111,8 +111,41 @@ export function useHomeActions({
     }
   }, [interactions]);
 
-  const handleGenerate = React.useCallback(async (mode: ProductMode) => {
+  const handleGenerate = React.useCallback(async (mode: ProductMode, importPending = true) => {
     const pendingSources = storeSources.filter(isSourcePendingImport);
+
+    if (useConfigStore.getState().isLoading || storeSources.some((source) => source.parsing)) return;
+    if (nodes.length > 0 && pendingSources.length > 0 && importPending) {
+      useConfigStore.setState({ isLoading: true });
+      try {
+        // 单源导入保留其他来源的节点及用户调整，避免全量重建。
+        for (const source of pendingSources) {
+          await useConfigStore.getState().parseSingleSource(source.id);
+        }
+        trackSourceImportResults(mode, pendingSources);
+        const pendingCount = useConfigStore.getState().sources.filter(isSourcePendingImport).length;
+        if (pendingCount > 0) {
+          toast({ title: "配置尚未就绪", description: `仍有 ${pendingCount} 个来源未导入，请查看来源旁的错误提示后重试。`, variant: "warning" });
+          trackConfigGenerate(mode, "validationError");
+          return;
+        }
+        generateConfig();
+        const error = useConfigStore.getState().generatedYamlError;
+        if (error) {
+          toast({ title: "基础和 DNS 配置有错误", description: error, variant: "destructive" });
+          trackConfigGenerate(mode, "validationError");
+          return;
+        }
+        toast({ title: "已导入并生成配置", variant: "success" });
+        trackConfigGenerate(mode, "success");
+      } catch {
+        toast({ title: "导入失败，请检查来源后重试", variant: "destructive" });
+        trackConfigGenerate(mode, "runtimeError");
+      } finally {
+        useConfigStore.setState({ isLoading: false });
+      }
+      return;
+    }
 
     // 如果已有节点，直接生成配置（不自动重新导入，避免覆盖用户改名/删除/排序）
     if (nodes.length > 0) {
@@ -130,7 +163,7 @@ export function useHomeActions({
         trackConfigGenerate(mode, "success");
         toast({
           title: "已生成配置（存在待导入源）",
-          description: "当前配置仅基于已导入的节点生成。请先点击每条源右侧 ✅ 导入，再重新生成配置。",
+          description: "本次仅使用当前节点，未导入的来源不会包含在下载配置中。",
           variant: "info",
         });
         return;
@@ -156,6 +189,16 @@ export function useHomeActions({
       }
       trackSourceImportResults(mode, pendingSources);
       const importedCount = useConfigStore.getState().nodes.length;
+      const remainingCount = useConfigStore.getState().sources.filter(isSourcePendingImport).length;
+      if (importedCount > 0 && remainingCount > 0) {
+        toast({
+          title: `已导入 ${importedCount} 个节点，部分来源未完成`,
+          description: `还有 ${remainingCount} 个来源未导入，请检查来源提示后重试。`,
+          variant: "warning",
+        });
+        trackConfigGenerate(mode, "validationError");
+        return;
+      }
       toast({
         title: importedCount > 0 ? `已导入并生成配置（${importedCount} 节点）` : "未解析到有效节点",
         variant: importedCount > 0 ? "success" : "warning",

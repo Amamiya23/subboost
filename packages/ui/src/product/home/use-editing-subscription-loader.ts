@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { getConfigSnapshot } from "./config-save-state";
 import type { SubscriptionSource } from "@subboost/ui/store/config-store";
 import type { ParsedNode } from "@subboost/core/types/node";
 import type { EditingSubscriptionLoaderOptions } from "./editing-subscription-types";
@@ -27,6 +28,7 @@ import {
 
 export function useEditingSubscriptionLoader({
   editSubscriptionId,
+  copySubscriptionId,
   loadSubscription,
   loginHref = "/login",
   setCopied,
@@ -34,21 +36,35 @@ export function useEditingSubscriptionLoader({
   setStoreSources,
   setSubscriptionName,
   setSubscriptionUrl,
-}: EditingSubscriptionLoaderOptions): boolean {
-  const [isLoadingEditingSubscription, setIsLoadingEditingSubscription] = React.useState(false);
+}: EditingSubscriptionLoaderOptions): { isLoading: boolean; error: string | null } {
+  const subscriptionId = editSubscriptionId || copySubscriptionId;
+  const isCopy = !editSubscriptionId && Boolean(copySubscriptionId);
+  const [isLoadingEditingSubscription, setIsLoadingEditingSubscription] = React.useState(Boolean(subscriptionId));
+  const [error, setError] = React.useState<string | null>(null);
 
-  // 从“我的订阅”跳转回来时，加载订阅详情到首页编辑器
+  // 编辑与复制共用配置还原逻辑，复制只创建草稿，不继承原订阅的身份。
   React.useEffect(() => {
-    if (!editSubscriptionId) return;
+    setError(null);
+    if (!subscriptionId) {
+      setIsLoadingEditingSubscription(false);
+      return;
+    }
 
     let cancelled = false;
     const run = async () => {
       setIsLoadingEditingSubscription(true);
+      if (isCopy) {
+        setEditingSubscription(null);
+        setSubscriptionName("");
+        setSubscriptionUrl("");
+        setCopied(false);
+      }
       try {
         if (!loadSubscription) {
           throw new Error("当前应用未配置订阅加载接口");
         }
-        const res = await loadSubscription(editSubscriptionId);
+        const res = await loadSubscription(subscriptionId);
+        if (cancelled) return;
         if (res.status === 401) {
           captureAuthConfigHandoff(useConfigStore.getState());
           window.location.href = loginHref;
@@ -56,6 +72,7 @@ export function useEditingSubscriptionLoader({
         }
 
         const data = (await res.json()) as unknown;
+        if (cancelled) return;
         if (!res.ok) {
           const err = (data as { error?: string })?.error || "加载订阅失败";
           throw new Error(err);
@@ -293,6 +310,7 @@ export function useEditingSubscriptionLoader({
 
         // 订阅记录未保存 sources 时，尽量保留用户当前页面里的非 URL 输入（若 URL 列表完全一致）。
         const rebuiltSourcesFromCurrent = (() => {
+          if (isCopy) return [];
           const current = useConfigStore.getState().sources as SubscriptionSource[];
           if (!Array.isArray(current) || current.length === 0) return [];
 
@@ -450,6 +468,7 @@ export function useEditingSubscriptionLoader({
         const ruleOrderFromCfg = normalizePersistedRuleOrder({
           enabledModules: nextEnabledModules,
           customRules: customRulesFromCfg,
+          customProxyGroups: customProxyGroupsFromCfg,
           customRuleSets: customRuleSetsFromCfg,
           builtinRuleEdits: builtinRuleEditsFromCfg,
           proxyGroupNameOverrides: proxyGroupNameOverridesFromCfg
@@ -548,6 +567,9 @@ export function useEditingSubscriptionLoader({
         }));
 
         useConfigStore.getState().generateConfig();
+        if (!isCopy) {
+          useConfigStore.setState({ savedConfigSnapshot: getConfigSnapshot(useConfigStore.getState()) });
+        }
 
         if (!cancelled) {
           const autoUpdateInterval =
@@ -556,14 +578,14 @@ export function useEditingSubscriptionLoader({
             sub.autoUpdateInterval > 0
               ? Math.round(sub.autoUpdateInterval)
               : null;
-          setEditingSubscription({
+          setEditingSubscription(isCopy ? null : {
             id: sub.id,
             token: sub.token,
             name: sub.name || "未命名订阅",
             autoUpdateInterval,
             smartNodeMatchingEnabled: (cfg as any).smartNodeMatchingEnabled !== false,
           });
-          setSubscriptionName(sub.name || "");
+          setSubscriptionName(isCopy ? `${sub.name || "未命名订阅"} - 副本` : sub.name || "");
           setSubscriptionUrl("");
           setCopied(false);
         }
@@ -575,8 +597,10 @@ export function useEditingSubscriptionLoader({
     run().catch((e) => {
       if (!cancelled) {
         console.error(e);
+        const message = e instanceof Error ? e.message : "加载订阅失败";
+        setError(message);
         toast({
-          title: e instanceof Error ? e.message : "加载订阅失败",
+          title: message,
           variant: "destructive",
         });
         setEditingSubscription(null);
@@ -586,7 +610,7 @@ export function useEditingSubscriptionLoader({
     return () => {
       cancelled = true;
     };
-  }, [editSubscriptionId, loadSubscription, loginHref, setCopied, setEditingSubscription, setStoreSources, setSubscriptionName, setSubscriptionUrl]);
+  }, [subscriptionId, isCopy, loadSubscription, loginHref, setCopied, setEditingSubscription, setStoreSources, setSubscriptionName, setSubscriptionUrl]);
 
-  return isLoadingEditingSubscription;
+  return { isLoading: isLoadingEditingSubscription, error };
 }

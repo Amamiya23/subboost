@@ -53,6 +53,7 @@ export function YamlPreviewEditor({
     return (
       <div className={cn("flex h-full flex-col", className)}>
         <Textarea
+          aria-label="编辑下载用 YAML 配置"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           spellCheck={false}
@@ -63,7 +64,7 @@ export function YamlPreviewEditor({
         />
         <div className="flex flex-shrink-0 items-center justify-end gap-2 border-t border-white/10 bg-white/5 px-3 py-2">
           <span className="mr-auto text-[11px] text-white/50">
-            {dirty ? "有未保存的修改" : "编辑模式：保存后将作为下载与订阅内容"}
+            {dirty ? "有未应用的修改。" : ""}手动修改仅用于下载；订阅使用结构化配置，重新生成会覆盖此处修改。
           </span>
           <Button size="sm" variant="outline" onClick={handleCancel}>
             <X className="h-3.5 w-3.5" />

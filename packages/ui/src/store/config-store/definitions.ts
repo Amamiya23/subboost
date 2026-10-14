@@ -215,6 +215,8 @@ export interface ConfigState {
   // 生成结果
   generatedYaml: string;
   generatedYamlError: string | null;
+  // 最近成功加载/保存的配置快照，仅驻留内存，不写入浏览器存储。
+  savedConfigSnapshot: string | null;
 
   // 历史记录（用于撤销）
   history: string[];
@@ -362,6 +364,7 @@ export const initialState: ConfigState = {
   listenerPorts: {},
   generatedYaml: "",
   generatedYamlError: null,
+  savedConfigSnapshot: null,
   history: [],
   historyIndex: -1,
 };

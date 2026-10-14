@@ -3,13 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Eye, Home, Library, Settings2, User, type LucideIcon } from "lucide-react";
+import { Bot, Eye, Library, Settings2, User, type LucideIcon } from "lucide-react";
 import { cn } from "@subboost/ui/lib/utils";
 import { zeroRightClassName } from "react-remove-scroll-bar";
 import { useUserStore } from "@subboost/ui/store/user-store";
 
 type MobileNavItem = {
-  id: "config" | "preview" | "ai" | "dashboard" | "home" | "templates";
+  id: "config" | "preview" | "ai" | "dashboard" | "templates";
   href: string;
   label: string;
   icon: LucideIcon;
@@ -18,15 +18,14 @@ type MobileNavItem = {
 };
 
 const defaultMobileNavItems: MobileNavItem[] = [
-  { id: "config", href: "/builder#config", label: "配置", icon: Settings2, hash: "config" },
-  { id: "preview", href: "/builder#preview", label: "预览", icon: Eye, hash: "preview" },
-  { id: "ai", href: "/builder#ai", label: "AI", icon: Bot, hash: "ai", authOnly: true },
+  { id: "config", href: "/#config", label: "配置", icon: Settings2, hash: "config" },
+  { id: "preview", href: "/#preview", label: "预览", icon: Eye, hash: "preview" },
+  { id: "ai", href: "/#ai", label: "AI", icon: Bot, hash: "ai", authOnly: true },
   { id: "dashboard", href: "/dashboard", label: "我的", icon: User, authOnly: true },
 ];
 
 const localMobileNavItems: MobileNavItem[] = [
-  { id: "home", href: "/", label: "首页", icon: Home },
-  { id: "config", href: "/builder", label: "生成", icon: Settings2 },
+  { id: "config", href: "/", label: "生成", icon: Settings2 },
   { id: "dashboard", href: "/dashboard", label: "订阅", icon: User, authOnly: true },
   { id: "templates", href: "/templates", label: "模板", icon: Library },
 ];
@@ -44,7 +43,7 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
     return () => window.removeEventListener("hashchange", update);
   }, []);
 
-  const isBuilder = pathname === "/builder";
+  const isBuilder = pathname === "/";
   const items = mode === "local" ? localMobileNavItems : defaultMobileNavItems;
   const visibleItems = user ? items : items.filter((i) => !i.authOnly);
 
@@ -74,7 +73,7 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
                   event.preventDefault();
                   const el = document.getElementById(item.hash);
                   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  window.history.replaceState(null, "", `/builder#${item.hash}`);
+                  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${item.hash}`);
                   setActiveHash(item.hash);
                 }
               }}

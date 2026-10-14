@@ -30,6 +30,10 @@ vi.mock("react", async (importOriginal) => {
   return {
     ...actual,
     createElement: (type: any, props: any, ...children: any[]) => {
+      if (type === "input" && props?.type === "radio") {
+        mocks.captures.radios ||= [];
+        mocks.captures.radios.push(props);
+      }
       if (type === "button") {
         mocks.captures.rawButtons ||= [];
         mocks.captures.rawButtons.push(props || {});
@@ -60,6 +64,10 @@ vi.mock("react", async (importOriginal) => {
 vi.mock("react/jsx-runtime", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react/jsx-runtime")>();
   const capture = (type: any, props: any, key?: any) => {
+    if (type === "input" && props?.type === "radio") {
+      mocks.captures.radios ||= [];
+      mocks.captures.radios.push(props);
+    }
     if (type === "button") {
       mocks.captures.rawButtons ||= [];
       mocks.captures.rawButtons.push(props || {});
@@ -198,14 +206,14 @@ describe("quick mode TemplatesSection", () => {
   it("selects built-in templates and opens the catalog", () => {
     const { setters } = renderSection();
 
-    mocks.captures.cards[1].onClick();
+    mocks.captures.radios.find((props: any) => props.id === "builtin-template-standard").onChange();
     expect(mocks.store.setTemplate).toHaveBeenCalledWith("standard");
     expect(mocks.interactions.templateSelected).toHaveBeenCalledWith({
       source: "builtin",
       templateType: "standard",
     });
 
-    mocks.captures.cards.at(-1).onClick();
+    mocks.captures.rawButtons.find((props: any) => props.className?.includes("border-dashed")).onClick();
     expect(setters[0]).toHaveBeenCalledWith(true);
     expect(mocks.interactions.templateCatalogOpened).toHaveBeenCalledWith({ mode: "quick" });
   });

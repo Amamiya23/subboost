@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
-  Home,
   LayoutDashboard,
   Library,
   HelpCircle,
@@ -40,8 +39,7 @@ type NavItem = {
 };
 
 const sharedNavItems: NavItem[] = [
-  { href: "/", label: "首页", icon: Home },
-  { href: "/builder", label: "配置生成器", icon: Settings2 },
+  { href: "/", label: "配置生成器", icon: Settings2 },
   { href: "/dashboard", label: "我的订阅", icon: LayoutDashboard, authOnly: true },
   { href: "/templates", label: "模板库", icon: Library },
 ];

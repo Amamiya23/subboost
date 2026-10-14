@@ -70,7 +70,7 @@ export function SubscriptionLinkDialog({
             <LinkIcon className="h-5 w-5 text-white/65" />
             {subscriptionUrl
               ? (isEditingExistingSubscription ? "订阅链接已更新" : "订阅链接已生成")
-              : (isEditingExistingSubscription ? "更新订阅链接" : "生成订阅链接")}
+              : (isEditingExistingSubscription ? "保存订阅配置" : "生成订阅链接")}
           </DialogTitle>
           <DialogDescription>
             {subscriptionUrl
@@ -84,8 +84,9 @@ export function SubscriptionLinkDialog({
         {!subscriptionUrl ? (
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>订阅名称</Label>
+              <Label htmlFor="subscription-name">订阅名称</Label>
               <Input
+                id="subscription-name"
                 placeholder="例如：我的配置"
                 value={subscriptionName}
                 onChange={(e) => setSubscriptionName(e.target.value)}
@@ -101,7 +102,7 @@ export function SubscriptionLinkDialog({
                     <SmartNodeMatchingHelp enabled={smartNodeMatchingEnabled} />
                   </div>
                 </div>
-                <Switch checked={smartNodeMatchingEnabled} onCheckedChange={setSmartNodeMatchingEnabled} />
+                <Switch aria-label="更新时智能匹配节点" checked={smartNodeMatchingEnabled} onCheckedChange={setSmartNodeMatchingEnabled} />
               </div>
 
               <div className="my-3 border-t border-white/10" />
@@ -111,13 +112,14 @@ export function SubscriptionLinkDialog({
                   <p className="text-sm text-white/80">启用自动更新</p>
                   <p className="mt-1 text-xs text-white/45">开启后服务器会按设定间隔刷新缓存</p>
                 </div>
-                <Switch checked={autoUpdateEnabled} onCheckedChange={setAutoUpdateEnabled} />
+                <Switch aria-label="启用自动更新" checked={autoUpdateEnabled} onCheckedChange={setAutoUpdateEnabled} />
               </div>
 
               {autoUpdateEnabled && (
                 <div className="mt-4 space-y-2">
-                  <Label>自动更新间隔（小时）</Label>
+                  <Label htmlFor="subscription-update-hours">自动更新间隔（小时）</Label>
                   <Input
+                    id="subscription-update-hours"
                     type="number"
                     min={autoUpdatePolicy.minHours}
                     step={autoUpdatePolicy.stepHours}
@@ -149,12 +151,11 @@ export function SubscriptionLinkDialog({
         ) : (
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">订阅链接</label>
+              <label htmlFor="subscription-url" className="text-sm font-medium">订阅链接</label>
               <div className="flex gap-2">
-                <Input value={subscriptionUrl} readOnly className="font-mono text-xs" />
+                <Input id="subscription-url" value={subscriptionUrl} readOnly className="font-mono text-xs" />
                 <Button
                   variant="outline"
-                  size="icon"
                   onClick={handleCopyUrl}
                   className="flex-shrink-0"
                 >
@@ -163,6 +164,7 @@ export function SubscriptionLinkDialog({
                   ) : (
                     <Copy className="h-4 w-4" />
                   )}
+                  {copied ? "已复制" : "复制链接"}
                 </Button>
               </div>
             </div>

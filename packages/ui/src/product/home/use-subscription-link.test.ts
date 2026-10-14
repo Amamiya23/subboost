@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useSubscriptionLink } from "./use-subscription-link";
 import { makeAdapter, makeOptions, response } from "./use-subscription-link.test-helpers";
 
+vi.mock("@subboost/ui/store/config-store/generated-yaml", () => ({
+  computeGeneratedYaml: () => "proxies: []",
+}));
+
 const mocks = vi.hoisted(() => {
   const bag: {
     state: unknown[];
@@ -22,6 +26,7 @@ const mocks = vi.hoisted(() => {
 
   const useConfigStore = vi.fn() as any;
   useConfigStore.getState = vi.fn(() => bag.storeState);
+  useConfigStore.setState = vi.fn();
 
   return {
     bag,
@@ -224,6 +229,36 @@ describe("useSubscriptionLink", () => {
     const rejectedAdapter = makeAdapter({ acceptSaveRequirement: vi.fn(async () => { throw error; }) });
     await useRenderedHook({ subscriptionAdapter: rejectedAdapter }).handleAcceptSaveRequirement();
     expect(console.error).toHaveBeenCalledWith("Accept save requirement error:", error);
+  });
+
+  it("keeps the copied draft name and saves it as a new subscription with replacement nodes", async () => {
+    const adapter = makeAdapter();
+    const options = {
+      subscriptionAdapter: adapter,
+      editingSubscription: null,
+      storeSources: [{ id: "source-url", type: "url", content: "https://new.example/sub" }],
+      nodes: [{ name: "New Node", type: "ss", server: "new.example", port: 443 }],
+      customRules: [{ id: "rule-1", type: "DOMAIN", value: "example.com", target: "DIRECT" }],
+    };
+    let hook = useRenderedHook(options);
+    hook.setSubscriptionName("myself - 副本");
+    hook = useRenderedHook(options);
+    hook.handleGenerateSubscription("advanced");
+    hook = useRenderedHook(options);
+
+    expect(hook.subscriptionName).toBe("myself - 副本");
+    expect(hook.isEditingExistingSubscription).toBe(false);
+    await hook.handleCreateSubscription();
+    expect(adapter.saveSubscription).toHaveBeenCalledWith(expect.objectContaining({
+      isEditing: false,
+      subscriptionId: null,
+      payload: expect.objectContaining({
+        name: "myself - 副本",
+        urls: ["https://new.example/sub"],
+        nodes: options.nodes,
+        config: expect.objectContaining({ customRules: options.customRules }),
+      }),
+    }));
   });
 
   it("saves a normalized subscription payload and tracks success", async () => {

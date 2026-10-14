@@ -74,7 +74,8 @@ describe("shared layout components", () => {
     const html = renderToStaticMarkup(React.createElement(Header));
 
     expect(html).toContain("SubBoost");
-    expect(html).toContain("首页");
+    expect(html).toContain("配置生成器");
+    expect(html).not.toContain("首页");
     expect(html).toContain("模板库");
     expect(html).toContain("FAQ");
     expect(html).not.toContain("我的订阅");
@@ -109,7 +110,8 @@ describe("shared layout components", () => {
 
     mocks.userState = { user: { id: "user-1" } };
     html = renderToStaticMarkup(React.createElement(MobileNav, { mode: "local" }));
-    expect(html).toContain("首页");
+    expect(html).toContain("生成");
+    expect(html).not.toContain("首页");
     expect(html).toContain("订阅");
     expect(html).toContain("模板");
   });

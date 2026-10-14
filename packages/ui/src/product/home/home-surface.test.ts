@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
   setSubscriptionName: vi.fn(),
   setSubscriptionUrl: vi.fn(),
   user: { id: "user-1", aiAssistantEnabled: true } as any,
+  searchParams: new URLSearchParams("editSubscriptionId=sub-1"),
 }));
 
 vi.mock("react", async (importOriginal) => {
@@ -36,9 +37,7 @@ vi.mock("react", async (importOriginal) => {
 });
 
 vi.mock("next/navigation", () => ({
-  useSearchParams: () => ({
-    get: (key: string) => (key === "editSubscriptionId" ? "sub-1" : null),
-  }),
+  useSearchParams: () => mocks.searchParams,
 }));
 
 vi.mock("@subboost/ui/store/config-store", () => {
@@ -76,7 +75,7 @@ vi.mock("@subboost/ui/store/config-store", () => {
   };
   const useConfigStore = () => state;
   (useConfigStore as any).setState = mocks.configSetState;
-  (useConfigStore as any).getState = () => ({ generateConfig: mocks.generateConfig });
+  (useConfigStore as any).getState = () => state;
   return {
     setConfigDraftUserScope: mocks.setConfigDraftUserScope,
     useConfigStore,
@@ -123,7 +122,7 @@ vi.mock("@subboost/ui/product/home/use-clean-new-subscription-intent", () => ({
 vi.mock("@subboost/ui/product/home/use-editing-subscription-loader", () => ({
   useEditingSubscriptionLoader: vi.fn((props: any) => {
     mocks.captures.editingLoader = props;
-    return false;
+    return { isLoading: false, error: null };
   }),
 }));
 
@@ -166,6 +165,7 @@ describe("HomeSurface", () => {
     vi.clearAllMocks();
     mocks.captures = {};
     mocks.user = { id: "user-1", aiAssistantEnabled: true };
+    mocks.searchParams = new URLSearchParams("editSubscriptionId=sub-1");
     mocks.fetchUser.mockResolvedValue(undefined);
     mocks.consumeAuthConfigHandoff.mockReturnValue(null);
   });
@@ -228,6 +228,13 @@ describe("HomeSurface", () => {
     expect(mocks.consumeAuthConfigHandoff).toHaveBeenCalled();
     expect(mocks.configSetState).not.toHaveBeenCalled();
     expect(mocks.captures.cleanIntent.authChecked).toBe(false);
+  });
+
+  it("passes copy intent to the loader and layout without an edit target", () => {
+    mocks.searchParams = new URLSearchParams("copySubscriptionId=sub-2");
+    renderToStaticMarkup(React.createElement(HomeSurface));
+    expect(mocks.captures.editingLoader).toMatchObject({ editSubscriptionId: null, copySubscriptionId: "sub-2" });
+    expect(mocks.captures.homeLayout).toMatchObject({ editSubscriptionId: null, copySubscriptionId: "sub-2" });
   });
 
   it("uses subscription login fallback and skips handoff when no user is signed in", async () => {
