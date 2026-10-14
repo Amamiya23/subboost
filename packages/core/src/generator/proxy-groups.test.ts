@@ -141,7 +141,7 @@ describe("proxy group generator", () => {
     });
   });
 
-  it("defaults ordinary custom groups to node-only members without adding them to node select", () => {
+  it("defaults ordinary custom select groups to node select without adding a reverse reference", () => {
     const groups = generateProxyGroups({
       nodes: [node("Node A"), node("Node B")],
       enabledModules: ["select", "auto"],
@@ -164,11 +164,15 @@ describe("proxy group generator", () => {
     ]);
     // 业务组默认不再暴露 REJECT（仅 reject-first 保留）
     expect(groups.find((group) => group.name === "Custom one")?.proxies).toEqual([
+      "🚀 节点选择",
+      "⚡ 自动选择",
       "DIRECT",
       "Node A",
       "Node B",
     ]);
     expect(groups.find((group) => group.name === "Custom two")?.proxies).toEqual([
+      "🚀 节点选择",
+      "⚡ 自动选择",
       "DIRECT",
       "Node A",
       "Node B",
@@ -184,6 +188,25 @@ describe("proxy group generator", () => {
       "Node A",
       "Node B",
     ]);
+  });
+
+  it.each([
+    { enabledModules: ["select", "auto"], overrides: {}, advanced: {}, expected: ["🚀 节点选择", "⚡ 自动选择", "DIRECT", "Node A"] },
+    { enabledModules: ["select"], overrides: { select: "🚀 我的节点" }, advanced: {}, expected: ["🚀 我的节点", "DIRECT", "Node A"] },
+    { enabledModules: [], overrides: {}, advanced: {}, expected: ["DIRECT", "Node A"] },
+    { enabledModules: ["select", "auto"], overrides: {}, advanced: { excludedMembers: [{ kind: "module" as const, id: "select" }] }, expected: ["⚡ 自动选择", "DIRECT", "Node A"] },
+  ])("resolves Emby's default policies from enabled modules and saved exclusions: $expected", ({ enabledModules, overrides, advanced, expected }) => {
+    const groups = generateProxyGroups({
+      nodes: [node("Node A")],
+      enabledModules,
+      ruleProviderBaseUrl: "https://rules.example.com",
+      testUrl: "https://probe.example.com/204",
+      testInterval: 120,
+      proxyGroupNameOverrides: overrides,
+      customProxyGroups: [{ id: "emby", name: "🎬 Emby", emoji: "🎬", groupType: "select", advanced }],
+    });
+
+    expect(groups.find((group) => group.name === "🎬 Emby")?.proxies).toEqual(expected);
   });
 
   it("keeps filtered-node custom groups node-scoped while exposing them as non-select policy members", () => {
@@ -218,7 +241,7 @@ describe("proxy group generator", () => {
     expect(groups.find((group) => group.name === "Filtered Group")?.proxies).not.toContain("Custom normal");
     expect(groups.find((group) => group.name === "Filtered Group")?.proxies).not.toContain("🚀 节点选择");
     expect(groups.find((group) => group.name === "Custom normal")?.proxies).not.toContain("Filtered Group");
-    expect(groups.find((group) => group.name === "Custom normal")?.proxies).not.toContain("🚀 节点选择");
+    expect(groups.find((group) => group.name === "Custom normal")?.proxies).toContain("🚀 节点选择");
     expect(groups.find((group) => group.name === "Custom normal")?.proxies).not.toContain("Custom normal");
     expect(groups.find((group) => group.name === "Custom normal")).toMatchObject({ use: ["remote"] });
     expect(groups.find((group) => group.name === "🚀 节点选择")?.proxies).not.toContain("Filtered Group");

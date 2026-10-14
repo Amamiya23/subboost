@@ -197,7 +197,12 @@ export function generateProxyGroups(options: GenerateOptions): ProxyGroup[] {
         ...filteredNodeNames,
         "DIRECT"
       );
-  const customBaseProxies = fallbackTargetsWithoutReject("DIRECT", ...filteredNodeNames);
+  const customBaseProxies = fallbackTargetsWithoutReject(
+    selectTarget,
+    autoTarget,
+    "DIRECT",
+    ...filteredNodeNames
+  );
   const availableMemberProxyNames = fallbackTargets(
     "DIRECT",
     "REJECT",
