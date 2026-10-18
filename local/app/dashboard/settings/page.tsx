@@ -6,6 +6,7 @@ import { LogOut, ServerCog, ShieldCheck } from "lucide-react";
 import { Button } from "@subboost/ui/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/ui/card";
 import { useUserStore } from "@subboost/ui/store/user-store";
+import { WebDavBackupCard } from "@local/components/webdav-backup-card";
 
 export default function SettingsPage() {
   const { user, fetchUser, logout } = useUserStore();
@@ -24,11 +25,12 @@ export default function SettingsPage() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold mb-1">账户设置</h1>
-          <p className="text-white/50">本地管理员、订阅容量和运行端点</p>
+          <p className="text-white/50">本地管理员、订阅容量、加密备份和运行端点</p>
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
+        <WebDavBackupCard />
         <Card>
           <CardHeader className="flex flex-row items-center gap-3 space-y-0">
             <div className="rounded-lg bg-white/12 p-2 text-white/70">

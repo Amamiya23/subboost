@@ -16,6 +16,7 @@ model LocalAdmin {
 
   subscriptions Subscription[]
   templates      LocalTemplate[]
+  webDavBackup   WebDavBackupSettings?
 }
 
 model LocalTemplate {
@@ -70,4 +71,12 @@ model SubscriptionAutoUpdateState {
   updatedAt                DateTime  @updatedAt
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+model WebDavBackupSettings {
+  ownerId         String   @id
+  encryptedConfig String
+  updatedAt       DateTime @updatedAt
+
+  owner LocalAdmin @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 }
