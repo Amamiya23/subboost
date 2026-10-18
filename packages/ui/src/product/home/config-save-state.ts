@@ -4,7 +4,7 @@ const configKeys = [
   "nodes", "deletedNodeNames", "deletedNodes", "template", "enabledProxyGroups",
   "hiddenProxyGroups", "customProxyGroups", "proxyGroupAdvanced", "customRuleSets",
   "builtinRuleEdits", "customRules", "dialerProxyGroups", "proxyGroupNameOverrides",
-  "proxyGroupOrder", "ruleOrder", "appliedTemplateId", "dnsYaml", "mixedPort",
+  "proxyGroupEmojiEnabled", "proxyGroupOrder", "ruleOrder", "appliedTemplateId", "dnsYaml", "mixedPort",
   "allowLan", "testUrl", "testInterval", "ruleProviderBaseUrl", "cnIpNoResolve",
   "experimentalCnUseCnRuleSet", "listenerPorts",
 ] as const;

@@ -36,6 +36,7 @@ export function VisualGraph() {
     proxyGroupAdvanced,
     builtinRuleEdits,
     proxyGroupNameOverrides,
+    proxyGroupEmojiEnabled,
     proxyGroupOrder,
     testUrl,
     testInterval,
@@ -52,6 +53,7 @@ export function VisualGraph() {
       proxyGroupAdvanced: state.proxyGroupAdvanced ?? {},
       builtinRuleEdits: state.builtinRuleEdits ?? {},
       proxyGroupNameOverrides: state.proxyGroupNameOverrides ?? {},
+      proxyGroupEmojiEnabled: state.proxyGroupEmojiEnabled !== false,
       proxyGroupOrder: state.proxyGroupOrder ?? [],
       testUrl: state.testUrl,
       testInterval: state.testInterval,
@@ -429,6 +431,7 @@ export function VisualGraph() {
       </div>
 
       <ProxyGroupsPreview
+        emojiEnabled={proxyGroupEmojiEnabled}
         displayGroups={displayGroups}
         expandedGroups={expandedGroups}
         draggingGroupId={draggingGroupId}

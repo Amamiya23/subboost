@@ -162,6 +162,7 @@ export function createTemplateActions(
           dialerProxyGroups: Array.isArray(config.dialerProxyGroups)
             ? config.dialerProxyGroups
             : state.dialerProxyGroups,
+          proxyGroupEmojiEnabled: config.proxyGroupEmojiEnabled !== false,
           proxyGroupNameOverrides:
             config.proxyGroupNameOverrides && typeof config.proxyGroupNameOverrides === "object"
               ? (config.proxyGroupNameOverrides as Record<string, string>)

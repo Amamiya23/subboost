@@ -134,6 +134,7 @@ function hasMeaningfulConfig(state: ConfigState): boolean {
     state.ruleProviderBaseUrl !== initialState.ruleProviderBaseUrl ||
     state.cnIpNoResolve !== initialState.cnIpNoResolve ||
     state.experimentalCnUseCnRuleSet !== initialState.experimentalCnUseCnRuleSet ||
+    state.proxyGroupEmojiEnabled === false ||
     Object.keys(state.listenerPorts).length > 0
   );
 }
@@ -154,6 +155,7 @@ function buildHandoffState(state: ConfigState): Partial<ConfigState> {
     customRules: state.customRules,
     dialerProxyGroups: state.dialerProxyGroups,
     proxyGroupNameOverrides: state.proxyGroupNameOverrides,
+    proxyGroupEmojiEnabled: state.proxyGroupEmojiEnabled,
     proxyGroupOrder: state.proxyGroupOrder,
     ruleOrder: state.ruleOrder,
     proxyGroupAdvancedModeEnabled: state.proxyGroupAdvancedModeEnabled,
@@ -213,6 +215,7 @@ function normalizeHandoffState(raw: unknown): Partial<ConfigState> | null {
   const dialerProxyGroups = objectArray<ConfigState["dialerProxyGroups"][number]>(raw.dialerProxyGroups);
   if (dialerProxyGroups) out.dialerProxyGroups = dialerProxyGroups;
   if (isStringRecord(raw.proxyGroupNameOverrides)) out.proxyGroupNameOverrides = raw.proxyGroupNameOverrides;
+  if (typeof raw.proxyGroupEmojiEnabled === "boolean") out.proxyGroupEmojiEnabled = raw.proxyGroupEmojiEnabled;
   const proxyGroupOrder = stringArray(raw.proxyGroupOrder);
   if (proxyGroupOrder) out.proxyGroupOrder = proxyGroupOrder;
   const ruleOrder = stringArray(raw.ruleOrder);

@@ -388,6 +388,7 @@ export function useSubscriptionLink({
             moduleRuleEditWarningAccepted,
             dialerProxyGroups,
             proxyGroupNameOverrides,
+            proxyGroupEmojiEnabled: useConfigStore.getState().proxyGroupEmojiEnabled,
             proxyGroupOrder: useConfigStore.getState().proxyGroupOrder,
             listenerPorts,
             dnsYaml,

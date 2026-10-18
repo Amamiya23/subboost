@@ -35,6 +35,7 @@ import type { DialerProxyGroup } from "@subboost/core/types/template-config";
 import { collectDnsPolicyEntries, configToYaml } from "./yaml";
 import { isMihomoSupportedProxyNode, normalizeMihomoVlessForGeneration } from "../mihomo/proxy-sanitizer";
 import { chooseFallbackPolicyTarget, withBuiltinPolicyTargets } from "./policy-targets";
+import { withoutProxyGroupEmoji } from "./proxy-group-emoji";
 
 export interface GenerateOptions {
   nodes: ParsedNode[];
@@ -520,7 +521,8 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
     }),
   };
 
-  return clashConfig as unknown as ClashConfig;
+  const result = clashConfig as unknown as ClashConfig;
+  return config.proxyGroupEmojiEnabled === false ? withoutProxyGroupEmoji(result) : result;
 }
 
 /**

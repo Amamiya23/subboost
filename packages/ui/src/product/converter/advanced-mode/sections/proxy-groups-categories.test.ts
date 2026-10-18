@@ -234,6 +234,25 @@ describe("ProxyGroupsCategories", () => {
     };
   });
 
+  it("toggles the output preference without renaming editable proxy groups", () => {
+    mocks.store.proxyGroupEmojiEnabled = true;
+    mocks.store.setProxyGroupEmojiEnabled = vi.fn();
+    const first = renderCategoryTree();
+    const control = collectElements(first.tree, (element) => element.props["aria-label"] === "组名 emoji")[0];
+    expect(control.props.checked).toBe(true);
+    control.props.onCheckedChange(false);
+    expect(mocks.store.setProxyGroupEmojiEnabled).toHaveBeenCalledWith(false);
+    expect(mocks.store.setProxyGroupNameOverride).not.toHaveBeenCalled();
+    expect(mocks.store.updateCustomProxyGroup).not.toHaveBeenCalled();
+
+    mocks.store.proxyGroupEmojiEnabled = false;
+    const second = renderCategoryTree();
+    const disabledControl = collectElements(second.tree, (element) => element.props["aria-label"] === "组名 emoji")[0];
+    expect(disabledControl.props.checked).toBe(false);
+    disabledControl.props.onCheckedChange(true);
+    expect(mocks.store.setProxyGroupEmojiEnabled).toHaveBeenLastCalledWith(true);
+  });
+
   it("opens only the custom category by default when custom groups exist", () => {
     renderCategories();
 

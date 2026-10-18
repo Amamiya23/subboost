@@ -182,6 +182,7 @@ export interface ConfigState {
 
   // 分流代理组名称覆盖（仅影响显示与生成输出）
   proxyGroupNameOverrides: Record<string, string>;
+  proxyGroupEmojiEnabled: boolean;
 
   // 代理组顺序（影响 Clash 客户端中的展示顺序；由可视化预览拖拽维护）
   // Key 格式：module:<id> / custom:<id> / dialer:<id>
@@ -298,6 +299,7 @@ export interface ConfigActions {
   setTestInterval: (interval: number) => void;
   setRuleProviderBaseUrl: (url: string) => void;
   setProxyGroupAdvancedModeEnabled: (value: boolean) => void;
+  setProxyGroupEmojiEnabled: (value: boolean) => void;
   setCnIpNoResolve: (value: boolean) => void;
   setExperimentalCnUseCnRuleSet: (value: boolean) => void;
   setListenerPort: (nodeName: string, port: number | null) => void;
@@ -349,6 +351,7 @@ export const initialState: ConfigState = {
   customRules: [],
   dialerProxyGroups: [],
   proxyGroupNameOverrides: {},
+  proxyGroupEmojiEnabled: true,
   proxyGroupOrder: [],
   ruleOrder: [],
   moduleRuleEditWarningAccepted: false,

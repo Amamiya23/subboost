@@ -14,6 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import type { ProxyGroupGroupType } from "@subboost/core/types/config";
+import { stripProxyGroupEmojiPrefix } from "@subboost/core/proxy-group-name";
 import { cn } from "@subboost/ui/lib/utils";
 
 export type VisualDisplayGroup = {
@@ -37,7 +38,7 @@ type DragOverGroup = {
 } | null;
 
 function getDisplayName(name: string) {
-  return name.replace(/^\S+\s+/, "");
+  return stripProxyGroupEmojiPrefix(name);
 }
 
 function formatDefaultProxy(proxyName: string) {
@@ -125,6 +126,7 @@ function getGroupColor(category: string) {
 }
 
 export function ProxyGroupsPreview({
+  emojiEnabled = true,
   displayGroups,
   expandedGroups,
   draggingGroupId,
@@ -136,6 +138,7 @@ export function ProxyGroupsPreview({
   onSetDragOverGroup,
   onSetProxyGroupOrder,
 }: {
+  emojiEnabled?: boolean;
   displayGroups: VisualDisplayGroup[];
   expandedGroups: Set<string>;
   draggingGroupId: string | null;
@@ -318,7 +321,7 @@ export function ProxyGroupsPreview({
                 <Box className="h-3.5 w-3.5 text-white/50" />
               )}
 
-              <span className="text-sm">{group.emoji}</span>
+              {emojiEnabled && <span className="text-sm">{group.emoji}</span>}
               <span className="text-xs font-medium flex-1 min-w-0 flex flex-wrap items-center gap-x-2">
                 <span className="truncate">{getDisplayName(group.name)}</span>
                 {isDialerGroup && (

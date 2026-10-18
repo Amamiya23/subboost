@@ -280,6 +280,7 @@ export function buildGenerateOptionsFromConfig(
   });
 
   const userConfig: Partial<UserConfig> = {
+    ...(typeof config.proxyGroupEmojiEnabled === "boolean" ? { proxyGroupEmojiEnabled: config.proxyGroupEmojiEnabled } : {}),
     ...(enabledGroups ? { enabledGroups } : {}),
     ...(enabledRules ? { enabledRules } : {}),
     ...(customRules ? { customRules } : {}),

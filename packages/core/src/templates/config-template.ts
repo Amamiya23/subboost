@@ -79,6 +79,8 @@ export function validateSubBoostTemplateConfig(value: unknown): ValidationResult
   if (!dialerProxyGroups.ok) return dialerProxyGroups;
   const proxyGroupNameOverrides = parseStringRecord(value.proxyGroupNameOverrides, "proxyGroupNameOverrides");
   if (!proxyGroupNameOverrides.ok) return proxyGroupNameOverrides;
+  const proxyGroupEmojiEnabled = parseOptionalBoolean(value.proxyGroupEmojiEnabled, "proxyGroupEmojiEnabled");
+  if (!proxyGroupEmojiEnabled.ok) return proxyGroupEmojiEnabled;
   const ruleOrder = parseOptionalStringArray(value.ruleOrder, "ruleOrder");
   if (!ruleOrder.ok) return ruleOrder;
 
@@ -137,6 +139,7 @@ export function validateSubBoostTemplateConfig(value: unknown): ValidationResult
         : {}),
       dialerProxyGroups: dialerProxyGroups.value,
       proxyGroupNameOverrides: proxyGroupNameOverrides.value,
+      ...(proxyGroupEmojiEnabled.value !== undefined ? { proxyGroupEmojiEnabled: proxyGroupEmojiEnabled.value } : {}),
       dnsYaml: dnsYaml.value,
       mixedPort: mixedPort.value,
       allowLan: allowLan.value,

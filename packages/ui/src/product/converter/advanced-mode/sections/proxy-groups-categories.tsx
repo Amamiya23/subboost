@@ -71,6 +71,8 @@ export function ProxyGroupsCategories() {
     setProxyGroupNameOverride,
     clearProxyGroupNameOverride,
     customProxyGroups = [],
+    proxyGroupEmojiEnabled = true,
+    setProxyGroupEmojiEnabled,
     proxyGroupAdvanced = {},
     proxyGroupAdvancedModeEnabled,
     setProxyGroupAdvancedModeEnabled,
@@ -328,12 +330,23 @@ export function ProxyGroupsCategories() {
       <div className="space-y-1">
         <div className={PROXY_GROUP_SECTION_LABEL_ROW_CLASS}>
           <label className={PROXY_GROUP_SECTION_LABEL_CLASS}>分流规则组</label>
+          <label
+            className="ml-auto inline-flex items-center gap-1.5 text-[10px] text-white/60"
+            title="控制生成订阅中代理组名称开头的 emoji；开启后恢复原来的 emoji"
+          >
+            组名 emoji
+            <Switch
+              checked={proxyGroupEmojiEnabled}
+              onCheckedChange={setProxyGroupEmojiEnabled}
+              aria-label="组名 emoji"
+            />
+          </label>
           {hiddenModules.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="ml-auto inline-flex h-6 items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 text-[10px] text-white/60 transition-colors hover:bg-white/10 hover:text-white/85"
+                  className="inline-flex h-6 items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 text-[10px] text-white/60 transition-colors hover:bg-white/10 hover:text-white/85"
                   title="恢复隐藏分组"
                 >
                   <RotateCcw className="h-3 w-3" />

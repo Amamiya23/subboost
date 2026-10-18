@@ -4,6 +4,19 @@ export type EmojiSplitResult = {
   hasEmojiPrefix: boolean;
 };
 
+// Match a complete leading emoji, including flags, keycaps and joined sequences.
+const LEADING_EMOJI = /^(?:\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3|\p{Extended_Pictographic}[\uFE0E\uFE0F]?\p{Emoji_Modifier}?(?:\u200D\p{Extended_Pictographic}[\uFE0E\uFE0F]?\p{Emoji_Modifier}?)*(?:[\u{E0020}-\u{E007E}]+\u{E007F})?)/u;
+
+export function stripProxyGroupEmojiPrefix(name: string): string {
+  let label = name.trim();
+  let match: RegExpMatchArray | null;
+  while ((match = label.match(LEADING_EMOJI))) {
+    label = label.slice(match[0].length).trimStart();
+  }
+  // An emoji-only group still needs a valid, nonempty policy name.
+  return label || name.trim();
+}
+
 export function splitLeadingEmoji(raw: string): EmojiSplitResult {
   const name = typeof raw === "string" ? raw.trim() : "";
   const separatorIndex = (() => {

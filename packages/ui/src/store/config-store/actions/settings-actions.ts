@@ -10,6 +10,7 @@ type SettingsActions = Pick<
   | "setTestInterval"
   | "setRuleProviderBaseUrl"
   | "setProxyGroupAdvancedModeEnabled"
+  | "setProxyGroupEmojiEnabled"
   | "setCnIpNoResolve"
   | "setExperimentalCnUseCnRuleSet"
 >;
@@ -20,6 +21,9 @@ export function createSettingsActions(
   setAndGenerateConfig: SetAndGenerateConfig
 ): SettingsActions {
   return {
+    setProxyGroupEmojiEnabled: (value: boolean) => {
+      setAndGenerateConfig(() => ({ proxyGroupEmojiEnabled: value }));
+    },
     setDnsYaml: (yaml: string) => {
       setAndGenerateConfig(() => ({ dnsYaml: yaml }));
     },

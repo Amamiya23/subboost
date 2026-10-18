@@ -543,6 +543,7 @@ export function useEditingSubscriptionLoader({
               ? Boolean((cfg as any).moduleRuleEditWarningAccepted)
               : state.moduleRuleEditWarningAccepted,
           dialerProxyGroups: dialerProxyGroupsFromCfg as any,
+          proxyGroupEmojiEnabled: cfg.proxyGroupEmojiEnabled !== false,
           proxyGroupNameOverrides: proxyGroupNameOverridesFromCfg
             ? Object.fromEntries(
               Object.entries(proxyGroupNameOverridesFromCfg)

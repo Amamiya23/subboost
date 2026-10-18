@@ -307,6 +307,7 @@ function TemplateLibraryInner({ adapter }: Props) {
           ruleOrder,
           dialerProxyGroups,
           proxyGroupNameOverrides,
+          proxyGroupEmojiEnabled: useConfigStore.getState().proxyGroupEmojiEnabled,
           dnsYaml,
           mixedPort,
           allowLan,

@@ -57,6 +57,7 @@ function buildGenerateClashYamlOptions(
     proxyProviders,
     template: state.template,
     userConfig: {
+      proxyGroupEmojiEnabled: state.proxyGroupEmojiEnabled,
       enabledGroups: state.enabledProxyGroups,
       enabledRules: state.enabledProxyGroups, // 规则和组现在使用同一列表
       customRules: state.customRules,

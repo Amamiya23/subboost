@@ -36,6 +36,7 @@ export type SubBoostTemplateConfig = {
   experimentalCnUseCnRuleSet?: boolean;
   dialerProxyGroups: DialerProxyGroup[];
   proxyGroupNameOverrides?: Record<string, string>;
+  proxyGroupEmojiEnabled?: boolean;
   dnsYaml: string;
   mixedPort: number;
   allowLan: boolean;

@@ -160,6 +160,7 @@ export interface ClashConfig {
  */
 export interface UserConfig {
   // 代理组设置
+  proxyGroupEmojiEnabled?: boolean;
   enabledGroups: string[];
   autoSelectStrategy: "url-test" | "fallback" | "load-balance";
   testUrl: string;
