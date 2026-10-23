@@ -14,6 +14,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogPanel,
   DialogTitle,
 } from "@subboost/ui/components/coss/compat/dialog";
 import {
@@ -65,7 +66,7 @@ export function SubscriptionLinkDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <LinkIcon className="h-5 w-5 text-muted-foreground" />
@@ -83,7 +84,7 @@ export function SubscriptionLinkDialog({
         </DialogHeader>
 
         {!subscriptionUrl ? (
-          <div className="space-y-4 py-4">
+          <DialogPanel className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="subscription-name">订阅名称</Label>
               <Input
@@ -148,9 +149,9 @@ export function SubscriptionLinkDialog({
                 )}
               </ul>
             </div>
-          </div>
+          </DialogPanel>
         ) : (
-          <div className="space-y-4 py-4">
+          <DialogPanel className="space-y-5">
             <SubscriptionQrCode subscriptionUrl={subscriptionUrl} />
             <div className="space-y-2">
               <label htmlFor="subscription-url" className="text-sm font-medium">订阅链接</label>
@@ -179,7 +180,7 @@ export function SubscriptionLinkDialog({
                 {isEditingExistingSubscription ? "订阅链接保持不变，可在仪表盘查看" : "您可以在仪表盘中管理所有订阅"}
               </p>
             </div>
-          </div>
+          </DialogPanel>
         )}
 
         <DialogFooter>

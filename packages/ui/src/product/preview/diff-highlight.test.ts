@@ -103,10 +103,10 @@ describe("YamlHighlight", () => {
     const html = collectHtml(rendered).join("\n");
     expect(html).toContain("text-muted-foreground");
     expect(html).toContain("text-success-foreground");
-    expect(html).toContain("text-orange-400");
+    expect(html).toContain("text-[color:var(--orange-11)]");
     expect(html).toContain("text-success-foreground");
     expect(html).toContain("text-destructive-foreground");
-    expect(html).toContain("text-pink-400");
+    expect(html).toContain("text-[color:var(--pink-11)]");
     expect(html).toContain("text-info-foreground");
     expect(html).toContain("&lt;tag&gt;&amp;&quot;&#039;");
     expect(html).toContain("text-warning-foreground font-medium");
@@ -133,6 +133,6 @@ describe("YamlHighlight", () => {
 
     const text = collectText(rendered);
     expect(text).toContain("恢复纯文本");
-    expect(collectHtml(rendered).join("\n")).toContain("text-cyan-400");
+    expect(collectHtml(rendered).join("\n")).toContain("text-[color:var(--cyan-11)]");
   });
 });

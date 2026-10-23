@@ -7,14 +7,20 @@ export const SESSION_COOKIE = "subboost_local_session";
 export type SessionPayload = {
   adminId: string;
   username: string;
+  credentialVersion: string;
 };
 
 function key(): Uint8Array {
   return new TextEncoder().encode(requireEnv("JWT_SECRET"));
 }
 
-export async function signSession(payload: SessionPayload): Promise<string> {
-  return await new SignJWT({ username: payload.username })
+export async function getCredentialVersion(passwordHash: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(passwordHash));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export async function signSession(payload: Pick<SessionPayload, "adminId" | "username">, passwordHash: string): Promise<string> {
+  return await new SignJWT({ username: payload.username, credentialVersion: await getCredentialVersion(passwordHash) })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(payload.adminId)
     .setIssuedAt()
@@ -29,7 +35,8 @@ export async function readSession(): Promise<SessionPayload | null> {
     const { payload } = await jwtVerify(token, key());
     const adminId = typeof payload.sub === "string" ? payload.sub : "";
     const username = typeof payload.username === "string" ? payload.username : "";
-    return adminId && username ? { adminId, username } : null;
+    const credentialVersion = typeof payload.credentialVersion === "string" ? payload.credentialVersion : "";
+    return adminId && username && credentialVersion ? { adminId, username, credentialVersion } : null;
   } catch {
     return null;
   }

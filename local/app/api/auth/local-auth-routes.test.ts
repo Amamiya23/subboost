@@ -72,7 +72,7 @@ describe("local auth and health routes", () => {
       expect.any(String),
       "admin-1",
     );
-    expect(mocks.signSession).toHaveBeenCalledWith({ adminId: "admin-1", username: "admin" });
+    expect(mocks.signSession).toHaveBeenCalledWith({ adminId: "admin-1", username: "admin" }, "hash");
     expect(response.headers.get("set-cookie")).toContain("subboost-local-session=signed-session");
   });
 

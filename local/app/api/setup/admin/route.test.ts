@@ -99,7 +99,7 @@ describe("local setup admin route", () => {
       expect.any(String),
       expect.any(String),
     );
-    expect(mocks.signSession).toHaveBeenCalledWith({ adminId: "admin-1", username: "ry" });
+    expect(mocks.signSession).toHaveBeenCalledWith({ adminId: "admin-1", username: "ry" }, "hash");
     expect(result.headers.get("set-cookie")).toContain("subboost_local_session=signed-session");
   });
 });

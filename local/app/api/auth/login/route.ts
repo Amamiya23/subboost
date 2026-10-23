@@ -23,6 +23,6 @@ export async function POST(request: Request) {
 
   await dbExecute("UPDATE LocalAdmin SET lastLoginAt = ? WHERE id = ?", new Date().toISOString(), admin.id);
   const response = NextResponse.json({ success: true, user: { id: admin.id, username: admin.username } });
-  response.cookies.set(SESSION_COOKIE, await signSession({ adminId: admin.id, username: admin.username }), sessionCookieOptions());
+  response.cookies.set(SESSION_COOKIE, await signSession({ adminId: admin.id, username: admin.username }, admin.passwordHash), sessionCookieOptions());
   return response;
 }

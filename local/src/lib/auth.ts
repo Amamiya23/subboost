@@ -1,5 +1,5 @@
-import { dbQuery, dbQueryOne } from "./db";
-import { readSession } from "./session";
+import { dbQueryOne } from "./db";
+import { getCredentialVersion, readSession } from "./session";
 
 export type CurrentAdmin = {
   id: string;
@@ -9,11 +9,12 @@ export type CurrentAdmin = {
 export async function getCurrentAdmin(): Promise<CurrentAdmin | null> {
   const session = await readSession();
   if (!session) return null;
-  const row = await dbQueryOne<{ id: string; username: string }>(
-    "SELECT id, username FROM LocalAdmin WHERE id = ?",
+  const row = await dbQueryOne<{ id: string; username: string; passwordHash: string }>(
+    "SELECT id, username, passwordHash FROM LocalAdmin WHERE id = ?",
     session.adminId,
   );
-  return row ? { id: row.id, username: row.username } : null;
+  if (!row || session.credentialVersion !== await getCredentialVersion(row.passwordHash)) return null;
+  return { id: row.id, username: row.username };
 }
 
 export async function isSetupRequired(): Promise<boolean> {

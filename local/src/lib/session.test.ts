@@ -40,6 +40,7 @@ vi.mock("jose", () => ({
 
 import {
   clearSessionCookieOptions,
+  getCredentialVersion,
   readSession,
   sessionCookieOptions,
   signSession,
@@ -52,19 +53,24 @@ describe("local session helpers", () => {
     mocks.signPayload = null;
     process.env.JWT_SECRET = "test-secret";
     process.env.APP_URL = "https://local.example";
-    mocks.jwtVerify.mockResolvedValue({ payload: { sub: "admin-1", username: "ry" } });
+    mocks.jwtVerify.mockResolvedValue({ payload: { sub: "admin-1", username: "ry", credentialVersion: "version-1" } });
   });
 
   it("signs sessions with the admin id as JWT subject", async () => {
-    await expect(signSession({ adminId: "admin-1", username: "ry" })).resolves.toBe("signed-session-token");
-    expect(mocks.signPayload).toEqual({ sub: "admin-1", username: "ry" });
+    await expect(signSession({ adminId: "admin-1", username: "ry" }, "password-hash")).resolves.toBe("signed-session-token");
+    expect(mocks.signPayload).toEqual({ sub: "admin-1", username: "ry", credentialVersion: await getCredentialVersion("password-hash") });
+    expect(JSON.stringify(mocks.signPayload)).not.toContain("password-hash");
+    expect(await getCredentialVersion("other-hash")).not.toBe(await getCredentialVersion("password-hash"));
   });
 
   it("reads valid sessions and rejects missing, malformed, or invalid tokens", async () => {
     await expect(readSession()).resolves.toBeNull();
 
     mocks.cookieValue = "session-token";
-    await expect(readSession()).resolves.toEqual({ adminId: "admin-1", username: "ry" });
+    await expect(readSession()).resolves.toEqual({ adminId: "admin-1", username: "ry", credentialVersion: "version-1" });
+
+    mocks.jwtVerify.mockResolvedValueOnce({ payload: { sub: "admin-1", username: "ry" } });
+    await expect(readSession()).resolves.toBeNull();
 
     mocks.jwtVerify.mockResolvedValueOnce({ payload: { sub: 123, username: "ry" } });
     await expect(readSession()).resolves.toBeNull();

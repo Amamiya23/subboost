@@ -5,11 +5,9 @@ import Link from "next/link";
 import {
   AlertTriangle,
   Check,
-  Clock,
   Copy,
   CopyPlus,
   Download,
-  ExternalLink,
   FileCode,
   MoreVertical,
   Plus,
@@ -21,7 +19,6 @@ import {
 
 import { Button } from "@subboost/ui/components/coss/compat/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@subboost/ui/components/coss/compat/dropdown-menu";
-import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/coss/compat/card";
 import { Alert } from "@subboost/ui/components/coss/alert";
 import {
   Empty,
@@ -41,7 +38,6 @@ import {
   resolveAutoUpdateIntervalPolicy,
   type AutoUpdateIntervalPolicyOverride,
 } from "@subboost/core/subscription/auto-update-interval";
-import { DashboardStatsCards } from "@subboost/ui/dashboard/dashboard-stats-cards";
 import { formatDashboardDate, formatIntervalLabel } from "@subboost/ui/dashboard/dashboard-format";
 import { buildRefreshSubscriptionSuccessToast } from "@subboost/ui/dashboard/dashboard-refresh-toast";
 import { SubscriptionSettingsDialog } from "@subboost/ui/dashboard/subscription-settings-dialog";
@@ -365,10 +361,10 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       {adapter.renderAnnouncement?.({ user })}
 
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="mb-10 flex items-center justify-between gap-4 sm:mt-4">
+        <div className="flex items-baseline gap-3">
           <h1 className="font-heading text-2xl font-semibold">我的订阅</h1>
-          <p className="mt-1 text-sm text-muted-foreground">管理订阅链接、配置与自动更新</p>
+          {!isLoading && !loadError && <span className="text-sm tabular-nums text-muted-foreground">{subscriptions.length}</span>}
         </div>
         <div className="flex items-center gap-2">
           {adapter.renderHeaderActions?.({ user })}
@@ -381,21 +377,18 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
 
       {adapter.beforeStatsSlot}
 
-      <DashboardStatsCards subscriptionCount={subscriptions.length} user={user} />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>订阅列表</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <section aria-label="订阅列表" className="border-t">
           {isLoading ? (
-            <div className="flex flex-col gap-3">
+            <div className="divide-y" aria-label="正在加载订阅" aria-busy="true">
               {[1, 2].map((i) => (
-                <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
+                <div key={i} className="flex h-28 animate-pulse items-center justify-between gap-6 px-2">
+                  <div className="space-y-3"><div className="h-4 w-32 rounded bg-muted" /><div className="h-3 w-52 rounded bg-muted" /></div>
+                  <div className="h-8 w-24 rounded bg-muted" />
+                </div>
               ))}
             </div>
           ) : loadError ? (
-            <Alert variant="error" className="grid-cols-[auto_1fr]">
+            <Alert variant="error" className="mt-6 grid-cols-[auto_1fr]">
               <AlertTriangle aria-hidden="true" />
               <div className="flex flex-col gap-3">
                 <span className="font-medium">订阅列表加载失败</span>
@@ -407,7 +400,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
               </div>
             </Alert>
           ) : subscriptions.length === 0 ? (
-            <Empty>
+            <Empty className="min-h-72 rounded-none border-0">
               <EmptyHeader>
                 <EmptyMedia variant="icon"><FileCode aria-hidden="true" /></EmptyMedia>
                 <EmptyTitle>暂无订阅</EmptyTitle>
@@ -421,7 +414,11 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
               </EmptyContent>
             </Empty>
           ) : (
-            <div className="space-y-4">
+            <>
+              <div aria-hidden="true" className="hidden grid-cols-[minmax(0,1fr)_11rem_8rem_18rem] items-center gap-6 border-b px-2 py-3 text-xs text-muted-foreground xl:grid">
+                <span>订阅名称</span><span>最近更新</span><span>自动更新</span><span className="text-right">操作</span>
+              </div>
+              <ul className="divide-y border-b">
               {subscriptions.map((sub) => (
                 <SubscriptionRow
                   key={sub.id}
@@ -437,10 +434,10 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
                   onSettings={openSubscriptionSettings}
                 />
               ))}
-            </div>
+              </ul>
+            </>
           )}
-        </CardContent>
-      </Card>
+      </section>
 
       <SubscriptionSettingsDialog
         open={settingsOpen}
@@ -460,29 +457,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
         autoUpdatePolicy={autoUpdatePolicy}
       />
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {adapter.templatesHref && (
-          <QuickActionCard
-            href={adapter.templatesHref}
-            icon={<FileCode className="h-6 w-6" />}
-            iconClassName="bg-info/10 text-info-foreground"
-            title="我的模板"
-            description="管理和分享您的配置模板"
-          />
-        )}
-
-        {adapter.settingsHref && (
-          <QuickActionCard
-            href={adapter.settingsHref}
-            icon={<Settings className="h-6 w-6" />}
-            iconClassName="bg-muted text-muted-foreground"
-            title={adapter.settingsTitle ?? "账户设置"}
-            description={adapter.settingsDescription ?? "管理您的账户和数据导出"}
-          />
-        )}
-
-        {adapter.renderExtraQuickActions?.({ user })}
-      </div>
+      {adapter.renderExtraQuickActions?.({ user })}
     </div>
   );
 }
@@ -492,11 +467,7 @@ function DashboardSkeleton() {
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="animate-pulse space-y-6">
         <div className="h-8 w-48 bg-muted rounded" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 bg-muted rounded-md" />
-          ))}
-        </div>
+        <div className="h-28 border-y bg-muted/30" />
       </div>
     </div>
   );
@@ -541,41 +512,20 @@ function SubscriptionRow({
   onSettings: (sub: Subscription) => void;
 }) {
   return (
-    <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 transition-colors hover:bg-accent/24 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
-      <div className="flex min-w-0 flex-1 items-start gap-4 sm:items-center">
-        <div className="shrink-0 py-1 text-ink-600">
-          <FileCode className="h-5 w-5" />
-        </div>
+    <li className="grid min-w-0 gap-x-6 gap-y-4 px-2 py-6 transition-colors hover:bg-muted/30 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center xl:grid-cols-[minmax(0,1fr)_11rem_8rem_18rem]">
+      <div className="min-w-0">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="min-w-0 flex-1 truncate font-medium">{sub.name}</h3>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm leading-relaxed text-ink-600 tabular-nums">
-            <span className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
-              创建于 {formatDashboardDate(sub.createdAt)}
-            </span>
-            <span className="flex items-center gap-1">
-              <RefreshCw className="h-3.5 w-3.5" />
-              更新于 {formatDashboardDate(sub.lastUpdatedAt)}
-            </span>
-            {sub.autoUpdateInterval && (
-              <span className="flex items-center gap-1">
-                <RefreshCw className="h-3.5 w-3.5" />
-                每 {formatIntervalLabel(sub.autoUpdateInterval)} 刷新缓存
-              </span>
-            )}
-            {!sub.autoUpdateInterval && sub.autoUpdateState.disabledAt && sub.autoUpdateState.disabledReason && (
-              <span className="flex items-center gap-1 text-warning-foreground">
-                <AlertTriangle className="h-3.5 w-3.5" />
-                自动更新已关闭：{sub.autoUpdateState.disabledReason}
-              </span>
-            )}
+          <h2 className="truncate font-medium"><Link href={editHref} className="rounded-sm hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring" title={sub.name}>{sub.name}</Link></h2>
+          <p className="mt-1.5 text-xs leading-5 text-muted-foreground tabular-nums">创建于 {formatDashboardDate(sub.createdAt)}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground xl:hidden">
+            <span>更新于 {formatDashboardDate(sub.lastUpdatedAt)}</span>
+            <span>{sub.autoUpdateInterval ? `每 ${formatIntervalLabel(sub.autoUpdateInterval)} 更新` : "自动更新关闭"}</span>
           </div>
         </div>
       </div>
-
-      <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
+      <time dateTime={sub.lastUpdatedAt ?? undefined} className="hidden text-xs text-muted-foreground tabular-nums xl:block">{formatDashboardDate(sub.lastUpdatedAt)}</time>
+      <span className="hidden text-sm text-muted-foreground xl:block">{sub.autoUpdateInterval ? `每 ${formatIntervalLabel(sub.autoUpdateInterval)}` : "已关闭"}</span>
+      <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
         <Button variant="ghost" size="sm" title="进入配置生成器编辑该订阅（更新后链接不变）" render={<Link href={editHref} />}>
           <Settings aria-hidden="true" />
           编辑
@@ -604,7 +554,7 @@ function SubscriptionRow({
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" aria-label={`${sub.name}的更多操作`}><MoreVertical aria-hidden="true" />更多</Button>
+            <Button variant="ghost" size="icon-sm" aria-label={`${sub.name}的更多操作`}><MoreVertical aria-hidden="true" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild><Link href={copyHref}><CopyPlus className="mr-2 h-4 w-4" />复制配置</Link></DropdownMenuItem>
@@ -616,37 +566,12 @@ function SubscriptionRow({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </div>
-  );
-}
-
-function QuickActionCard({
-  href,
-  icon,
-  iconClassName,
-  title,
-  description,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  iconClassName: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <Link href={href}>
-      <Card className="cursor-pointer hover:border-border transition-colors">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-lg ${iconClassName}`}>{icon}</div>
-            <div>
-              <h3 className="font-medium">{title}</h3>
-              <p className="text-sm text-muted-foreground">{description}</p>
-            </div>
-            <ExternalLink className="ml-auto h-5 w-5 text-muted-foreground" />
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
+      {!sub.autoUpdateInterval && sub.autoUpdateState.disabledAt && sub.autoUpdateState.disabledReason && (
+        <p className="flex items-start gap-2 text-xs text-warning-foreground sm:col-span-2 xl:col-span-4">
+          <AlertTriangle aria-hidden="true" className="size-3.5 shrink-0" />
+          自动更新已关闭：{sub.autoUpdateState.disabledReason}
+        </p>
+      )}
+    </li>
   );
 }

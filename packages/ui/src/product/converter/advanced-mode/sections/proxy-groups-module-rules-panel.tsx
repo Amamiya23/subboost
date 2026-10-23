@@ -312,7 +312,7 @@ export function ProxyGroupsModuleRulesPanel({
                       className={cn(
                         "h-7 px-2",
                         rule.state === "moved"
-                          ? "text-orange-300/70 hover:text-orange-200"
+                          ? "text-warning-foreground hover:text-warning-foreground"
                           : "text-destructive-foreground hover:text-destructive-foreground",
                       )}
                       title={rule.state === "moved" ? "恢复默认目标" : "恢复规则集"}

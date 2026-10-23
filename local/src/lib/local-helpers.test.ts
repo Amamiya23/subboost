@@ -46,7 +46,7 @@ vi.mock("./db", () => ({
   dbBatch: mocks.dbBatch,
   generateId: mocks.generateId,
 }));
-vi.mock("./session", () => ({ readSession: mocks.readSession }));
+vi.mock("./session", () => ({ readSession: mocks.readSession, getCredentialVersion: async (hash: string) => `version:${hash}` }));
 vi.mock("@subboost/server-core/crypto", () => ({
   encryptEncryptedFieldV3: mocks.encryptEncryptedFieldV3,
   decryptEncryptedFieldV3: mocks.decryptEncryptedFieldV3,
@@ -148,17 +148,27 @@ describe("local lib helpers", () => {
     mocks.readSession.mockResolvedValueOnce(null);
     await expect(getCurrentAdmin()).resolves.toBeNull();
 
-    mocks.readSession.mockResolvedValueOnce({ adminId: "admin-1" });
-    mocks.dbQueryOne.mockResolvedValueOnce({ id: "admin-1", username: "root" });
+    mocks.readSession.mockResolvedValueOnce({ adminId: "admin-1", credentialVersion: "version:hash" });
+    mocks.dbQueryOne.mockResolvedValueOnce({ id: "admin-1", username: "root", passwordHash: "hash" });
     await expect(getCurrentAdmin()).resolves.toEqual({ id: "admin-1", username: "root" });
     expect(mocks.dbQueryOne).toHaveBeenCalledWith(
-      "SELECT id, username FROM LocalAdmin WHERE id = ?",
+      "SELECT id, username, passwordHash FROM LocalAdmin WHERE id = ?",
       "admin-1",
     );
 
     mocks.dbQueryOne.mockResolvedValueOnce({ count: 0 }).mockResolvedValueOnce({ count: 1 });
     await expect(isSetupRequired()).resolves.toBe(true);
     await expect(isSetupRequired()).resolves.toBe(false);
+  });
+
+  it("rejects sessions issued before a password change", async () => {
+    mocks.readSession.mockResolvedValueOnce({ adminId: "admin-1", credentialVersion: "version:old-hash" });
+    mocks.dbQueryOne.mockResolvedValueOnce({ id: "admin-1", username: "root", passwordHash: "new-hash" });
+    await expect(getCurrentAdmin()).resolves.toBeNull();
+
+    mocks.readSession.mockResolvedValueOnce({ adminId: "admin-1", credentialVersion: "version:new-hash" });
+    mocks.dbQueryOne.mockResolvedValueOnce({ id: "admin-1", username: "root", passwordHash: "new-hash" });
+    await expect(getCurrentAdmin()).resolves.toEqual({ id: "admin-1", username: "root" });
   });
 
   it("encrypts and decrypts text and JSON through the shared crypto helpers", async () => {

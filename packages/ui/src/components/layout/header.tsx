@@ -121,10 +121,6 @@ export function Header({
   const visibleNavItems = user ? navItems : navItems.filter((i) => !i.authOnly);
   const showPrivilegedLink = mode === "default";
   const visiblePrivilegedItem = showPrivilegedLink && canShowPrivilegedItem ? privilegedMenuItem : null;
-  const modeBadge: HeaderBrandBadge = {
-    label: mode === "local" ? "self-host" : "online",
-    title: mode === "local" ? "自部署入口" : "在线入口",
-  };
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/88 backdrop-blur-xl">
@@ -145,10 +141,7 @@ export function Header({
                 SubBoost
               </span>
             </Link>
-            <span className="hidden flex-col items-start justify-center gap-1 leading-none sm:flex">
-              {extraBrandBadge && <BrandBadge badge={extraBrandBadge} tone="new" />}
-              <BrandBadge badge={modeBadge} />
-            </span>
+            {extraBrandBadge && <span className="hidden sm:inline-flex"><BrandBadge badge={extraBrandBadge} tone="new" /></span>}
           </div>
 
           {/* Desktop Navigation */}

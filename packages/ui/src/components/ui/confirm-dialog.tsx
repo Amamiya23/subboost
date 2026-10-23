@@ -105,11 +105,11 @@ function useConfirmDialog() {
 function getVariantIcon(variant: ConfirmDialogVariant) {
   switch (variant) {
     case "destructive":
-      return <XCircle className="h-5 w-5 text-red-400" />;
+      return <XCircle className="h-5 w-5 text-destructive-foreground" />;
     case "warning":
-      return <AlertTriangle className="h-5 w-5 text-amber-400" />;
+      return <AlertTriangle className="h-5 w-5 text-warning-foreground" />;
     default:
-      return <HelpCircle className="h-5 w-5 text-white/70" />;
+      return <HelpCircle className="h-5 w-5 text-muted-foreground" />;
   }
 }
 

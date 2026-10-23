@@ -1,82 +1,46 @@
 "use client";
 
 import * as React from "react";
-import { LogOut, ServerCog, ShieldCheck } from "lucide-react";
-
-import { Button } from "@subboost/ui/components/coss/compat/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/coss/compat/card";
-import { Badge } from "@subboost/ui/components/coss/badge";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useUserStore } from "@subboost/ui/store/user-store";
 import { WebDavBackupCard } from "@local/components/webdav-backup-card";
+import { ChangePasswordForm } from "@local/components/change-password-form";
 
 export default function SettingsPage() {
-  const { user, fetchUser, logout } = useUserStore();
+  const { user, fetchUser, isLoading } = useUserStore();
 
   React.useEffect(() => {
     void fetchUser();
   }, [fetchUser]);
 
-  const handleLogout = async () => {
-    await logout();
-    window.location.href = "/login";
-  };
-
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8 flex items-center gap-3">
-        <h1 className="font-heading text-2xl font-semibold">账户设置</h1>
-        <Badge variant="outline">本地部署</Badge>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <WebDavBackupCard />
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-foreground">
-              <ShieldCheck aria-hidden="true" />
-            </div>
-            <CardTitle className="text-base">本地管理员</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-5">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg bg-muted/60 p-3">
-                <p className="text-xs text-muted-foreground">用户名</p>
-                <p className="mt-1 truncate font-medium">{user?.username || "未登录"}</p>
-              </div>
-              <div className="rounded-lg bg-muted/60 p-3">
-                <p className="text-xs text-muted-foreground">订阅容量</p>
-                <p className="mt-1 font-medium tabular-nums">
-                  {user ? `${user.subscriptionCount} / ${user.quota.maxSubscriptions}` : "-"}
-                </p>
-              </div>
-            </div>
-            <Button variant="destructive-outline" onClick={() => void handleLogout()} disabled={!user}>
-              <LogOut aria-hidden="true" />
-              退出登录
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-info/10 text-info-foreground">
-              <ServerCog aria-hidden="true" />
-            </div>
-            <CardTitle className="text-base">运行端点</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p className="text-xs font-medium text-muted-foreground">健康检查端点</p>
+      <Link href="/dashboard" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft aria-hidden="true" className="size-4" />我的订阅
+      </Link>
+      <h1 className="font-heading text-2xl font-semibold">账户设置</h1>
+      {isLoading ? <div className="mt-10 h-72 animate-pulse rounded bg-muted" aria-label="正在加载账户" /> : !user ? (
+        <p className="mt-10 text-sm text-muted-foreground">请先<Link href="/login" className="ml-1 text-foreground underline underline-offset-4">登录</Link></p>
+      ) : (
+        <>
+          <section aria-labelledby="account-security" className="my-10 grid gap-6 border-y py-8 sm:grid-cols-[1fr_2fr] sm:gap-12">
             <div>
-              <p className="text-xs text-muted-foreground">存活检查</p>
-              <code className="mt-1 block rounded-md bg-muted px-3 py-2 text-muted-foreground">/api/health/live</code>
+              <h2 id="account-security" className="font-medium">登录与安全</h2>
+              <p className="mt-2 truncate text-sm text-muted-foreground">{user.username}</p>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">就绪检查</p>
-              <code className="mt-1 block rounded-md bg-muted px-3 py-2 text-muted-foreground">/api/health/ready</code>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <ChangePasswordForm username={user.username} />
+          </section>
+          <WebDavBackupCard />
+          <details className="mt-8 border-t py-5 text-sm">
+            <summary className="w-fit cursor-pointer text-muted-foreground hover:text-foreground">运行端点</summary>
+            <dl className="mt-4 grid gap-3 text-muted-foreground sm:grid-cols-2">
+              <div><dt className="mb-1 text-xs">存活检查</dt><dd><code>/api/health/live</code></dd></div>
+              <div><dt className="mb-1 text-xs">就绪检查</dt><dd><code>/api/health/ready</code></dd></div>
+            </dl>
+          </details>
+        </>
+      )}
     </div>
   );
 }

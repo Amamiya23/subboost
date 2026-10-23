@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogOverlay,
+  DialogPanel,
   DialogPortal,
   DialogTitle,
   DialogTrigger as CossDialogTrigger,
@@ -21,6 +22,7 @@ export {
   DialogFooter,
   DialogHeader,
   DialogOverlay,
+  DialogPanel,
   DialogPortal,
   DialogTitle,
 };

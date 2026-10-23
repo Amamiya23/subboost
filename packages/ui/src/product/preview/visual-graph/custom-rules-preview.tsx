@@ -75,7 +75,7 @@ export function CustomRulesPreview({
             )}
             <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" />
             <span
-              className="max-w-[11rem] truncate rounded border border-border bg-muted px-1.5 py-0.5 text-primary-300"
+              className="max-w-[11rem] truncate rounded border border-border bg-muted px-1.5 py-0.5 font-medium text-foreground"
               title={rule.target}
             >
               {rule.target}

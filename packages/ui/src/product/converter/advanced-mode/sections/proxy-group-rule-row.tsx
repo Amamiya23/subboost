@@ -65,7 +65,7 @@ export function ProxyGroupRuleRow({
         "proxy-group-rule-row grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 rounded border border-border bg-muted/[0.04] px-2 py-2",
         isInactive &&
           (isMoved
-            ? "border-orange-500/25 bg-orange-500/10"
+            ? "border-warning/30 bg-warning/10"
             : "border-destructive/30 bg-destructive/10"),
       )}
     >
@@ -272,7 +272,7 @@ function RuleStateBadge({ state }: { state: Exclude<ProxyGroupRuleRowState, "act
       className={cn(
         "px-1.5 py-0 text-[9px]",
         isMoved
-          ? "border-orange-500/50 bg-orange-500/10 text-orange-300"
+          ? "border-warning/30 bg-warning/10 text-warning-foreground"
           : "border-destructive/30 bg-destructive/10 text-destructive-foreground",
       )}
     >

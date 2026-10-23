@@ -270,7 +270,7 @@ describe("SubscriptionDashboardSurface", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders loading, login prompt, empty state, stats, and quick actions", () => {
+  it("renders loading, login prompt and empty state without quota or shortcut cards", () => {
     mocks.userStore = { user: null, isLoading: true, fetchUser: vi.fn() };
     renderSurface();
     expect(mocks.captures.stats).toBeUndefined();
@@ -283,7 +283,9 @@ describe("SubscriptionDashboardSurface", () => {
     expect(html).toContain("暂无订阅");
     expect(html).toContain("announcement");
     expect(html).toContain("extra-action");
-    expect(mocks.captures.stats).toEqual({ subscriptionCount: 0, user });
+    expect(mocks.captures.stats).toBeUndefined();
+    expect(html).not.toContain("我的模板");
+    expect(html).not.toContain("账户设置");
     expect(mocks.captures.settingsDialog).toEqual(expect.objectContaining({ open: false, userIsAdmin: false }));
   });
 

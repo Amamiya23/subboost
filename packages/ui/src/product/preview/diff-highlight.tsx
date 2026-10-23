@@ -81,7 +81,7 @@ export function DiffHighlight({ oldText, newText, className }: DiffHighlightProp
                 "flex-1 px-2 py-0.5 whitespace-pre",
                 line.type === "add" && "text-success-foreground",
                 line.type === "remove" && "text-destructive-foreground",
-                line.type === "unchanged" && "text-dark-300"
+                line.type === "unchanged" && "text-foreground"
               )}>
                 {line.content || " "}
               </span>
@@ -362,7 +362,7 @@ function highlightYamlLine(line: string): string {
   if (keyMatch) {
     const [, indent, key, colon, value] = keyMatch;
     const highlightedValue = highlightYamlValue(value.trim());
-    return `${escapeHtml(indent)}<span class="text-cyan-400">${escapeHtml(key)}</span><span class="text-foreground">${colon}</span> ${highlightedValue}`;
+    return `${escapeHtml(indent)}<span class="text-[color:var(--cyan-11)]">${escapeHtml(key)}</span><span class="text-foreground">${colon}</span> ${highlightedValue}`;
   }
 
   return escapeHtml(line);
@@ -391,7 +391,7 @@ function highlightYamlValue(value: string): string {
 
   // 数字
   if (/^-?\d+(\.\d+)?$/.test(value)) {
-    return `<span class="text-orange-400">${escapeHtml(value)}</span>`;
+    return `<span class="text-[color:var(--orange-11)]">${escapeHtml(value)}</span>`;
   }
 
   // 布尔值
@@ -407,7 +407,7 @@ function highlightYamlValue(value: string): string {
 
   // 协议类型关键词
   if (/^(ss|ssr|vmess|vless|trojan|anytls|hysteria2|hy2|socks5|socks4|http|https|relay)$/.test(value)) {
-    return `<span class="text-pink-400 font-medium">${escapeHtml(value)}</span>`;
+    return `<span class="text-[color:var(--pink-11)] font-medium">${escapeHtml(value)}</span>`;
   }
 
   // 特殊值关键词
@@ -462,13 +462,13 @@ function highlightInlineObject(obj: string): string {
     const key = part.slice(0, colonIdx).trim();
     const val = part.slice(colonIdx + 1).trim();
 
-    let keyColor = "text-cyan-400";
+    let keyColor = "text-[color:var(--cyan-11)]";
     if (["name", "type", "server", "port"].includes(key)) {
       keyColor = "text-warning-foreground font-medium";
     } else if (["password", "uuid", "cipher"].includes(key)) {
-      keyColor = "text-violet-400";
+      keyColor = "text-[color:var(--violet-11)]";
     } else if (["tls", "sni", "servername", "skip-cert-verify", "client-fingerprint"].includes(key)) {
-      keyColor = "text-teal-400";
+      keyColor = "text-[color:var(--teal-11)]";
     } else if (key === "dialer-proxy") {
       keyColor = "text-destructive-foreground font-medium";
     }
