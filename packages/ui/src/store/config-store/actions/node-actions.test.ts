@@ -39,6 +39,17 @@ function createHarness(overrides: Record<string, unknown> = {}) {
 }
 
 describe("createNodeActions", () => {
+  it("retains named-chain bindings on delete and restores them without duplicates", () => {
+    const binding = { id: "chain", name: "Chain", type: "select", preserveRelayNames: true,
+      relayNodes: ["Magebox"], targetNodes: ["Landing"] };
+    const { actions, getState } = createHarness({ nodes: [node("Magebox"), node("Landing")], dialerProxyGroups: [binding] });
+    actions.renameNode("Magebox", "Renamed");
+    expect(getState().dialerProxyGroups[0].relayNodes).toEqual(["Renamed"]);
+    actions.removeNode("Renamed");
+    expect(getState().dialerProxyGroups[0].relayNodes).toEqual(["Renamed"]);
+    actions.restoreDeletedNode("Magebox");
+    expect(getState().dialerProxyGroups[0].relayNodes).toEqual(["Renamed"]);
+  });
   it("removes nodes with restore metadata and restores them later", () => {
     const { actions, getState } = createHarness({
       nodes: [

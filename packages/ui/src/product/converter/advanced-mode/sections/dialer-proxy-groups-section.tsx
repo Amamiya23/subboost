@@ -9,6 +9,7 @@ import { Switch } from "@subboost/ui/components/ui/switch";
 import { toast } from "@subboost/ui/components/ui/toaster";
 import { DEFAULT_LOAD_BALANCE_STRATEGY, type ProxyGroupGroupType } from "@subboost/core/types/config";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
+import { validateRelayNamedChain } from "@subboost/core/generator/relay-named-chain";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { cn } from "@subboost/ui/lib/utils";
 import { useConfigStore, PRESET_RELAY_NAMES } from "@subboost/ui/store/config-store";
@@ -124,6 +125,7 @@ export function DialerProxyGroupsSection({
 
   // 获取可用于中转的节点（未被用作目标节点）
   const getAvailableRelayNodes = (excludeGroupId?: string) => {
+    const currentGroup = dialerProxyGroups.find((group) => group.id === excludeGroupId);
     const usedTargets = new Set<string>();
     for (const group of dialerProxyGroups) {
       const isEnabled = group.enabled !== false;
@@ -134,7 +136,9 @@ export function DialerProxyGroupsSection({
     }
 
     const available = nodes
-      .filter((n) => !usedTargets.has(n.name))
+      .filter((n) => !usedTargets.has(n.name) && (!currentGroup?.preserveRelayNames || !dialerProxyGroups.some(
+        (group) => group.id !== excludeGroupId && group.enabled !== false && group.relayNodes.includes(n.name)
+      )))
       .map((n) => ({
         name: n.name,
         type: n.type,
@@ -160,7 +164,7 @@ export function DialerProxyGroupsSection({
     // 中转组允许选择 DIRECT（直连）作为“入口”
     // 注意：这里只用于 dialer-proxy 的代理组 proxies 字段，Clash/Mihomo 支持 DIRECT。
     // excludeGroupId 用于在该组停用时仍保留“自身 targetNodes 不可作为中转节点”的约束
-    return [DIRECT_RELAY_OPTION, ...available, ...availableProxyGroups];
+    return currentGroup?.preserveRelayNames ? available : [DIRECT_RELAY_OPTION, ...available, ...availableProxyGroups];
   };
 
   return (
@@ -190,6 +194,10 @@ export function DialerProxyGroupsSection({
           {/* 已有的中转组 */}
           {dialerProxyGroups.map((group) => {
             const isEnabled = group.enabled !== false;
+            const preserveRelayNames = group.preserveRelayNames === true;
+            const chainErrors = validateRelayNamedChain(group, nodes, dialerProxyGroups);
+            const missingNames = [...new Set([...group.relayNodes, ...group.targetNodes])]
+              .filter((name) => preserveRelayNames && !nodes.some((node) => node.name === name));
             const isEditing = editingDialerGroupId === group.id;
             const dialerGroupType: ProxyGroupGroupType = group.type;
             const dialerStrategy = group.strategy ?? DEFAULT_LOAD_BALANCE_STRATEGY;
@@ -295,15 +303,20 @@ export function DialerProxyGroupsSection({
                       disabled={!isEnabled}
                       items={[
                         { label: `${group.relayNodes.length} 中转`, tone: "accent" },
-                        { label: `${group.targetNodes.length} 落地`, tone: "success", separator: "arrow" },
+                        { label: `${group.targetNodes.length} 落地${preserveRelayNames ? " · 保留入口名称" : ""}`, tone: "success", separator: "arrow" },
                       ]}
                     />
                     <Switch
+                      aria-label={`${group.name} 启用`}
                       checked={isEnabled}
                       onCheckedChange={(checked) => {
                         const nextEnabled = Boolean(checked);
                         if (!nextEnabled) {
                           updateDialerProxyGroup(group.id, { enabled: false });
+                          return;
+                        }
+                        if (preserveRelayNames) {
+                          updateDialerProxyGroup(group.id, { enabled: true });
                           return;
                         }
 
@@ -353,7 +366,7 @@ export function DialerProxyGroupsSection({
                       }}
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <ProxyGroupTypeMenu
+                    {!preserveRelayNames && <ProxyGroupTypeMenu
                       value={dialerGroupType}
                       strategy={dialerStrategy}
                       contentAlign="end"
@@ -378,7 +391,7 @@ export function DialerProxyGroupsSection({
                           <SlidersHorizontal className="h-3.5 w-3.5" />
                         </Button>
                       }
-                    />
+                    />}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -396,6 +409,53 @@ export function DialerProxyGroupsSection({
               {/* 展开的组内容 */}
               {expandedDialerGroups.has(group.id) && (
                 <div className="px-3 pb-3 space-y-3 border-t border-white/10">
+                  <div className="mt-3 space-y-3 rounded-md border border-white/10 bg-white/[0.03] p-3">
+                    <label className="flex items-center justify-between gap-3 text-xs text-white/75">
+                      保留入口名称
+                      <Switch
+                        aria-label={`${group.name} 保留入口名称`}
+                        checked={preserveRelayNames}
+                        onCheckedChange={(checked) => {
+                          if (checked && (group.targetNodes.length > 1 || group.relayNodes.some(
+                            (name) => !nodes.some((node) => node.name === name)
+                          ))) {
+                            toast({ title: "请先选择真实中转节点和一个落地节点", description: "保留入口名称模式不支持 DIRECT、代理组入口或多个落地。", variant: "warning" });
+                            return;
+                          }
+                          updateDialerProxyGroup(group.id, { preserveRelayNames: Boolean(checked) });
+                        }}
+                      />
+                    </label>
+                    <p className="text-[11px] leading-relaxed text-white/45">
+                      {preserveRelayNames
+                        ? "客户端沿用每个入口的名称，实际通过该入口连接落地；辅助入口不加入常用分流组，也不生成额外中转组。原始配置中仍可查看内部节点。"
+                        : "普通模式在客户端选择落地节点；开启后无需改名或逐个排除辅助节点。"}
+                    </p>
+                    {preserveRelayNames && <>
+                      <label className="flex items-center justify-between gap-3 text-xs text-white/65">
+                        同时提供落地单独直连选项
+                        <Switch
+                          aria-label={`${group.name} 同时提供落地单独直连选项`}
+                          checked={group.exposeLanding === true}
+                          onCheckedChange={(checked) => updateDialerProxyGroup(group.id, { exposeLanding: Boolean(checked) })}
+                        />
+                      </label>
+                      {group.relayNodes.map((name) => <p key={name} className="break-words text-[11px] text-white/65">
+                        客户端显示：{name} · 实际链路：设备 → {name} → {group.targetNodes[0] || "请选择落地"} → 网站
+                      </p>)}
+                      <p className="text-[11px] text-white/40">支持多个入口共用一个落地。链式节点连接失败时不会退回入口出口或直连落地；客户端分流组的切换策略仍然生效。</p>
+                    </>}
+                    {chainErrors.length > 0 && <p role="alert" className="text-xs text-amber-300">{chainErrors.join("；")}</p>}
+                    {missingNames.map((name) => <button
+                      key={name}
+                      type="button"
+                      className="text-xs text-amber-300 underline"
+                      onClick={() => updateDialerProxyGroup(group.id, {
+                        relayNodes: group.relayNodes.filter((item) => item !== name),
+                        targetNodes: group.targetNodes.filter((item) => item !== name),
+                      })}
+                    >移除失效绑定：{name}</button>)}
+                  </div>
                   {/* 中转节点选择 */}
                   <div className="mt-3">
                     <div className="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -481,7 +541,10 @@ export function DialerProxyGroupsSection({
                           const isSelected = group.targetNodes.includes(node.name);
                           // 检查是否被其他组使用
                           const usedByOther = dialerProxyGroups.some(
-                            (g) => g.id !== group.id && g.enabled !== false && g.targetNodes.includes(node.name)
+                            (g) => g.id !== group.id && g.enabled !== false && (
+                              (g.targetNodes.includes(node.name) && !(preserveRelayNames && g.preserveRelayNames)) ||
+                              (preserveRelayNames && g.relayNodes.includes(node.name))
+                            )
                           );
                           return (
                             <div
@@ -500,7 +563,8 @@ export function DialerProxyGroupsSection({
                                 if (isSelected) {
                                   removeNodeFromDialerGroup(group.id, node.name, false);
                                 } else {
-                                  addNodeToDialerGroup(group.id, node.name, false);
+                                  if (preserveRelayNames) updateDialerProxyGroup(group.id, { targetNodes: [node.name] });
+                                  else addNodeToDialerGroup(group.id, node.name, false);
                                 }
                               }}
                             >

@@ -85,7 +85,7 @@ export function createNodeActions(
           deletedNodeNames: Array.from(deleted),
           deletedNodes,
           listenerPorts: restPorts,
-          dialerProxyGroups: state.dialerProxyGroups.map((g) => ({
+          dialerProxyGroups: state.dialerProxyGroups.map((g) => g.preserveRelayNames ? g : ({
             ...g,
             relayNodes: g.relayNodes.filter((n) => n !== name),
             targetNodes: g.targetNodes.filter((n) => n !== name),

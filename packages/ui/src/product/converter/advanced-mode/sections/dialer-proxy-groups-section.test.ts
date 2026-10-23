@@ -232,9 +232,40 @@ describe("DialerProxyGroupsSection", () => {
     mocks.store.nodes = nodes;
     mocks.store.dialerProxyGroups = [groupA, groupB];
     renderSection({ 0: new Set(["g-a"]) });
-    expect(mocks.captures.switches).toHaveLength(2);
+    expect(mocks.captures.switches).toHaveLength(3);
     expect(mocks.captures.switches[0]).toEqual(expect.objectContaining({ checked: true }));
-    expect(mocks.captures.switches[1]).toEqual(expect.objectContaining({ checked: false }));
+    expect(mocks.captures.switches.find((props: any) => props["aria-label"] === "Group B 启用")).toEqual(expect.objectContaining({ checked: false }));
+  });
+
+  it("enables entrance names, selects one landing, and offers optional direct landing", () => {
+    mocks.store.dialerProxyGroups = [groupA];
+    renderSection({ 0: new Set(["g-a"]) });
+    mocks.captures.switches.find((props: any) => props["aria-label"] === "Group A 保留入口名称").onCheckedChange(true);
+    expect(mocks.store.updateDialerProxyGroup).toHaveBeenCalledWith("g-a", { preserveRelayNames: true });
+
+    mocks.store.dialerProxyGroups = [{ ...groupA, preserveRelayNames: true }];
+    const { html } = renderSection({ 0: new Set(["g-a"]) });
+    expect(html).toContain("客户端显示：Alpha");
+    expect(html).not.toContain("DIRECT（直连）");
+    expect(mocks.captures.buttons.some((props: any) => props["aria-label"] === "修改 Group A 类型")).toBe(false);
+    mocks.captures.switches.find((props: any) => props["aria-label"] === "Group A 同时提供落地单独直连选项").onCheckedChange(true);
+    expect(mocks.store.updateDialerProxyGroup).toHaveBeenCalledWith("g-a", { exposeLanding: true });
+    findIntrinsics("div", (props) => textOf(props.children).includes("Gamma") && typeof props.onClick === "function").at(-1).onClick();
+    expect(mocks.store.updateDialerProxyGroup).toHaveBeenCalledWith("g-a", { targetNodes: ["Gamma"] });
+  });
+
+  it("blocks conversion of group entrances and displays removable missing bindings", () => {
+    mocks.store.dialerProxyGroups = [{ ...groupA, relayNodes: ["DIRECT"] }];
+    renderSection({ 0: new Set(["g-a"]) });
+    mocks.captures.switches.find((props: any) => props["aria-label"] === "Group A 保留入口名称").onCheckedChange(true);
+    expect(mocks.toast).toHaveBeenCalled();
+    expect(mocks.store.updateDialerProxyGroup).not.toHaveBeenCalled();
+
+    mocks.store.dialerProxyGroups = [{ ...groupA, preserveRelayNames: true, relayNodes: ["Missing"] }];
+    const { html } = renderSection({ 0: new Set(["g-a"]) });
+    expect(html).toContain("重新绑定");
+    findIntrinsic("button", (props) => textOf(props.children).includes("移除失效绑定：Missing")).onClick();
+    expect(mocks.store.updateDialerProxyGroup).toHaveBeenCalledWith("g-a", { relayNodes: [], targetNodes: ["Beta"] });
   });
 
   it("adds custom groups, rejects duplicates, and records interactions", () => {
@@ -359,7 +390,7 @@ describe("DialerProxyGroupsSection", () => {
     roundRobinTypeItem.onSelect();
     expect(mocks.store.updateDialerProxyGroup).toHaveBeenCalledWith("g-a", { type: "load-balance", strategy: "round-robin" });
 
-    mocks.captures.switches[1].onCheckedChange(true);
+    mocks.captures.switches.find((props: any) => props["aria-label"] === "Group B 启用").onCheckedChange(true);
     expect(mocks.store.updateDialerProxyGroup).toHaveBeenCalledWith("g-b", {
       enabled: true,
       relayNodes: ["DIRECT"],

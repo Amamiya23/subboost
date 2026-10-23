@@ -155,6 +155,8 @@ function normalizeDialerProxyGroups(value: unknown): DialerProxyGroup[] {
       ...(type === "load-balance" ? { strategy: strategy ?? DEFAULT_LOAD_BALANCE_STRATEGY } : {}),
       relayNodes,
       targetNodes,
+      ...(typeof item.preserveRelayNames === "boolean" ? { preserveRelayNames: item.preserveRelayNames } : {}),
+      ...(typeof item.exposeLanding === "boolean" ? { exposeLanding: item.exposeLanding } : {}),
       ...(enabled !== undefined ? { enabled } : {}),
     });
   }

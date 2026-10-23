@@ -8,6 +8,15 @@ import { DEFAULT_LOAD_BALANCE_STRATEGY } from "@subboost/core/types/config";
 import { expectInvalid, validConfig } from "./config-template.test-helpers";
 
 describe("validateSubBoostTemplateConfig", () => {
+  it("round-trips chain display options and rejects non-boolean values", () => {
+    const group = { id: "relay", name: "Relay", type: "select" as const,
+      relayNodes: ["Magebox"], targetNodes: ["Landing"], preserveRelayNames: true, exposeLanding: false };
+    const result = validateSubBoostTemplateConfig(validConfig({ dialerProxyGroups: [group] }));
+    expect(result.ok && result.config.dialerProxyGroups[0]).toEqual(group);
+    for (const field of ["preserveRelayNames", "exposeLanding"]) {
+      expect(validateSubBoostTemplateConfig(validConfig({ dialerProxyGroups: [{ ...group, [field]: "true" }] })).ok).toBe(false);
+    }
+  });
   it("accepts a minimal v1 config template", () => {
     const result = validateSubBoostTemplateConfig(validConfig());
 

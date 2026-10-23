@@ -29,6 +29,7 @@ export type VisualDisplayGroup = {
     relayNodes: string[];
     targetNodes: string[];
     type: ProxyGroupGroupType;
+    preserveRelayNames?: boolean;
   };
 };
 
@@ -327,7 +328,7 @@ export function ProxyGroupsPreview({
                 {isDialerGroup && (
                   <span className="text-[10px] text-amber-200/80">
                     中转节点: {relayNodes.length} · 落地节点:{" "}
-                    {targetNodes.length}
+                    {targetNodes.length}{group.dialer?.preserveRelayNames ? " · 保留入口名称（不生成中转组）" : ""}
                   </span>
                 )}
               </span>

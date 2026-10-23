@@ -67,7 +67,7 @@ function filterDialerProxyGroupsByAvailableNames(
   dialerProxyGroups: StoreState["dialerProxyGroups"],
   availableNames: Set<string>
 ): StoreState["dialerProxyGroups"] {
-  return dialerProxyGroups.map((group) => ({
+  return dialerProxyGroups.map((group) => group.preserveRelayNames ? group : ({
     ...group,
     relayNodes: group.relayNodes.filter((name) => name === "DIRECT" || availableNames.has(name)),
     targetNodes: group.targetNodes.filter((name) => availableNames.has(name)),
@@ -320,9 +320,9 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
 
           const nextDialerProxyGroups = state.dialerProxyGroups.map((g) => {
             const relayNodes = replaceNames(g.relayNodes, { keepDirect: true }).filter(
-              (n) => n === "DIRECT" || availableNames.has(n)
+              (n) => g.preserveRelayNames || n === "DIRECT" || availableNames.has(n)
             );
-            const targetNodes = replaceNames(g.targetNodes).filter((n) => availableNames.has(n));
+            const targetNodes = replaceNames(g.targetNodes).filter((n) => g.preserveRelayNames || availableNames.has(n));
             return { ...g, relayNodes, targetNodes };
           });
 

@@ -16,6 +16,19 @@ const mocks = getSourceActionMocks();
 describe("createSourceActions", () => {
   beforeEach(resetSourceActionMocks);
 
+  it("retains named-chain bindings after source removal so generation can report missing nodes", () => {
+    const binding = { id: "chain", name: "Chain", type: "select", preserveRelayNames: true,
+      relayNodes: ["Magebox"], targetNodes: ["Landing"] };
+    const { actions, getState } = createHarness({
+      sources: [source({ id: "s1", type: "url", content: "https://one.example/sub" })],
+      nodes: [node("Magebox", { _sourceIds: ["s1"] }), node("Landing")],
+      dialerProxyGroups: [binding],
+    });
+    actions.setSources([]);
+    expect(getState().nodes.map((item: ParsedNode) => item.name)).toEqual(["Landing"]);
+    expect(getState().dialerProxyGroups).toEqual([binding]);
+  });
+
   it("removes nodes and references when a source is deleted", () => {
     const { actions, getState } = createHarness({
       sources: [

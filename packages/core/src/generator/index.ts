@@ -16,8 +16,9 @@ import {
 } from "./proxy-groups";
 import { 
   generateDialerProxyGroups, 
-  applyDialerProxy 
+  applyDialerProxy,
 } from "./chain";
+import { buildRelayNamedChains } from "./relay-named-chain";
 import { DEFAULT_DNS_CONFIG } from "./dns";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import type { ParsedNode } from "@subboost/core/types/node";
@@ -292,9 +293,44 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
     PROXY_GROUP_MODULES.map((mod) => resolveProxyGroupModuleName(mod, proxyGroupNameOverrides?.[mod.id]))
   );
   const enabledDialerProxyGroups = dialerProxyGroups.filter((g) => g && g.enabled !== false);
-  const sanitizedDialerProxyGroups = enabledDialerProxyGroups.length > 0
+  const preservedGroups = enabledDialerProxyGroups.filter((g) => g.preserveRelayNames);
+  const reservedNames = [...nodeNameSet, ...proxyProviderNames, ...moduleGroupNameSet, ...customGroupNameSet,
+    ...enabledDialerProxyGroups.map((g) => g.name)];
+  for (const group of preservedGroups) {
+    for (const name of [...group.relayNodes, ...group.targetNodes]) {
+      if (supportedNodes.filter((node) => node.name.trim() === name).length > 1) {
+        throw new Error(`中转组「${group.name}」：节点「${name}」重名，请先重命名后重新绑定`);
+      }
+      if (moduleGroupNameSet.has(name) || customGroupNameSet.has(name) || proxyProviderNames.includes(name)) {
+        throw new Error(`中转组「${group.name}」：节点「${name}」与代理组或集合重名，请先重命名`);
+      }
+    }
+  }
+  const namedChains = buildRelayNamedChains(uniqueNodes, enabledDialerProxyGroups, reservedNames);
+  const selectionNodeNames = new Set(namedChains.selectionNodes.map((node) => node.name));
+  const hiddenLandingNames = new Set(uniqueNodes
+    .filter((node) => !selectionNodeNames.has(node.name))
+    .map((node) => node.name));
+  const unavailableTargets = new Set([...hiddenLandingNames,
+    ...preservedGroups.map((group) => group.name).filter((name) => !selectionNodeNames.has(name))]);
+  const assertAvailableTarget = (target: unknown) => {
+    if (typeof target === "string" && unavailableTargets.has(target)) {
+      throw new Error(`保留入口名称模式：规则或监听仍引用「${target}」，请改为入口名称；需要单独访问落地时请开启落地单独直连选项`);
+    }
+  };
+  for (const rule of config.customRules) assertAvailableTarget(rule.target);
+  for (const ruleSet of customRuleSets) assertAvailableTarget(ruleSet.target);
+  for (const edit of Object.values(builtinRuleEdits ?? {})) assertAvailableTarget(edit.target);
+  for (const name of Object.keys(config.listenerPorts ?? {})) assertAvailableTarget(name);
+  if (Array.isArray(baseConfigRecord.listeners)) {
+    for (const listener of baseConfigRecord.listeners) {
+      if (isPlainObject(listener)) assertAvailableTarget(listener.proxy);
+    }
+  }
+  const ordinaryDialerProxyGroups = enabledDialerProxyGroups.filter((g) => !g.preserveRelayNames);
+  const sanitizedDialerProxyGroups = ordinaryDialerProxyGroups.length > 0
     ? sanitizeDialerProxyGroups(
-        enabledDialerProxyGroups,
+        ordinaryDialerProxyGroups,
         nodeNameSet,
         new Set([...moduleGroupNameSet, ...customGroupNameSet])
       )
@@ -302,11 +338,12 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
 
   // 应用 dialer-proxy 到目标节点（基于最终输出的唯一节点名）
   const allNodes = sanitizedDialerProxyGroups.length > 0
-    ? applyDialerProxy(uniqueNodes, sanitizedDialerProxyGroups)
-    : uniqueNodes;
+    ? applyDialerProxy(namedChains.outputNodes, sanitizedDialerProxyGroups)
+    : namedChains.outputNodes;
   const validDialerProxyNames = new Set<string>([
     "DIRECT",
     ...nodeNameSet,
+    ...namedChains.outputNodes.map((node) => node.name),
     ...proxyProviderNames,
     ...moduleGroupNameSet,
     ...customGroupNameSet,
@@ -349,7 +386,7 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
 
   // 生成选项
   const generateOpts = {
-    nodes: outputNodes,
+    nodes: namedChains.selectionNodes,
     proxyProviderNames,
     enabledModules: config.enabledGroups,
     ruleProviderBaseUrl: config.ruleProviderBaseUrl,
@@ -466,12 +503,12 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
 
   const availablePolicyTargets = withBuiltinPolicyTargets([
     ...proxyGroups.map((group) => group.name),
-    ...outputNodes.filter((node) => !isSubscriptionInfoNodeName(node.name)).map((node) => node.name),
+    ...namedChains.selectionNodes.filter((node) => !isSubscriptionInfoNodeName(node.name)).map((node) => node.name),
   ]);
   const fallbackPolicyTarget = chooseFallbackPolicyTarget(
     [
       proxyGroups[0]?.name,
-      outputNodes.find((node) => !isSubscriptionInfoNodeName(node.name))?.name,
+      namedChains.selectionNodes.find((node) => !isSubscriptionInfoNodeName(node.name))?.name,
       "DIRECT",
     ],
     availablePolicyTargets

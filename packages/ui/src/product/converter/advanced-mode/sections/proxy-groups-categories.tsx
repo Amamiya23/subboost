@@ -23,6 +23,7 @@ import {
   generateProxyGroups,
 } from "@subboost/core/generator/proxy-groups";
 import { isPinnedModule } from "@subboost/core/generator/rules";
+import { getRelayNamedSelectionNodes } from "@subboost/core/generator/relay-named-chain";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 import { buildProxyGroupRuleSetView } from "./proxy-group-rule-set-view";
@@ -42,7 +43,7 @@ const CUSTOM_CATEGORY_ID = "custom";
 export function ProxyGroupsCategories() {
   const {
     ruleProviderBaseUrl,
-    nodes = [],
+    nodes: sourceNodes = [],
     testUrl,
     testInterval,
     cnIpNoResolve,
@@ -78,6 +79,7 @@ export function ProxyGroupsCategories() {
     updateProxyGroupAdvanced,
     dialerProxyGroups = [],
   } = useConfigStore();
+  const nodes = React.useMemo(() => getRelayNamedSelectionNodes(sourceNodes, dialerProxyGroups), [sourceNodes, dialerProxyGroups]);
 
   const [expandedCategories, setExpandedCategories] = React.useState<
     Set<string>

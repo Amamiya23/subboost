@@ -11,6 +11,7 @@ import {
   generateProxyGroups,
 } from "@subboost/core/generator/proxy-groups";
 import { getModuleRuleOrderKey } from "@subboost/core/generator/module-rules";
+import { getRelayNamedSelectionNodes } from "@subboost/core/generator/relay-named-chain";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { resolveProxyGroupTargetName } from "@subboost/core/proxy-group-targets";
 import { collectCustomRoutingRuleSets } from "@subboost/core/rules/custom-routing-rule-sets";
@@ -66,6 +67,7 @@ export function VisualGraph() {
     () => dialerProxyGroups.filter((g) => g && g.enabled !== false),
     [dialerProxyGroups],
   );
+  const selectionNodes = React.useMemo(() => getRelayNamedSelectionNodes(nodes, dialerProxyGroups), [nodes, dialerProxyGroups]);
   const [expandedGroups, setExpandedGroups] = React.useState<Set<string>>(
     new Set(["module:select", "module:auto"]),
   );
@@ -118,7 +120,7 @@ export function VisualGraph() {
   const generatedProxyGroups = React.useMemo(() => {
     if (nodes.length === 0) return [];
     return generateProxyGroups({
-      nodes,
+      nodes: selectionNodes,
       enabledModules: enabledProxyGroups,
       ruleProviderBaseUrl,
       testUrl,
@@ -131,6 +133,7 @@ export function VisualGraph() {
     });
   }, [
     nodes,
+    selectionNodes,
     enabledProxyGroups,
     ruleProviderBaseUrl,
     testUrl,
@@ -264,6 +267,7 @@ export function VisualGraph() {
               relayNodes: Array.isArray(g.relayNodes) ? g.relayNodes : [],
               targetNodes: Array.isArray(g.targetNodes) ? g.targetNodes : [],
               type: g.type,
+              preserveRelayNames: g.preserveRelayNames,
             },
           }));
 

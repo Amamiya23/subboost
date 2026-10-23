@@ -22,6 +22,7 @@ import type {
 } from "@subboost/core/types/config";
 import type { ParsedNode } from "@subboost/core/types/node";
 import { useConfigStore } from "@subboost/ui/store/config-store";
+import { getRelayNamedSelectionNodes } from "@subboost/core/generator/relay-named-chain";
 import {
   buildAddAllMembersPatch,
   buildRemoveAllMembersPatch,
@@ -133,7 +134,8 @@ export function ProxyGroupAdvancedPanel({
   rulesContent: React.ReactNode;
 }) {
   const {
-    nodes,
+    nodes: sourceNodes,
+    dialerProxyGroups = [],
     sources,
     enabledProxyGroups,
     customProxyGroups,
@@ -145,6 +147,7 @@ export function ProxyGroupAdvancedPanel({
     testInterval,
     ruleProviderBaseUrl,
   } = useConfigStore();
+  const nodes = React.useMemo(() => getRelayNamedSelectionNodes(sourceNodes, dialerProxyGroups), [sourceNodes, dialerProxyGroups]);
   const [draggingKey, setDraggingKey] = React.useState<string | null>(null);
   const activeCustomProxyGroups = React.useMemo(
     () => customProxyGroups.filter((group) => group.enabled !== false),

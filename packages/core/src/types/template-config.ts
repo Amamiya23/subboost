@@ -18,6 +18,8 @@ export interface DialerProxyGroup {
   type: ProxyGroupGroupType; // 组类型
   strategy?: LoadBalanceStrategy; // 负载均衡策略，仅 type=load-balance 时生效
   targetNodes: string[]; // 使用此中转的落地节点名称列表
+  preserveRelayNames?: boolean; // 用入口名称展示链式节点；每组仅允许一个落地
+  exposeLanding?: boolean; // 保留入口名称时，额外提供落地单独直连选项
 }
 
 export type SubBoostTemplateConfig = {
