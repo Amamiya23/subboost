@@ -23,10 +23,9 @@ import {
   generateProxyGroups,
 } from "@subboost/core/generator/proxy-groups";
 import { isPinnedModule } from "@subboost/core/generator/rules";
-import type { HiddenPresetRuleIds } from "@subboost/core/generator/module-rules";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
-import { resolveProxyGroupTargetName } from "@subboost/core/proxy-group-targets";
-import { useConfigStore, type RuleSetDraft } from "@subboost/ui/store/config-store";
+import { useConfigStore } from "@subboost/ui/store/config-store";
+import { buildProxyGroupRuleSetView } from "./proxy-group-rule-set-view";
 import {
   buildManualRuleTargets,
   listCustomRulesForTarget,
@@ -201,80 +200,15 @@ export function ProxyGroupsCategories() {
     builtinRuleEdits,
     proxyGroupNameOverrides,
   ]);
-  const targetRuleView = React.useMemo(() => {
-    const ruleSetsByTarget: Record<string, RuleSetDraft[]> = {};
-    const hiddenPresetRuleIds: HiddenPresetRuleIds = {};
-    const moduleNameToId = new Map<string, string>();
-    const moduleNames: Record<string, string> = {};
-    for (const proxyModule of PROXY_GROUP_MODULES) {
-      const name = resolveModuleDisplayName(proxyModule).full;
-      moduleNameToId.set(name, proxyModule.id);
-      moduleNames[proxyModule.id] = name;
-    }
-
-    const pushRuleSetForTarget = (moduleId: string, rule: RuleSetDraft) => {
-      ruleSetsByTarget[moduleId] = [...(ruleSetsByTarget[moduleId] || []), rule];
-    };
-    const hidePresetRule = (moduleId: string, ruleId: string) => {
-      const prev = hiddenPresetRuleIds[moduleId] || [];
-      if (!prev.includes(ruleId)) hiddenPresetRuleIds[moduleId] = [...prev, ruleId];
-    };
-
-    for (const ruleSet of customRuleSets) {
-      const targetName = resolveProxyGroupTargetName(ruleSet.target, {
-        moduleNames,
-        customProxyGroups,
-      });
-      const moduleId = moduleNameToId.get(targetName);
-      if (!moduleId) continue;
-      pushRuleSetForTarget(moduleId, {
-        id: ruleSet.id,
-        name: ruleSet.name,
-        behavior: ruleSet.behavior,
-        path: ruleSet.path,
-        ...(ruleSet.noResolve ? { noResolve: true } : {}),
-      });
-    }
-
-    for (const [key, edit] of Object.entries(builtinRuleEdits || {})) {
-      const match = key.match(/^module:([^:]+):(.+)$/);
-      if (!match) continue;
-      const [, sourceModuleId, ruleId] = match;
-      const sourceModule = PROXY_GROUP_MODULES.find((module) => module.id === sourceModuleId);
-      const sourceRule = sourceModule?.rules?.find((rule) => rule.id === ruleId);
-      if (!sourceModule || !sourceRule) continue;
-      const defaultTarget = resolveModuleDisplayName(sourceModule).full;
-      const editTarget = edit.target
-        ? resolveProxyGroupTargetName(edit.target, {
-            moduleNames,
-            customProxyGroups,
-            fallbackTarget: defaultTarget,
-          })
-        : "";
-
-      if (edit.enabled === false) hidePresetRule(sourceModuleId, ruleId);
-      if (editTarget && editTarget !== defaultTarget) {
-        hidePresetRule(sourceModuleId, ruleId);
-        const targetModuleId = moduleNameToId.get(editTarget);
-        if (targetModuleId) {
-          pushRuleSetForTarget(targetModuleId, {
-            id: sourceRule.id,
-            name: sourceRule.name,
-            behavior: sourceRule.behavior,
-            path: sourceRule.path,
-            ...(sourceRule.noResolve ? { noResolve: true } : {}),
-          });
-        }
-      }
-    }
-
-    return { ruleSetsByTarget, hiddenPresetRuleIds };
-  }, [
-    builtinRuleEdits,
-    customRuleSets,
-    customProxyGroups,
-    resolveModuleDisplayName,
-  ]);
+  const targetRuleView = React.useMemo(
+    () => buildProxyGroupRuleSetView({
+      builtinRuleEdits,
+      customRuleSets,
+      customProxyGroups,
+      proxyGroupNameOverrides,
+    }),
+    [builtinRuleEdits, customRuleSets, customProxyGroups, proxyGroupNameOverrides],
+  );
 
   const hiddenModules = React.useMemo(() => {
     const hidden = new Set(hiddenProxyGroups);

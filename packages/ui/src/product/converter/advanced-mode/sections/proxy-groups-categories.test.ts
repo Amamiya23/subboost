@@ -136,6 +136,7 @@ vi.mock("./proxy-groups-module-card", () => ({
 
 import { ProxyGroupsCategories } from "./proxy-groups-categories";
 import { generateProxyGroups } from "@subboost/core/generator/proxy-groups";
+import { isModuleRuleMovedFrom } from "@subboost/core/generator/module-rules";
 
 function renderCategories(overrides: Record<number, unknown> = {}) {
   stateMock.enabled = true;
@@ -492,6 +493,22 @@ describe("ProxyGroupsCategories", () => {
 
     expect(mocks.captures.moduleCards[0].nodeCount).toBe(0);
     expect(mocks.captures.moduleCards[0].extraRules).toEqual([]);
+  });
+
+  it("marks presets moved into custom groups as moved so their default target can be restored", () => {
+    mocks.store.builtinRuleEdits = {
+      "module:auto:auto-rule": { target: "Custom" },
+    };
+    renderCategories({ 0: new Set(["core"]) });
+    const card = mocks.captures.moduleCards[0];
+
+    expect(card.hiddenPresetRuleIds.auto).toEqual(["auto-rule"]);
+    expect(card.ruleSetsByTarget["custom-1"]).toEqual([
+      { id: "auto-rule", name: "Auto Rule", behavior: "domain", path: "geosite/auto-rule.mrs" },
+    ]);
+    expect(isModuleRuleMovedFrom("auto", "auto-rule", card.ruleSetsByTarget)).toBe(true);
+    card.onResetRuleTarget("auto-rule");
+    expect(mocks.store.resetModuleRuleTarget).toHaveBeenCalledWith("auto", "auto-rule");
   });
 
   it("toggles category expansion through the rendered category headers", () => {

@@ -7,7 +7,6 @@ import { Input } from "@subboost/ui/components/ui/input";
 import { toast } from "@subboost/ui/components/ui/toaster";
 import { PROXY_GROUP_MODULES, type ProxyGroupModule } from "@subboost/core/generator/proxy-groups";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
-import { resolveProxyGroupTargetName } from "@subboost/core/proxy-group-targets";
 import { DEFAULT_LOAD_BALANCE_STRATEGY, type LoadBalanceStrategy, type ProxyGroupGroupType } from "@subboost/core/types/config";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 import { useProductInteractionAdapter } from "@subboost/ui/product/interactions";
@@ -34,6 +33,7 @@ import {
   type ProxyGroupNameDraft,
 } from "./proxy-group-name-editor";
 import { ProxyGroupsModuleCard } from "./proxy-groups-module-card";
+import { buildProxyGroupRuleSetView } from "./proxy-group-rule-set-view";
 
 export function ProxyGroupsCustomGroupsPanel({
   advancedMode = false,
@@ -48,6 +48,7 @@ export function ProxyGroupsCustomGroupsPanel({
     proxyGroupNameOverrides = {},
     customRules = [],
     customRuleSets = [],
+    builtinRuleEdits = {},
     customProxyGroups = [],
     addCustomProxyGroup,
     removeCustomProxyGroup,
@@ -107,6 +108,16 @@ export function ProxyGroupsCustomGroupsPanel({
     [customProxyGroups, enabledProxyGroups, hiddenProxyGroups, proxyGroupNameOverrides],
   );
 
+  const targetRuleView = React.useMemo(
+    () => buildProxyGroupRuleSetView({
+      customRuleSets,
+      builtinRuleEdits,
+      customProxyGroups,
+      proxyGroupNameOverrides,
+    }),
+    [customRuleSets, builtinRuleEdits, customProxyGroups, proxyGroupNameOverrides],
+  );
+
   const ruleSetMoveTargets = React.useMemo<RuleSetMoveTarget[]>(() => {
     const hidden = new Set(hiddenProxyGroups);
     return [
@@ -136,16 +147,8 @@ export function ProxyGroupsCustomGroupsPanel({
 
       const state = useConfigStore.getState();
       const sourceGroup = state.customProxyGroups.find((group) => group.id === sourceGroupId);
-      const sourceRule = sourceGroup
-        ? state.customRuleSets.find(
-            (rule) =>
-              rule.id === ruleId &&
-              resolveProxyGroupTargetName(rule.target, {
-                moduleNames,
-                customProxyGroups: state.customProxyGroups,
-              }) === sourceGroup.name,
-          )
-        : null;
+      const { ruleSetsByTarget } = buildProxyGroupRuleSetView(state);
+      const sourceRule = ruleSetsByTarget[sourceGroupId]?.find((rule) => rule.id === ruleId);
       if (!sourceGroup || !sourceRule) return;
 
       if (target.kind === "custom") {
@@ -154,14 +157,7 @@ export function ProxyGroupsCustomGroupsPanel({
         const targetName = targetGroup.name.trim();
         if (!targetName) return;
         if (
-          state.customRuleSets.some(
-            (rule) =>
-              rule.id === sourceRule.id &&
-              resolveProxyGroupTargetName(rule.target, {
-                moduleNames,
-                customProxyGroups: state.customProxyGroups,
-              }) === targetName,
-          )
+          ruleSetsByTarget[targetGroup.id]?.some((rule) => rule.id === sourceRule.id)
         ) {
           toast({
             title: "规则集已存在",
@@ -174,7 +170,7 @@ export function ProxyGroupsCustomGroupsPanel({
 
       moveModuleRule(sourceGroup.id, ruleId, target);
     },
-    [moduleNames, moveModuleRule],
+    [moveModuleRule],
   );
 
   return (
@@ -241,13 +237,7 @@ export function ProxyGroupsCustomGroupsPanel({
               moduleNames,
               customProxyGroups,
             });
-            const groupRuleSets = customRuleSets.filter(
-              (ruleSet) =>
-                resolveProxyGroupTargetName(ruleSet.target, {
-                  moduleNames,
-                  customProxyGroups,
-                }) === group.name,
-            );
+            const groupRuleSets = targetRuleView.ruleSetsByTarget[group.id] || [];
             const totalRules = groupRuleSets.length + manualRules.length;
             const description = group.description?.trim() || "自定义代理组";
             const nodeCount = nodeCounts?.get(group.name) ?? 0;

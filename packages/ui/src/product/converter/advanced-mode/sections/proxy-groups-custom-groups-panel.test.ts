@@ -68,6 +68,9 @@ vi.mock("@subboost/core/generator/proxy-groups", () => ({
   PROXY_GROUP_MODULES: [
     { id: "auto", name: "Auto" },
     { id: "fallback", name: "Fallback" },
+    { id: "youtube", name: "📹 油管视频", rules: [
+      { id: "youtube", name: "YouTube", behavior: "domain", path: "geosite/youtube.mrs" },
+    ] },
   ],
 }));
 vi.mock("@subboost/core/proxy-group-name", () => ({
@@ -119,6 +122,12 @@ vi.mock("./proxy-group-type-menu", () => ({
   getLoadBalanceStrategyLabel: (value: string) => `strategy:${value}`,
   getProxyGroupTypeLabel: (value: string) => `type:${value}`,
 }));
+vi.mock("./proxy-group-advanced-panel", () => ({
+  ProxyGroupAdvancedPanel: (props: any) => {
+    mocks.captures.advancedPanels.push(props);
+    return props.rulesContent;
+  },
+}));
 
 import { ProxyGroupsCustomGroupsPanel } from "./proxy-groups-custom-groups-panel";
 
@@ -145,7 +154,7 @@ const targetGroup = {
   groupType: "select",
 };
 
-function renderPanel(overrides: Record<number, unknown> = {}) {
+function renderPanel(overrides: Record<number, unknown> = {}, advancedMode = false) {
   stateMock.enabled = true;
   stateMock.callIndex = 0;
   stateMock.overrides = overrides;
@@ -156,8 +165,9 @@ function renderPanel(overrides: Record<number, unknown> = {}) {
   mocks.captures.ruleRows = [];
   mocks.captures.manualRows = [];
   mocks.captures.moveMenus = [];
+  mocks.captures.advancedPanels = [];
   try {
-    const html = renderToStaticMarkup(React.createElement(ProxyGroupsCustomGroupsPanel));
+    const html = renderToStaticMarkup(React.createElement(ProxyGroupsCustomGroupsPanel, { advancedMode }));
     return { html, setters: stateMock.setters };
   } finally {
     stateMock.enabled = false;
@@ -176,6 +186,7 @@ describe("ProxyGroupsCustomGroupsPanel", () => {
       customRules: [{ id: "manual-1", target: "🧩 Custom" }],
       customProxyGroups: [customGroup, targetGroup],
       customRuleSets: [sourceRule],
+      builtinRuleEdits: {},
       dialerProxyGroups: [{ name: "Dialer" }],
       addCustomProxyGroup: vi.fn(),
       removeCustomProxyGroup: vi.fn(),
@@ -304,6 +315,37 @@ describe("ProxyGroupsCustomGroupsPanel", () => {
     mocks.store.customProxyGroups = [];
     renderPanel();
     expect(mocks.captures.ruleRows).toEqual([]);
+  });
+
+  it("renders moved preset rules and lets them move again or be deleted from custom groups", () => {
+    mocks.store.builtinRuleEdits = {
+      "module:youtube:youtube": { target: customGroup.name },
+    };
+    renderPanel({ 0: new Set(["custom-1"]) }, true);
+
+    expect(mocks.captures.advancedPanels[0].rulesCount).toBe(3);
+
+    expect(mocks.captures.ruleRows).toContainEqual(expect.objectContaining({
+      name: "YouTube",
+      path: "geosite/youtube.mrs",
+      behavior: "domain",
+    }));
+    const moveMenu = mocks.captures.moveMenus.find((props: any) => props.ariaLabel === "移动 YouTube 规则集");
+    moveMenu.onMove({ kind: "custom", id: "custom-2", name: "Target" });
+    expect(mocks.store.moveModuleRule).toHaveBeenCalledWith("custom-1", "youtube", {
+      kind: "custom", id: "custom-2", name: "Target",
+    });
+
+    moveMenu.onMove({ kind: "module", id: "youtube", name: "📹 油管视频" });
+    expect(mocks.store.moveModuleRule).toHaveBeenCalledWith("custom-1", "youtube", {
+      kind: "module", id: "youtube", name: "📹 油管视频",
+    });
+    mocks.captures.buttons.find((props: any) => props["aria-label"] === "删除 YouTube 规则集").onClick();
+    expect(mocks.store.removeModuleRule).toHaveBeenCalledWith("custom-1", "youtube");
+
+    mocks.store.builtinRuleEdits["module:youtube:youtube"].enabled = false;
+    renderPanel({ 0: new Set(["custom-1"]) });
+    expect(mocks.captures.ruleRows.some((props: any) => props.name === "YouTube")).toBe(false);
   });
 
   it("covers custom group edit controls and duplicate rename guard", () => {
