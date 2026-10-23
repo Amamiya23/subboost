@@ -7,6 +7,7 @@ import { Input } from "@subboost/ui/components/ui/input";
 import { Label } from "@subboost/ui/components/ui/label";
 import { Switch } from "@subboost/ui/components/ui/switch";
 import { SmartNodeMatchingHelp } from "@subboost/ui/components/subscription/smart-node-matching-help";
+import { SubscriptionQrCode } from "@subboost/ui/components/subscription/subscription-qr-code";
 import {
   Dialog,
   DialogContent,
@@ -74,7 +75,7 @@ export function SubscriptionLinkDialog({
           </DialogTitle>
           <DialogDescription>
             {subscriptionUrl
-              ? "复制下方链接到 Clash 客户端导入使用"
+              ? "复制链接或使用其他设备的客户端扫码导入"
               : isEditingExistingSubscription
                 ? "将覆盖该订阅的配置与订阅源，链接保持不变"
                 : "生成持久化的订阅链接，支持在 Clash 客户端中自动更新"}
@@ -150,6 +151,7 @@ export function SubscriptionLinkDialog({
           </div>
         ) : (
           <div className="space-y-4 py-4">
+            <SubscriptionQrCode subscriptionUrl={subscriptionUrl} />
             <div className="space-y-2">
               <label htmlFor="subscription-url" className="text-sm font-medium">订阅链接</label>
               <div className="flex gap-2">

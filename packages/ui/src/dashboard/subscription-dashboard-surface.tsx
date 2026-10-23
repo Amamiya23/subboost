@@ -36,6 +36,7 @@ import { DashboardStatsCards } from "@subboost/ui/dashboard/dashboard-stats-card
 import { formatDashboardDate, formatIntervalLabel } from "@subboost/ui/dashboard/dashboard-format";
 import { buildRefreshSubscriptionSuccessToast } from "@subboost/ui/dashboard/dashboard-refresh-toast";
 import { SubscriptionSettingsDialog } from "@subboost/ui/dashboard/subscription-settings-dialog";
+import { SubscriptionQrCodeDialog } from "@subboost/ui/components/subscription/subscription-qr-code-dialog";
 import type { RefreshSubscriptionResponse, Subscription } from "@subboost/ui/dashboard/dashboard-types";
 
 type UpdateSettingsPayload = {
@@ -589,6 +590,7 @@ function SubscriptionRow({
             </>
           )}
         </Button>
+        <SubscriptionQrCodeDialog subscriptionUrl={sub.subscriptionUrl} subscriptionName={sub.name} />
         {refreshingId === sub.id && (
           <span role="status" className="inline-flex items-center gap-1 text-xs text-white/70"><RefreshCw className="h-3.5 w-3.5 animate-spin" />刷新中…</span>
         )}

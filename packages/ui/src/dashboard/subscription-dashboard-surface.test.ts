@@ -116,6 +116,12 @@ vi.mock("@subboost/ui/dashboard/subscription-settings-dialog", () => ({
     return null;
   },
 }));
+vi.mock("@subboost/ui/components/subscription/subscription-qr-code-dialog", () => ({
+  SubscriptionQrCodeDialog: (props: any) => {
+    (mocks.captures.qrDialogs ??= []).push(props);
+    return null;
+  },
+}));
 
 import { SubscriptionDashboardSurface, type DashboardSurfaceAdapter } from "./subscription-dashboard-surface";
 
@@ -187,6 +193,7 @@ function renderSurface(adapter = createAdapter(), overrides: Record<number, unkn
   mocks.captures.menuItems = [];
   mocks.captures.stats = undefined;
   mocks.captures.settingsDialog = undefined;
+  mocks.captures.qrDialogs = [];
   try {
     const html = renderToStaticMarkup(React.createElement(SubscriptionDashboardSurface, { adapter }));
     return { html, setters: stateMock.setters, adapter };
@@ -289,6 +296,16 @@ describe("SubscriptionDashboardSurface", () => {
     renderSurface(createAdapter(), { 0: [{ ...subscription, id: "sub /1" }], 1: false });
     expect(mocks.captures.menuItems.find((props: any) => props.asChild).children.props.href)
       .toBe("/builder?copySubscriptionId=sub%20%2F1");
+  });
+
+  it("offers the matching QR code for each subscription", () => {
+    const second = { ...disabledSubscription, subscriptionUrl: "https://sub.example.net/sub/second?token=a%2Bb" };
+    renderSurface(createAdapter(), { 0: [subscription, second], 1: false });
+
+    expect(mocks.captures.qrDialogs).toEqual([
+      { subscriptionUrl: subscription.subscriptionUrl, subscriptionName: subscription.name },
+      { subscriptionUrl: second.subscriptionUrl, subscriptionName: second.name },
+    ]);
   });
 
   it("runs mount effects, handles fetch failures, and shows disabled auto-update notices", async () => {

@@ -168,7 +168,8 @@ describe("SubscriptionLinkDialog", () => {
     );
 
     expect(html).toContain("订阅链接已更新");
-    expect(html).toContain("复制下方链接到 Clash 客户端导入使用");
+    expect(html).toContain("复制链接或使用其他设备的客户端扫码导入");
+    expect(html).toContain("订阅链接二维码");
     expect(html).toContain("更新成功");
     expect(html).toContain("check-icon");
     expect(captures.inputs[0]).toMatchObject({
