@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import { Header, type HeaderBrandBadge } from "@subboost/ui/components/layout/header";
 
 type LatestReleaseStatus = {
@@ -31,6 +32,7 @@ function buildNewReleaseBadge(status: LatestReleaseStatus | null): HeaderBrandBa
 }
 
 export function LocalHeader() {
+  const pathname = usePathname();
   const [newReleaseBadge, setNewReleaseBadge] = React.useState<HeaderBrandBadge | null>(null);
 
   React.useEffect(() => {
@@ -60,5 +62,6 @@ export function LocalHeader() {
     };
   }, []);
 
+  if (pathname === "/login") return null;
   return <Header mode="local" extraBrandBadge={newReleaseBadge} />;
 }

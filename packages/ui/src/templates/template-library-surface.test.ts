@@ -62,19 +62,19 @@ vi.mock("lucide-react", () => ({
   Search: () => null,
   Upload: () => null,
 }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.captures.buttons.push(props);
     return null;
   },
 }));
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.captures.input = props;
     return null;
   },
 }));
-vi.mock("@subboost/ui/components/ui/tabs", () => ({
+vi.mock("@subboost/ui/components/coss/compat/tabs", () => ({
   Tabs: (props: any) => {
     mocks.captures.tabs = props;
     return props.children;
@@ -87,7 +87,7 @@ vi.mock("@subboost/ui/components/ui/tabs", () => ({
   },
 }));
 vi.mock("@subboost/ui/components/ui/confirm-dialog", () => ({ confirmDialog: mocks.confirmDialog }));
-vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({ toast: mocks.toast }));
 vi.mock("@subboost/ui/store/user-store", () => ({ useUserStore: () => mocks.userStore }));
 vi.mock("@subboost/ui/store/config-store", () => {
   const useConfigStore = () => mocks.configStore;

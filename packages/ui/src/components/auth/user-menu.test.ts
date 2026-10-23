@@ -70,7 +70,7 @@ vi.mock("lucide-react", () => ({
   User: () => React.createElement("span", null, "User"),
 }));
 
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => React.createElement("button", props, props.children),
 }));
 

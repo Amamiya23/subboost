@@ -19,7 +19,7 @@ vi.mock("@subboost/core/generator/proxy-groups", () => ({
   ],
 }));
 
-vi.mock("@subboost/ui/components/ui/badge", () => ({
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({
   Badge: (props: any) => React.createElement("span", props, props.children),
 }));
 

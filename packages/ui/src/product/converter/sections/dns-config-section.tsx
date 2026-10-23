@@ -2,7 +2,7 @@
 
 import { Globe } from "lucide-react";
 import { DEFAULT_SUBBOOST_CONFIG } from "@subboost/core/config/defaults";
-import { Textarea } from "@subboost/ui/components/ui/textarea";
+import { Textarea } from "@subboost/ui/components/coss/compat/textarea";
 import { SectionHeader } from "./section-header";
 
 interface DNSConfigSectionProps {
@@ -28,7 +28,7 @@ export function DNSConfigSection({
       />
       {expanded && (
         <div className="mt-2 space-y-2 pl-6">
-          <p className="text-[10px] text-white/40 mb-1">
+          <p className="text-[10px] text-muted-foreground mb-1">
             直接编辑 YAML 格式的基础配置（包括 mixed-port、allow-lan、dns、profile、sniffer 等）
           </p>
           <Textarea

@@ -75,10 +75,34 @@ vi.mock("next/link", () => ({
     React.createElement("a", { href, ...props }, children),
 }));
 vi.mock("lucide-react", () => ({
+  CircleAlert: () => React.createElement("span", null, "alert-icon"),
   Eye: () => React.createElement("span", null, "eye-icon"),
   EyeOff: () => React.createElement("span", null, "eye-off-icon"),
   Loader2: () => React.createElement("span", null, "loader-icon"),
+  Moon: () => React.createElement("span", null, "moon-icon"),
+  ShieldCheck: () => React.createElement("span", null, "shield-check-icon"),
+  Sun: () => React.createElement("span", null, "sun-icon"),
 }));
+vi.mock("@subboost/ui/components/coss/input", () => {
+  const MockInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
+    (props, ref) => {
+      mocks.inputs.push(props);
+      return React.createElement("input", { ...props, ref });
+    },
+  );
+  MockInput.displayName = "MockInput";
+  return { Input: MockInput };
+});
+vi.mock("@subboost/ui/components/coss/button", () => {
+  const MockButton = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
+    ({ children, ...props }, ref) => {
+      mocks.buttons.push(props);
+      return React.createElement("button", { ...props, ref }, children);
+    },
+  );
+  MockButton.displayName = "MockButton";
+  return { Button: MockButton, buttonVariants: () => "" };
+});
 vi.mock("@subboost/ui/store/config-store/auth-handoff", () => ({
   hasAuthConfigHandoff: vi.fn(() => false),
 }));
@@ -136,10 +160,10 @@ describe("local login component", () => {
   it("renders the initial loading card without requiring browser fetch", () => {
     const { html } = renderLogin();
 
-    expect(html).toContain("欢迎使用 SubBoost");
+    expect(html).toContain("SubBoost");
     expect(html).toContain("href=\"/\"");
     expect(html).toContain("src=\"/logo.png\"");
-    expect(html).toContain("animate-pulse");
+    expect(html).toContain("animate-skeleton");
   });
 
   it("loads auth state and redirects authenticated users", async () => {
@@ -165,10 +189,10 @@ describe("local login component", () => {
       3: "different",
     });
 
-    expect(html).toContain("初始化本地管理员账号");
+    expect(html).toContain("创建本地管理员账号");
     expect(html).toContain("创建管理员");
     expect(html).toContain("至少 10 个字符");
-    expect(mocks.inputs.find((input) => input.placeholder === "确认密码")).toEqual(
+    expect(mocks.inputs.find((input) => input.placeholder === "再次输入密码")).toEqual(
       expect.objectContaining({ autoComplete: "new-password" }),
     );
 
@@ -204,9 +228,9 @@ describe("local login component", () => {
       4: false,
     });
 
-    mocks.inputs.find((input) => input.placeholder === "管理员账号").onChange({ target: { value: "root" } });
-    mocks.inputs.find((input) => input.placeholder === "密码").onChange({ target: { value: "next" } });
-    mocks.buttons.find((button) => button.type === "button").onClick();
+    mocks.inputs.find((input) => input.placeholder === "输入管理员账号").onChange({ target: { value: "root" } });
+    mocks.inputs.find((input) => input.placeholder === "输入密码").onChange({ target: { value: "next" } });
+    mocks.buttons.find((button) => button["aria-label"] === "显示密码").onClick();
     await mocks.forms[0].onSubmit({ preventDefault: vi.fn() });
 
     expect(setters[1]).toHaveBeenCalledWith("root");
@@ -235,8 +259,8 @@ describe("local login component", () => {
       4: true,
     });
 
-    expect(mocks.inputs.find((input) => input.placeholder === "密码").type).toBe("text");
-    expect(mocks.inputs.find((input) => input.placeholder === "确认密码").type).toBe("text");
+    expect(mocks.inputs.find((input) => input.placeholder === "输入密码").type).toBe("text");
+    expect(mocks.inputs.find((input) => input.placeholder === "再次输入密码").type).toBe("text");
 
     await mocks.forms[0].onSubmit({ preventDefault: vi.fn() });
 

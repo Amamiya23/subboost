@@ -1,7 +1,18 @@
 @import "tailwindcss" source("../../../..");
+@import "@radix-ui/colors/gray.css";
 @import "@radix-ui/colors/gray-dark.css";
+@import "@radix-ui/colors/lime.css";
 @import "@radix-ui/colors/lime-dark.css";
+@import "@radix-ui/colors/red.css";
 @import "@radix-ui/colors/red-dark.css";
+@import "@radix-ui/colors/blue.css";
+@import "@radix-ui/colors/blue-dark.css";
+@import "@radix-ui/colors/green.css";
+@import "@radix-ui/colors/green-dark.css";
+@import "@radix-ui/colors/amber.css";
+@import "@radix-ui/colors/amber-dark.css";
+
+@custom-variant dark (&:is(.dark *));
 
 /* ============ 自托管字体（local/public/fonts，经 CF Static Assets 分发，不计入 Worker 体积） ============ */
 /* 只保留实际使用的字重文件，最小化首屏字体负载 */
@@ -44,54 +55,54 @@
   font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
 }
-
 @theme {
   /* ============ SIGNAL LAB 视觉系统 v2 ============ */
   /* 中性色全部向酸绿相 tint（OKLCH 感知均匀） */
-  --color-ink: oklch(14% 0.01 130);
-  --color-ink-50: oklch(17.5% 0.011 130);
-  --color-ink-100: oklch(21% 0.012 130);
-  --color-ink-200: oklch(26% 0.013 130);
-  --color-ink-300: oklch(34% 0.014 130);
-  --color-ink-400: oklch(44% 0.014 130);
-  --color-ink-500: oklch(58% 0.013 130);
-  --color-ink-600: oklch(72% 0.012 130);
-  --color-ink-700: oklch(84% 0.01 130);
-  --color-ink-800: oklch(91% 0.008 130);
-  --color-ink-900: oklch(95% 0.006 130);
+  --color-ink: var(--background);
+  --color-ink-50: var(--card);
+  --color-ink-100: var(--muted);
+  --color-ink-200: var(--border);
+  --color-ink-300: var(--gray-7);
+  --color-ink-400: var(--gray-8);
+  --color-ink-500: var(--gray-9);
+  --color-ink-600: var(--muted-foreground);
+  --color-ink-700: var(--gray-11);
+  --color-ink-800: var(--gray-12);
+  --color-ink-900: var(--foreground);
 
-  --color-bone: oklch(93% 0.008 120);
+  --color-bone: var(--foreground);
 
-  --color-acid: oklch(88% 0.21 128);
-  --color-acid-dim: oklch(72% 0.17 128);
+  --color-acid: var(--lime-11);
+  --color-acid-dim: var(--lime-11);
 
   /* primary 退役为骨白系（保留键名兼容既有 primary-* 引用） */
-  --color-primary: var(--color-bone);
-  --color-primary-50: var(--color-bone);
-  --color-primary-100: oklch(95% 0.007 120);
-  --color-primary-200: oklch(91% 0.008 120);
-  --color-primary-300: oklch(84% 0.01 120);
-  --color-primary-400: oklch(72% 0.012 120);
-  --color-primary-500: var(--color-bone);
-  --color-primary-600: oklch(91% 0.008 120);
-  --color-primary-700: oklch(84% 0.01 120);
-  --color-primary-800: oklch(62% 0.012 120);
-  --color-primary-900: oklch(48% 0.013 120);
+  --color-primary: var(--primary);
+  --color-primary-50: var(--gray-1);
+  --color-primary-100: var(--gray-2);
+  --color-primary-200: var(--gray-3);
+  --color-primary-300: var(--gray-4);
+  --color-primary-400: var(--gray-6);
+  --color-primary-500: var(--primary);
+  --color-primary-600: var(--gray-8);
+  --color-primary-700: var(--gray-9);
+  --color-primary-800: var(--gray-10);
+  --color-primary-900: var(--gray-11);
 
-  --color-dark: oklch(14% 0.01 130);
-  --color-dark-50: var(--color-ink-50);
-  --color-dark-100: var(--color-ink-100);
-  --color-dark-200: var(--color-ink-200);
-  --color-dark-300: var(--color-ink-300);
-  --color-dark-400: var(--color-ink-400);
-  --color-dark-500: var(--color-ink-500);
-  --color-dark-600: var(--color-ink-600);
-  --color-dark-700: var(--color-ink-700);
-  --color-dark-800: var(--color-ink-800);
-  --color-dark-900: var(--color-ink-900);
+  --color-dark: var(--background);
+  --color-dark-50: var(--card);
+  --color-dark-100: var(--popover);
+  --color-dark-200: var(--muted);
+  --color-dark-300: var(--border);
+  --color-dark-400: var(--gray-7);
+  --color-dark-500: var(--gray-8);
+  --color-dark-600: var(--muted-foreground);
+  --color-dark-700: var(--gray-11);
+  --color-dark-800: var(--gray-12);
+  --color-dark-900: var(--foreground);
 
   /* 字体：Clash Display（标题）/ Switzer（正文）/ JetBrains Mono（技术标注） */
   --font-display: "Clash Display", "Switzer", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-heading: var(--font-display);
   --font-sans: "Switzer", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
 
@@ -102,25 +113,80 @@
 }
 
 :root {
-  --background: oklch(14% 0.01 130);
-  --foreground: var(--color-bone);
-  --primary: var(--color-bone);
-  --primary-hover: oklch(95% 0.006 120);
-  --card: oklch(17.5% 0.011 130);
-  --card-hover: oklch(21% 0.012 130);
-  --border: oklch(26% 0.013 130);
-  --muted: oklch(58% 0.013 130);
-  --acid: oklch(88% 0.21 128);
-  --line: rgba(237, 238, 230, 0.09);
-  --line-strong: rgba(237, 238, 230, 0.16);
+  color-scheme: light;
+  --background: var(--gray-1);
+  --foreground: var(--gray-12);
+  --primary: var(--gray-12);
+  --primary-hover: var(--gray-11);
+  --primary-foreground: var(--gray-1);
+  --secondary: var(--gray-3);
+  --secondary-foreground: var(--gray-12);
+  --card: var(--gray-1);
+  --card-foreground: var(--gray-12);
+  --card-hover: var(--gray-2);
+  --popover: var(--gray-1);
+  --popover-foreground: var(--gray-12);
+  --muted: var(--gray-3);
+  --muted-foreground: var(--gray-11);
+  --accent: var(--gray-4);
+  --accent-foreground: var(--gray-12);
+  --border: var(--gray-6);
+  --input: var(--gray-7);
+  --ring: var(--gray-8);
+  --destructive: var(--red-9);
+  --destructive-foreground: var(--red-11);
+  --info: var(--blue-9);
+  --info-foreground: var(--blue-11);
+  --success: var(--green-9);
+  --success-foreground: var(--green-11);
+  --warning: var(--amber-9);
+  --warning-foreground: var(--amber-11);
+  --acid: var(--lime-11);
+  --line: var(--border);
+  --line-strong: var(--gray-7);
+  --radius: 0.625rem;
 
   /* react-remove-scroll(-bar) 支持：用于在锁定滚动时补偿滚动条占位，避免水平抖动 */
   --removed-body-scroll-bar-size: 0px;
 }
 
+.dark {
+  color-scheme: dark;
+  --background: var(--gray-1);
+  --foreground: var(--gray-12);
+  --primary: var(--gray-12);
+  --primary-hover: var(--gray-11);
+  --primary-foreground: var(--gray-1);
+  --secondary: var(--gray-3);
+  --secondary-foreground: var(--gray-12);
+  --card: var(--gray-2);
+  --card-foreground: var(--gray-12);
+  --card-hover: var(--gray-3);
+  --popover: var(--gray-2);
+  --popover-foreground: var(--gray-12);
+  --muted: var(--gray-3);
+  --muted-foreground: var(--gray-11);
+  --accent: var(--gray-4);
+  --accent-foreground: var(--gray-12);
+  --border: var(--gray-6);
+  --input: var(--gray-7);
+  --ring: var(--gray-8);
+  --destructive: var(--red-9);
+  --destructive-foreground: var(--red-11);
+  --info: var(--blue-9);
+  --info-foreground: var(--blue-11);
+  --success: var(--green-9);
+  --success-foreground: var(--green-11);
+  --warning: var(--amber-9);
+  --warning-foreground: var(--amber-11);
+  --acid: var(--lime-11);
+  --line: var(--border);
+  --line-strong: var(--gray-7);
+}
+
 @layer base {
   * {
-    border-color: rgba(237, 238, 230, 0.08);
+    border-color: var(--border);
   }
 
   body {
@@ -128,27 +194,15 @@
     color: var(--foreground);
     font-family: var(--font-sans);
     min-height: 100vh;
+    position: relative;
     /* 保持滚动条占位，避免路由切换/加载时出现整体水平位移 */
     overflow-y: scroll;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    letter-spacing: -0.005em;
+    letter-spacing: 0;
   }
 
   /* grain 噪点：全站胶片颗粒层，不可交互 */
-  body::after {
-    content: "";
-    position: fixed;
-    inset: -50%;
-    z-index: 90;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 128px 128px;
-    opacity: 0.035;
-    will-change: transform;
-    animation: grainShift 0.9s steps(3) infinite;
-  }
-
   html body[data-scroll-locked] {
     /* Radix Select/Dialog 使用 react-remove-scroll：锁定滚动时补齐滚动条占位，避免页面水平平移 */
     overflow: hidden !important;
@@ -178,13 +232,13 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(237, 238, 230, 0.08);
+  background: var(--gray-7);
   border-radius: 0;
   border: 3px solid var(--background);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(237, 238, 230, 0.14);
+  background: var(--gray-8);
 }
 
 /* 动画 */
@@ -259,7 +313,7 @@
 /* 巨型描边字（outline display type） */
 .text-outline {
   color: transparent;
-  -webkit-text-stroke: 1.5px rgba(237, 238, 230, 0.5);
+  -webkit-text-stroke: 1.5px var(--gray-8);
 }
 
 @media (min-width: 1024px) {
@@ -333,11 +387,11 @@
 @layer components {
   /* v1 毛玻璃遗留类名：保留空实现避免破坏既有引用；新代码不应再使用。 */
   .glass-card {
-    @apply bg-ink-50 border border-white/10 rounded-md;
+    @apply bg-card text-card-foreground border rounded-lg;
   }
 
   .glass-card-hover {
-    @apply bg-ink-50 border border-white/10 rounded-md transition-colors duration-150 hover:bg-ink-100;
+    @apply bg-card text-card-foreground border rounded-lg transition-colors duration-150 hover:bg-accent;
   }
 
   .glow-border,
@@ -351,25 +405,25 @@
 
   /* 按钮：主按钮 = acid 底黑字（信号灯式强调） */
   .btn-primary {
-    @apply border border-transparent bg-acid text-black font-semibold px-4 py-2 rounded-md transition-all duration-150 hover:brightness-110 hover:shadow-[0_0_24px_rgba(205,255,77,0.25)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none;
+    @apply border border-transparent bg-primary text-primary-foreground font-semibold px-4 py-2 rounded-lg transition-all duration-150 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none;
   }
 
   .btn-secondary {
-    @apply bg-white/5 hover:bg-white/10 text-white/80 hover:text-white font-medium px-4 py-2 rounded-md transition-colors duration-150 border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 font-medium px-4 py-2 rounded-lg transition-colors duration-150 border disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-ghost {
-    @apply hover:bg-white/5 text-white/60 hover:text-white font-medium px-4 py-2 rounded-md transition-colors duration-150;
+    @apply hover:bg-accent text-muted-foreground hover:text-foreground font-medium px-4 py-2 rounded-lg transition-colors duration-150;
   }
 
   /* 输入框：hairline，无彩色 ring */
   .input-base {
-    @apply bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-colors duration-150;
+    @apply bg-background border rounded-lg px-4 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors duration-150;
   }
 
   /* 折叠面板触发器 */
   .accordion-trigger {
-    @apply flex items-center justify-between w-full py-4 px-4 text-left font-medium text-white/80 hover:text-white transition-colors;
+    @apply flex items-center justify-between w-full py-4 px-4 text-left font-medium text-foreground/85 hover:text-foreground transition-colors;
   }
 
   .accordion-trigger[data-state="open"] > svg {
@@ -378,7 +432,7 @@
 
   /* 标签：等宽、低饱和 */
   .tag {
-    @apply inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-white/5 text-white/60 border border-white/10;
+    @apply inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-muted text-muted-foreground border;
   }
 
   .tag-accent {
@@ -387,7 +441,7 @@
 
   /* 统计块 */
   .stat-card {
-    @apply text-center p-3 bg-white/5 rounded-md border border-white/8;
+    @apply text-center p-3 bg-muted rounded-lg border;
   }
 
   .proxy-group-module-header {
@@ -611,7 +665,7 @@
 @layer utilities {
   /* 文本选择：acid 低透明 */
   ::selection {
-    @apply bg-acid/25 text-white;
+    @apply bg-acid/25 text-foreground;
   }
 
   /* 隐藏滚动条但保持滚动功能 */
@@ -646,5 +700,111 @@
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(237, 238, 230, 0.2);
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--card);
+  --color-sidebar-foreground: var(--gray-11);
+  --color-sidebar-accent: var(--accent);
+  --color-sidebar-accent-foreground: var(--accent-foreground);
+  --color-sidebar-border: var(--border);
+  --color-sidebar-ring: var(--ring);
+  --animate-skeleton: skeleton 2s -1s infinite linear;
+  --animate-toast-success-odd: toast-success-odd 0.32s cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-success-even: toast-success-even 0.32s cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-error-odd: toast-error-odd 0.28s cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-error-even: toast-error-even 0.28s cubic-bezier(0.5, 1, 0.89, 1);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning: var(--warning);
+  --color-success-foreground: var(--success-foreground);
+  --color-success: var(--success);
+  --color-info-foreground: var(--info-foreground);
+  --color-info: var(--info);
+  --color-destructive-foreground: var(--destructive-foreground);
+  @keyframes skeleton {
+  to {
+    background-position: -200% 0;
+    }
+  }
+  @keyframes toast-success-odd {
+  0% {
+    scale: 1;
+    }
+  30% {
+    scale: 1.025;
+    }
+  60% {
+    scale: 0.99;
+    }
+  100% {
+    scale: 1;
+    }
+  }
+  @keyframes toast-error-odd {
+  0% {
+    translate: 0 0;
+    }
+  25% {
+    translate: -3px 0;
+    }
+  50% {
+    translate: 3px 0;
+    }
+  75% {
+    translate: -3px 0;
+    }
+  100% {
+    translate: 0 0;
+    }
+  }
+  @keyframes toast-success-even {
+  0% {
+    scale: 1;
+    }
+  30% {
+    scale: 1.025;
+    }
+  60% {
+    scale: 0.99;
+    }
+  100% {
+    scale: 1;
+    }
+  }
+  @keyframes toast-error-even {
+  0% {
+    translate: 0 0;
+    }
+  25% {
+    translate: -3px 0;
+    }
+  50% {
+    translate: 3px 0;
+    }
+  75% {
+    translate: -3px 0;
+    }
+  100% {
+    translate: 0 0;
+    }
   }
 }

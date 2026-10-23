@@ -59,14 +59,14 @@ vi.mock("lucide-react", () => ({
   Zap: () => React.createElement("span", null, "zap-icon"),
 }));
 
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/card", () => ({
+vi.mock("@subboost/ui/components/coss/compat/card", () => ({
   Card: (props: any) => React.createElement("section", props, props.children),
   CardContent: (props: any) => React.createElement("div", props, props.children),
   CardFooter: (props: any) => React.createElement("footer", props, props.children),
@@ -74,7 +74,7 @@ vi.mock("@subboost/ui/components/ui/card", () => ({
   CardTitle: (props: any) => React.createElement("h2", props, props.children),
 }));
 
-vi.mock("@subboost/ui/components/ui/tabs", () => ({
+vi.mock("@subboost/ui/components/coss/compat/tabs", () => ({
   Tabs: (props: any) => {
     mocks.tabs.push(props);
     return React.createElement("div", { "data-tabs-value": props.value ?? props.defaultValue }, props.children);

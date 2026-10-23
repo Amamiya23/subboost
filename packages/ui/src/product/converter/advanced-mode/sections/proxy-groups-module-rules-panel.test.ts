@@ -47,7 +47,7 @@ vi.mock("react", async (importOriginal) => {
   };
 });
 
-vi.mock("@radix-ui/react-popover", () => ({
+vi.mock("@subboost/ui/components/coss/compat/popover", () => ({
   Root: (props: any) => React.createElement(React.Fragment, null, props.children),
   Trigger: (props: any) => React.createElement(React.Fragment, null, props.children),
   Portal: (props: any) => React.createElement(React.Fragment, null, props.children),
@@ -60,17 +60,17 @@ vi.mock("lucide-react", () => ({
   RotateCcw: () => null,
   Trash2: () => null,
 }));
-vi.mock("@subboost/ui/components/ui/badge", () => ({
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({
   Badge: (props: any) => React.createElement("span", props, props.children),
 }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.captures.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
 vi.mock("@subboost/ui/components/ui/confirm-dialog", () => ({ confirmDialog: mocks.confirmDialog }));
-vi.mock("@subboost/ui/components/ui/switch", () => ({
+vi.mock("@subboost/ui/components/coss/compat/switch", () => ({
   Switch: (props: any) => {
     mocks.captures.switches.push(props);
     return React.createElement("button", { type: "button", "aria-pressed": props.checked });

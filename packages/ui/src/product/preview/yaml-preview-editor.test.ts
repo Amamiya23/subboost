@@ -16,14 +16,14 @@ vi.mock("@subboost/ui/product/preview/diff-highlight", () => ({
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/textarea", () => ({
+vi.mock("@subboost/ui/components/coss/compat/textarea", () => ({
   Textarea: React.forwardRef(function MockTextarea(props: any) {
     mocks.textareas.push(props);
     return React.createElement("textarea", { "data-test": "textarea" }, props.value);
   }),
 }));
 
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.buttons.push(props);
     return React.createElement(

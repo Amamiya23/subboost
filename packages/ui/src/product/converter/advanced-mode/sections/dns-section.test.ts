@@ -21,11 +21,11 @@ vi.mock("@subboost/ui/store/config-store", () => ({
   useConfigStore: () => captures.store,
 }));
 
-vi.mock("@subboost/ui/components/ui/badge", () => ({
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({
   Badge: (props: any) => React.createElement("span", props, props.children),
 }));
 
-vi.mock("@subboost/ui/components/ui/textarea", () => ({
+vi.mock("@subboost/ui/components/coss/compat/textarea", () => ({
   Textarea: (props: any) => {
     captures.textareas.push(props);
     return React.createElement("textarea", props);

@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@subboost/ui/components/ui/dialog";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Switch } from "@subboost/ui/components/ui/switch";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@subboost/ui/components/coss/compat/dialog";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Switch } from "@subboost/ui/components/coss/compat/switch";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { formatNodeNameFromTemplate } from "@subboost/core/node-name-template";
 import { useProductInteractionAdapter } from "@subboost/ui/product/interactions";
 import type { ParsedNode } from "@subboost/core/types/node";
@@ -166,13 +166,13 @@ export function NodeManagementBulkEditDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="text-[11px] text-white/40">
+          <div className="text-[11px] text-muted-foreground">
             仅修改节点名中的 {"{name}"} 部分，不改变导入源 tag；筛选基于完整节点名（含 tag）。
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
-              <div className="text-xs text-white/60">筛选：包含正则（可选）</div>
+              <div className="text-xs text-muted-foreground">筛选：包含正则（可选）</div>
               <Input
                 value={nameRulesInclude}
                 onChange={(e) => setNameRulesInclude(e.target.value)}
@@ -180,11 +180,11 @@ export function NodeManagementBulkEditDialog({
                 className="text-xs font-mono"
               />
               {nameRulesPlan.errors.include && (
-                <div className="text-[10px] text-red-400">{nameRulesPlan.errors.include}</div>
+                <div className="text-[10px] text-destructive-foreground">{nameRulesPlan.errors.include}</div>
               )}
             </div>
             <div className="space-y-1">
-              <div className="text-xs text-white/60">筛选：排除正则（可选）</div>
+              <div className="text-xs text-muted-foreground">筛选：排除正则（可选）</div>
               <Input
                 value={nameRulesExclude}
                 onChange={(e) => setNameRulesExclude(e.target.value)}
@@ -192,20 +192,20 @@ export function NodeManagementBulkEditDialog({
                 className="text-xs font-mono"
               />
               {nameRulesPlan.errors.exclude && (
-                <div className="text-[10px] text-red-400">{nameRulesPlan.errors.exclude}</div>
+                <div className="text-[10px] text-destructive-foreground">{nameRulesPlan.errors.exclude}</div>
               )}
             </div>
           </div>
 
           <div className={listenerPortEnabled ? "grid gap-3 lg:grid-cols-2" : "grid gap-3"}>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
+            <div className="rounded-lg border border-border bg-muted p-3 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-xs text-white/60">批量重命名</div>
-                <div className="shrink-0 text-[10px] text-white/40">将修改 {nameRulesPlan.renames.length}</div>
+                <div className="text-xs text-muted-foreground">批量重命名</div>
+                <div className="shrink-0 text-[10px] text-muted-foreground">将修改 {nameRulesPlan.renames.length}</div>
               </div>
 
               <div className="space-y-1">
-                <div className="text-xs text-white/60">查找（正则，可选）</div>
+                <div className="text-xs text-muted-foreground">查找（正则，可选）</div>
                 <Input
                   value={nameRulesFind}
                   onChange={(e) => setNameRulesFind(e.target.value)}
@@ -213,42 +213,42 @@ export function NodeManagementBulkEditDialog({
                   className="text-xs font-mono"
                 />
                 {nameRulesPlan.errors.find && (
-                  <div className="text-[10px] text-red-400">{nameRulesPlan.errors.find}</div>
+                  <div className="text-[10px] text-destructive-foreground">{nameRulesPlan.errors.find}</div>
                 )}
               </div>
 
               <div className="space-y-1">
-                <div className="text-xs text-white/60">替换为</div>
+                <div className="text-xs text-muted-foreground">替换为</div>
                 <Input
                   value={nameRulesReplace}
                   onChange={(e) => setNameRulesReplace(e.target.value)}
                   placeholder="例如: -"
                   className="text-xs font-mono"
                 />
-                <div className="text-[10px] text-white/40">支持 $1、$2… 分组引用；留空表示删除匹配内容</div>
+                <div className="text-[10px] text-muted-foreground">支持 $1、$2… 分组引用；留空表示删除匹配内容</div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
                   <Switch checked={nameRulesTrim} onCheckedChange={setNameRulesTrim} />
-                  <span className="text-xs text-white/70">去除首尾空格</span>
+                  <span className="text-xs text-muted-foreground">去除首尾空格</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch checked={nameRulesCollapseSpaces} onCheckedChange={setNameRulesCollapseSpaces} />
-                  <span className="text-xs text-white/70">空白归一化</span>
+                  <span className="text-xs text-muted-foreground">空白归一化</span>
                 </div>
               </div>
             </div>
 
             {listenerPortEnabled && (
-              <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
+              <div className="rounded-lg border border-border bg-muted p-3 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="text-xs text-white/60">监听端口批量操作</div>
-                  <div className="shrink-0 text-[10px] text-white/40">对命中节点生效：{nameRulesPlan.matchedCount}</div>
+                  <div className="text-xs text-muted-foreground">监听端口批量操作</div>
+                  <div className="shrink-0 text-[10px] text-muted-foreground">对命中节点生效：{nameRulesPlan.matchedCount}</div>
                 </div>
 
                 <div className="space-y-1">
-                  <div className="text-xs text-white/60">起始监听端口</div>
+                  <div className="text-xs text-muted-foreground">起始监听端口</div>
                   <Input
                     value={nameRulesStartListenerPort}
                     onChange={(e) => setNameRulesStartListenerPort(e.target.value)}
@@ -259,7 +259,7 @@ export function NodeManagementBulkEditDialog({
                 </div>
 
                 <div className="space-y-1">
-                  <div className="text-xs text-white/60">批量操作</div>
+                  <div className="text-xs text-muted-foreground">批量操作</div>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <Button
                       onClick={() => {
@@ -352,7 +352,7 @@ export function NodeManagementBulkEditDialog({
                     </Button>
                   </div>
 
-                  <div className="text-[10px] text-white/40">
+                  <div className="text-[10px] text-muted-foreground">
                     将按当前节点顺序为命中节点填充监听端口：起始监听端口 + 序号
                   </div>
                 </div>
@@ -362,15 +362,15 @@ export function NodeManagementBulkEditDialog({
 
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <div className="text-xs text-white/60">预览</div>
-              <div className="text-[10px] text-white/40">
+              <div className="text-xs text-muted-foreground">预览</div>
+              <div className="text-[10px] text-muted-foreground">
                 匹配 {nameRulesPlan.matchedCount} · 将修改 {nameRulesPlan.renames.length}
                 {nameRulesPlan.skippedCount > 0 ? ` · 跳过 ${nameRulesPlan.skippedCount}` : ""}
               </div>
             </div>
 
             {nameRulesPlan.preview.length === 0 ? (
-              <div className="text-[10px] text-white/40 py-2">
+              <div className="text-[10px] text-muted-foreground py-2">
                 {nameRulesPlan.previewMode === "matched" ? "暂无匹配节点" : "暂无可预览的变更"}
               </div>
             ) : (
@@ -378,21 +378,21 @@ export function NodeManagementBulkEditDialog({
                 {nameRulesPlan.preview.map((item) => (
                   <div
                     key={item.oldName}
-                    className="text-[11px] bg-white/5 rounded border border-white/10 px-2 py-1 space-y-0.5"
+                    className="text-[11px] bg-muted rounded border border-border px-2 py-1 space-y-0.5"
                   >
-                    <div className="text-white/60 truncate" title={item.oldName}>
+                    <div className="text-muted-foreground truncate" title={item.oldName}>
                       {item.oldName}
                     </div>
                     {item.status === "skipped" ? (
-                      <div className="text-amber-200 truncate" title={item.reason || "跳过"}>
+                      <div className="text-warning-foreground truncate" title={item.reason || "跳过"}>
                         {item.reason || "跳过"}
                       </div>
                     ) : item.status === "change" ? (
-                      <div className="text-emerald-200 truncate" title={item.newName}>
+                      <div className="text-success-foreground truncate" title={item.newName}>
                         {item.newName}
                       </div>
                     ) : (
-                      <div className="text-white/30 truncate" title="无变更">
+                      <div className="text-muted-foreground truncate" title="无变更">
                         无变更
                       </div>
                     )}

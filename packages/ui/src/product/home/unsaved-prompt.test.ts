@@ -54,7 +54,7 @@ vi.mock("zustand/react/shallow", () => ({
   useShallow: (selector: unknown) => selector,
 }));
 
-vi.mock("@subboost/ui/components/ui/dialog", () => ({
+vi.mock("@subboost/ui/components/coss/compat/dialog", () => ({
   Dialog: (props: any) => React.createElement("div", { "data-open": props.open }, props.children),
   DialogContent: (props: any) => React.createElement("section", null, props.children),
   DialogDescription: (props: any) => React.createElement("p", null, props.children),
@@ -63,7 +63,7 @@ vi.mock("@subboost/ui/components/ui/dialog", () => ({
   DialogTitle: (props: any) => React.createElement("h2", null, props.children),
 }));
 
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.buttons.push(props);
     return React.createElement("button", props, props.children);

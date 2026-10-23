@@ -14,18 +14,18 @@ vi.mock("lucide-react", () => ({
   Globe: () => React.createElement("span", null, "globe-icon"),
 }));
 
-vi.mock("@subboost/ui/components/ui/badge", () => ({
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({
   Badge: (props: any) => React.createElement("span", props, props.children),
 }));
 
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     captures.inputs.push(props);
     return React.createElement("input", props);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/textarea", () => ({
+vi.mock("@subboost/ui/components/coss/compat/textarea", () => ({
   Textarea: (props: any) => {
     captures.textareas.push(props);
     return React.createElement("textarea", props);
@@ -144,7 +144,7 @@ describe("converter shared sections", () => {
 
     captures.inputs[0].onChange({ target: { value: "日本" } });
     expect(onFilterChange).toHaveBeenCalledWith("日本");
-    expect(html).toContain("bg-green-500/20");
+    expect(html).toContain("bg-success/10");
   });
 
   it("omits filter body and badge when collapsed or empty", () => {

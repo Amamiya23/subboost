@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { Plus, X } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
-import { Button } from "@subboost/ui/components/ui/button";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
-import { Input } from "@subboost/ui/components/ui/input";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { cn } from "@subboost/ui/lib/utils";
 import { PROXY_GROUP_MODULES, generateProxyGroups } from "@subboost/core/generator/proxy-groups";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
@@ -109,7 +109,7 @@ export function toggleValue<T extends string>(list: readonly T[] | undefined, va
 }
 function DragHandle() {
   return (
-    <span className="grid grid-cols-2 gap-0.5 text-white/35">
+    <span className="grid grid-cols-2 gap-0.5 text-muted-foreground">
       {Array.from({ length: 6 }).map((_, index) => (
         <span key={index} className="h-0.5 w-0.5 rounded-full bg-current" />
       ))}
@@ -117,7 +117,7 @@ function DragHandle() {
   );
 }
 
-const ADVANCED_PANEL_TITLE_CLASS = "mb-2 block text-[11px] font-medium text-white/50";
+const ADVANCED_PANEL_TITLE_CLASS = "mb-2 block text-[11px] font-medium text-muted-foreground";
 const ADVANCED_PANEL_TITLE_ROW_CLASS = "mb-2 flex min-h-5 items-center gap-2";
 
 export function ProxyGroupAdvancedPanel({
@@ -411,16 +411,16 @@ export function ProxyGroupAdvancedPanel({
   }, [onChange]);
 
   return (
-    <div className="border-t border-white/10">
+    <div className="border-t border-border">
       <div className="grid gap-0 md:grid-cols-[1fr_1fr_1fr]">
         <div className="p-3">
           <div className={ADVANCED_PANEL_TITLE_CLASS}>导入源</div>
           <div className="max-h-52 space-y-1.5 overflow-y-auto pr-1 custom-scrollbar">
             {sourceOptions.length === 0 ? (
-              <div className="text-[11px] text-white/35">暂无可匹配的导入源</div>
+              <div className="text-[11px] text-muted-foreground">暂无可匹配的导入源</div>
             ) : (
               sourceOptions.map((source) => (
-                <label key={source.id} className="flex min-w-0 items-center gap-2 text-[11px] text-white/65">
+                <label key={source.id} className="flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
                   <input
                     type="checkbox"
                     checked={sourceIds.includes(source.id)}
@@ -432,10 +432,10 @@ export function ProxyGroupAdvancedPanel({
               ))
             )}
           </div>
-          <div className="mt-1 text-[10px] text-white/35">不选择表示匹配所有导入源</div>
+          <div className="mt-1 text-[10px] text-muted-foreground">不选择表示匹配所有导入源</div>
         </div>
 
-        <div className="relative p-3 before:absolute before:bottom-3 before:left-0 before:top-3 before:w-px before:bg-white/10">
+        <div className="relative p-3 before:absolute before:bottom-3 before:left-0 before:top-3 before:w-px before:bg-muted">
           <div className={ADVANCED_PANEL_TITLE_CLASS}>地区</div>
           <div className="flex flex-wrap gap-1.5">
             {REGION_PRESETS.map((region) => {
@@ -448,8 +448,8 @@ export function ProxyGroupAdvancedPanel({
                   className={cn(
                     "rounded border px-2 py-1 text-[10px] transition-colors",
                     active
-                      ? "border-white/20 bg-white/12 text-white/85"
-                      : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10",
+                      ? "border-border bg-muted text-foreground/85"
+                      : "border-border bg-muted text-muted-foreground hover:bg-accent",
                   )}
                 >
                   {region.emoji} {region.label}
@@ -457,17 +457,17 @@ export function ProxyGroupAdvancedPanel({
               );
             })}
           </div>
-          <div className="mt-1 text-[10px] text-white/35">不选择表示匹配所有地区</div>
+          <div className="mt-1 text-[10px] text-muted-foreground">不选择表示匹配所有地区</div>
         </div>
 
-        <div className="relative space-y-3 p-3 before:absolute before:bottom-3 before:left-0 before:top-3 before:w-px before:bg-white/10">
+        <div className="relative space-y-3 p-3 before:absolute before:bottom-3 before:left-0 before:top-3 before:w-px before:bg-muted">
           <label className="block">
             <span className={ADVANCED_PANEL_TITLE_CLASS}>包含正则（可选）</span>
             <Input
               value={advanced.includeRegex ?? ""}
               onChange={(event) => onChange({ includeRegex: event.target.value })}
               placeholder="例如: IEPL|专线|家宽"
-              className="h-8 border-white/10 bg-white/5 text-xs"
+              className="h-8 border-border bg-muted text-xs"
             />
           </label>
           <label className="block">
@@ -476,13 +476,13 @@ export function ProxyGroupAdvancedPanel({
               value={advanced.excludeRegex ?? ""}
               onChange={(event) => onChange({ excludeRegex: event.target.value })}
               placeholder="例如: 测试|过期"
-              className="h-8 border-white/10 bg-white/5 text-xs"
+              className="h-8 border-border bg-muted text-xs"
             />
           </label>
         </div>
       </div>
 
-      <div className="mx-3 h-px bg-white/10" />
+      <div className="mx-3 h-px bg-muted" />
 
       <div className="p-3">
         <ProxyGroupMemberSectionHeader
@@ -497,7 +497,7 @@ export function ProxyGroupAdvancedPanel({
           restoreDisabled={!hasMemberOverrides}
         />
         {includedMembers.length === 0 ? (
-          <div className="rounded border border-white/10 bg-white/[0.03] px-3 py-3 text-[11px] text-white/35">
+          <div className="rounded border border-border bg-muted px-3 py-3 text-[11px] text-muted-foreground">
             暂无已启用成员
           </div>
         ) : (
@@ -514,7 +514,7 @@ export function ProxyGroupAdvancedPanel({
                 }}
                 onDragEnd={() => setDraggingKey(null)}
                 className={cn(
-                  "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs",
+                  "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded border border-border bg-muted/[0.04] px-2 py-1.5 text-xs",
                   draggingKey === member.key && "opacity-50",
                 )}
               >
@@ -522,16 +522,16 @@ export function ProxyGroupAdvancedPanel({
                   <DragHandle />
                 </span>
                 <div className="min-w-0">
-                  <div className="truncate text-white/75" title={memberLabel(member)}>
+                  <div className="truncate text-muted-foreground" title={memberLabel(member)}>
                     {memberLabel(member)}
                   </div>
-                  <div className="text-[10px] text-white/35">{memberKindLabel(member)}</div>
+                  <div className="text-[10px] text-muted-foreground">{memberKindLabel(member)}</div>
                 </div>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 text-white/35 hover:text-red-300"
+                  className="h-7 px-2 text-muted-foreground hover:text-destructive-foreground"
                   title="排除"
                   onClick={() => disableMember(member)}
                 >
@@ -553,7 +553,7 @@ export function ProxyGroupAdvancedPanel({
             proxyGroupActionDisabled={excludedProxyGroupMembers.length === 0}
           />
           {excludedMembers.length === 0 ? (
-            <div className="text-[11px] text-white/35">暂无未启用成员</div>
+            <div className="text-[11px] text-muted-foreground">暂无未启用成员</div>
           ) : (
             <div className="max-h-52 overflow-y-auto pr-1 custom-scrollbar flex flex-wrap gap-1.5">
               {excludedMembers.map((member) => {
@@ -561,7 +561,7 @@ export function ProxyGroupAdvancedPanel({
                   <button
                     key={member.key}
                     type="button"
-                    className="inline-flex max-w-full items-center gap-1 rounded border border-white/10 bg-white/5 px-2 py-1 text-[10px] text-white/55 transition-colors hover:border-emerald-400/30 hover:bg-emerald-500/10 hover:text-emerald-100"
+                    className="inline-flex max-w-full items-center gap-1 rounded border border-border bg-muted px-2 py-1 text-[10px] text-muted-foreground transition-colors hover:border-success/30 hover:bg-success/10 hover:text-success-foreground"
                     title={memberLabel(member)}
                     onClick={() => enableMember(member)}
                   >
@@ -575,18 +575,18 @@ export function ProxyGroupAdvancedPanel({
         </div>
       </div>
 
-      <div className="mx-3 h-px bg-white/10" />
+      <div className="mx-3 h-px bg-muted" />
 
       <div className="p-3">
         <div className={ADVANCED_PANEL_TITLE_ROW_CLASS}>
-          <div className="text-[11px] font-medium text-white/50">分流规则</div>
-          <Badge variant="outline" className="ml-auto border-white/10 bg-white/5 text-[10px] text-white/45">
+          <div className="text-[11px] font-medium text-muted-foreground">分流规则</div>
+          <Badge variant="outline" className="ml-auto border-border bg-muted text-[10px] text-muted-foreground">
             {rulesCount} 条
           </Badge>
         </div>
         {rulesContent}
         {rulesCount === 0 && (
-          <div className="rounded border border-white/10 bg-white/[0.03] px-3 py-3 text-center text-[11px] text-white/35">
+          <div className="rounded border border-border bg-muted px-3 py-3 text-center text-[11px] text-muted-foreground">
             还没有分流规则
           </div>
         )}

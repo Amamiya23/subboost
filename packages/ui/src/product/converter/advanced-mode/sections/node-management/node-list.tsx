@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { Check, ChevronDown, ChevronUp, Pencil, RotateCcw, Trash2, X } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
-import { Input } from "@subboost/ui/components/ui/input";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
+import { Input } from "@subboost/ui/components/coss/compat/input";
 import { ProtocolBadge } from "@subboost/ui/components/ui/protocol-badge";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { formatNodeNameFromTemplate } from "@subboost/core/node-name-template";
 import { cn } from "@subboost/ui/lib/utils";
 import type { ParsedNode } from "@subboost/core/types/node";
@@ -80,9 +80,9 @@ export function NodeManagementNodeList({
   return (
     <>
           {nodes.length === 0 && deletedMarkedNodes.length === 0 ? (
-            <div className="text-xs text-white/40 py-4 text-center">请先在上方导入节点</div>
+            <div className="text-xs text-muted-foreground py-4 text-center">请先在上方导入节点</div>
           ) : nodeSearchKeyword.trim() && visibleNodes.length === 0 && visibleDeletedMarkedNodes.length === 0 ? (
-            <div className="text-xs text-white/40 py-4 text-center">未找到匹配节点</div>
+            <div className="text-xs text-muted-foreground py-4 text-center">未找到匹配节点</div>
           ) : (
             <div className={NODE_LIST_HEIGHT_CLASS}>
               {visibleNodes.map((node) => {
@@ -117,14 +117,14 @@ export function NodeManagementNodeList({
                 return (
                   <div
                     key={node.name}
-                    className="flex items-center gap-2 text-xs bg-white/5 rounded px-2 py-1.5 group"
+                    className="flex items-center gap-2 text-xs bg-muted rounded px-2 py-1.5 group"
                   >
                     {editingNodeName === node.name ? (
                       <>
                         <ProtocolBadge type={node.type} />
                         {primaryTag && (
                           <span
-                            className="px-1.5 py-0.5 rounded bg-white/12 text-white/80 text-[10px] border border-white/15"
+                            className="px-1.5 py-0.5 rounded bg-muted text-foreground/85 text-[10px] border border-border"
                             title={`导入源 tag：${primaryTag}（不可在节点管理修改）`}
                           >
                             {primaryTag}
@@ -141,7 +141,7 @@ export function NodeManagementNodeList({
                               setEditingNodeName(null);
                             }
                           }}
-                          className="flex-1 h-6 text-xs bg-white/10"
+                          className="flex-1 h-6 text-xs bg-muted"
                           autoFocus
                         />
                         <button
@@ -149,14 +149,14 @@ export function NodeManagementNodeList({
                             commitRename();
                             setEditingNodeName(null);
                           }}
-                          className="p-1 text-green-400 hover:text-green-300"
+                          className="p-1 text-success-foreground hover:text-success-foreground"
                           title="保存"
                         >
                           <Check className="h-3 w-3" />
                         </button>
                         <button
                           onClick={() => setEditingNodeName(null)}
-                          className="p-1 text-white/30 hover:text-white/50"
+                          className="p-1 text-muted-foreground hover:text-foreground"
                           title="取消"
                         >
                           <X className="h-3 w-3" />
@@ -168,19 +168,19 @@ export function NodeManagementNodeList({
                         <span className="flex-1 min-w-0 flex items-center gap-1">
                           {primaryTag && (
                             <span
-                              className="px-1.5 py-0.5 rounded bg-white/12 text-white/80 text-[10px] border border-white/15"
+                              className="px-1.5 py-0.5 rounded bg-muted text-foreground/85 text-[10px] border border-border"
                               title={`导入源 tag：${primaryTag}（不可在节点管理修改）`}
                             >
                               {primaryTag}
                             </span>
                           )}
-                          <span className="text-white truncate" title={node.name}>
+                          <span className="text-foreground truncate" title={node.name}>
                             {parts.canEditBase ? parts.baseName : node.name}
                           </span>
                           {isRenamed && (
                             <button
                               onClick={() => restoreNodeName(node.name)}
-                              className="p-0.5 text-white/30 hover:text-amber-400 transition-colors"
+                              className="p-0.5 text-muted-foreground hover:text-warning-foreground transition-colors"
                               title={`恢复原名: ${originName}`}
                             >
                               <RotateCcw className="h-2.5 w-2.5" />
@@ -189,7 +189,7 @@ export function NodeManagementNodeList({
                         </span>
                         {isListenerPortVisible && (
                           <>
-                            <span className="text-[10px] text-white/40 whitespace-nowrap">监听端口:</span>
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap">监听端口:</span>
                             <Input
                               value={
                                 Object.prototype.hasOwnProperty.call(listenerPortDrafts, node.name)
@@ -227,13 +227,13 @@ export function NodeManagementNodeList({
                               placeholder="-"
                               title={listenerPortErrors[node.name] || "为该节点生成 listeners（mixed）本地监听端口"}
                               className={cn(
-                                "h-6 w-16 md:w-[4.5rem] text-[10px] bg-white/10 border-white/10 text-center",
-                                listenerPortErrors[node.name] && "border-red-500/30 focus:border-red-500/50"
+                                "h-6 w-16 md:w-[4.5rem] text-[10px] bg-muted border-border text-center",
+                                listenerPortErrors[node.name] && "border-destructive/30 focus:border-destructive/30"
                               )}
                             />
                           </>
                         )}
-                        <span className="text-[10px] text-white/40 whitespace-nowrap">顺序:</span>
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">顺序:</span>
                         <div className="flex items-center gap-0.5">
                           <Input
                             value={
@@ -268,13 +268,13 @@ export function NodeManagementNodeList({
                             }}
                             inputMode="numeric"
                             title="排序位置（1=最前）"
-                            className="h-6 w-10 text-[10px] bg-white/10 border-white/10 text-center px-1"
+                            className="h-6 w-10 text-[10px] bg-muted border-border text-center px-1"
                           />
                           <div className="flex flex-col">
                             <button
                               onClick={() => moveNode(node.name, "up")}
                               disabled={(nodeIndexByName.get(node.name) ?? 0) <= 0}
-                              className="h-3 w-4 flex items-center justify-center text-white/30 hover:text-white/70 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                              className="h-3 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                               title="上移"
                             >
                               <ChevronUp className="h-2.5 w-2.5" />
@@ -282,7 +282,7 @@ export function NodeManagementNodeList({
                             <button
                               onClick={() => moveNode(node.name, "down")}
                               disabled={(nodeIndexByName.get(node.name) ?? 0) >= nodes.length - 1}
-                              className="h-3 w-4 flex items-center justify-center text-white/30 hover:text-white/70 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                              className="h-3 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                               title="下移"
                             >
                               <ChevronDown className="h-2.5 w-2.5" />
@@ -303,14 +303,14 @@ export function NodeManagementNodeList({
                             setEditingNodeName(node.name);
                             setEditNodeValue(parts.baseName);
                           }}
-                          className="p-1 text-white/50 hover:text-white/65 transition-colors"
+                          className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                           title="重命名"
                         >
                           <Pencil className="h-3 w-3" />
                         </button>
                         <button
                           onClick={() => removeNode(node.name)}
-                          className="p-1 text-white/50 hover:text-red-400 transition-colors"
+                          className="p-1 text-muted-foreground hover:text-destructive-foreground transition-colors"
                           title="删除"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -324,43 +324,43 @@ export function NodeManagementNodeList({
               {visibleDeletedMarkedNodes.length > 0 && (
                 <details
                   className={cn(
-                    "pt-2 mt-2 border-t border-white/10",
+                    "pt-2 mt-2 border-t border-border",
                     visibleNodes.length === 0 && "pt-0 mt-0 border-t-0"
                   )}
                 >
-                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded text-sm text-white/60 hover:text-white/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acid [&::-webkit-details-marker]:hidden">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded text-sm text-muted-foreground hover:text-foreground/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acid [&::-webkit-details-marker]:hidden">
                     <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
                     已删除节点（{visibleDeletedMarkedNodes.length}）
                   </summary>
-                  <p className="mb-2 text-xs leading-relaxed text-white/50">
+                  <p className="mb-2 text-xs leading-relaxed text-muted-foreground">
                     不会生成到配置；点击“恢复”可立即恢复。缺少来源信息时可能需要重新导入。
                   </p>
                   <div className="space-y-1">
                     {visibleDeletedMarkedNodes.map(({ originName, name }) => (
                       <div
                         key={`deleted:${originName}`}
-                        className="flex items-center gap-2 text-xs bg-red-500/10 border border-red-500/20 rounded px-2 py-1.5"
+                        className="flex items-center gap-2 text-xs bg-destructive/10 border border-destructive/30 rounded px-2 py-1.5"
                       >
-                        <span className="text-red-400 text-[10px] w-4">DEL</span>
+                        <span className="text-destructive-foreground text-[10px] w-4">DEL</span>
                         <div className="flex-1 min-w-0">
-                          <div className="text-white/50 line-through truncate" title={name}>
+                          <div className="text-muted-foreground line-through truncate" title={name}>
                             {name}
                           </div>
                           {originName !== name && (
-                            <div className="text-[10px] text-white/30 truncate" title={`源名: ${originName}`}>
+                            <div className="text-[10px] text-muted-foreground truncate" title={`源名: ${originName}`}>
                               源名: {originName}
                             </div>
                           )}
                         </div>
                         <Badge
                           variant="outline"
-                          className="h-5 px-2 text-[10px] font-medium border-red-500/50 bg-red-500/10 text-red-300"
+                          className="h-5 px-2 text-[10px] font-medium border-destructive/30 bg-destructive/10 text-destructive-foreground"
                         >
                           已删除
                         </Badge>
                         <button
                           onClick={() => restoreDeletedNode(originName)}
-                          className="p-1 text-white/30 hover:text-white/60"
+                          className="p-1 text-muted-foreground hover:text-foreground"
                           title="恢复"
                         >
                           <RotateCcw className="h-3 w-3" />

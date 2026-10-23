@@ -1,7 +1,7 @@
 "use client";
 
 import { QrCode } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@subboost/ui/components/ui/dialog";
+} from "@subboost/ui/components/coss/compat/dialog";
 import { SubscriptionQrCode } from "./subscription-qr-code";
 
 export function SubscriptionQrCodeDialog({
@@ -33,10 +33,10 @@ export function SubscriptionQrCodeDialog({
           二维码
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[calc(100%_-_2rem)] border-[var(--gray-6)] bg-[var(--gray-2)] text-[var(--gray-12)] sm:max-w-sm">
+      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="break-words text-[var(--gray-12)]">{subscriptionName}</DialogTitle>
-          <DialogDescription className="text-[var(--gray-11)]">使用其他设备的客户端扫码导入</DialogDescription>
+          <DialogTitle className="break-words">{subscriptionName}</DialogTitle>
+          <DialogDescription>使用其他设备的客户端扫码导入</DialogDescription>
         </DialogHeader>
         <SubscriptionQrCode subscriptionUrl={subscriptionUrl} />
       </DialogContent>

@@ -34,8 +34,10 @@ vi.mock("lucide-react", () => ({
   Library: () => React.createElement("span", null, "Library"),
   LogIn: () => React.createElement("span", null, "LogIn"),
   Menu: () => React.createElement("span", null, "Menu"),
+  Moon: () => React.createElement("span", null, "Moon"),
   Settings2: () => React.createElement("span", null, "Settings2"),
   Shield: () => React.createElement("span", null, "Shield"),
+  Sun: () => React.createElement("span", null, "Sun"),
   User: () => React.createElement("span", null, "User"),
   X: () => React.createElement("span", null, "X"),
 }));
@@ -44,7 +46,7 @@ vi.mock("react-remove-scroll-bar", () => ({
   zeroRightClassName: "zero-right",
 }));
 
-vi.mock("@subboost/ui/components/auth/user-menu", () => ({
+vi.mock("@subboost/ui/components/auth/user-menu-coss", () => ({
   UserMenu: mocks.userMenu,
 }));
 

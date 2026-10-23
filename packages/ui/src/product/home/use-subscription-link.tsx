@@ -3,7 +3,7 @@
 import * as React from "react";
 import { getConfigSnapshot } from "./config-save-state";
 import { computeGeneratedYaml } from "@subboost/ui/store/config-store/generated-yaml";
-import { toast, ToastAction } from "@subboost/ui/components/ui/toaster";
+import { toast, ToastAction } from "@subboost/ui/components/coss/compat/toaster";
 import type { ParsedNode } from "@subboost/core/types/node";
 import {
   getNodeSourceIds,

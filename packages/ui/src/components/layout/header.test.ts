@@ -56,13 +56,15 @@ vi.mock("lucide-react", () => ({
   Library: () => React.createElement("span", null, "library-icon"),
   HelpCircle: () => React.createElement("span", null, "help-icon"),
   Menu: () => React.createElement("span", null, "menu-icon"),
+  Moon: () => React.createElement("span", null, "moon-icon"),
   Settings2: () => React.createElement("span", null, "settings-icon"),
   X: () => React.createElement("span", null, "x-icon"),
   LogIn: () => React.createElement("span", null, "login-icon"),
   Shield: () => React.createElement("span", null, "shield-icon"),
+  Sun: () => React.createElement("span", null, "sun-icon"),
 }));
 
-vi.mock("@subboost/ui/components/auth/user-menu", async () => {
+vi.mock("@subboost/ui/components/auth/user-menu-coss", async () => {
   const ReactModule = await import("react");
   return {
     UserMenu: (props: any) => {

@@ -30,14 +30,14 @@ vi.mock("lucide-react", () => ({
   Shuffle: () => null,
 }));
 
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.buttons.push(props);
     return props.children;
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/dropdown-menu", () => ({
+vi.mock("@subboost/ui/components/coss/compat/dropdown-menu", () => ({
   DropdownMenu: (props: any) => props.children,
   DropdownMenuContent: (props: any) => props.children,
   DropdownMenuItem: (props: any) => {
@@ -47,7 +47,7 @@ vi.mock("@subboost/ui/components/ui/dropdown-menu", () => ({
   DropdownMenuTrigger: (props: any) => props.children,
 }));
 
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.inputs.push(props);
     return null;

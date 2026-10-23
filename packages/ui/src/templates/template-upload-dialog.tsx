@@ -1,7 +1,7 @@
 "use client";
 
 import { Globe, Loader2, Lock, Upload } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +9,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@subboost/ui/components/ui/dialog";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Textarea } from "@subboost/ui/components/ui/textarea";
+} from "@subboost/ui/components/coss/compat/dialog";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Textarea } from "@subboost/ui/components/coss/compat/textarea";
 import { cn } from "@subboost/ui/lib/utils";
 
 type UploadMode = "config" | "yaml";
@@ -121,19 +121,19 @@ export function TemplateUploadDialog({
               </Button>
             </div>
             {mode === "config" ? (
-              <p className="text-xs text-white/50">
+              <p className="text-xs text-muted-foreground">
                 将保存你当前的配置器设置（模板/分组/规则/DNS/自定义分流/中转等），不包含节点，可直接“使用”应用到配置器。
               </p>
             ) : (
-              <p className="text-xs text-white/50">YAML 模板上传开发中。</p>
+              <p className="text-xs text-muted-foreground">YAML 模板上传开发中。</p>
             )}
           </div>
 
           {userIsAdmin && (
-            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted border border-border">
               <div className="min-w-0">
                 <div className="text-sm font-medium">作为默认模板</div>
-                <div className="text-xs text-white/50">
+                <div className="text-xs text-muted-foreground">
                   开启后将发布到“默认模板”（公开）
                 </div>
               </div>
@@ -150,12 +150,12 @@ export function TemplateUploadDialog({
                 }}
                 className={cn(
                   "relative w-10 h-5 rounded-full transition-colors flex-shrink-0",
-                  asDefault ? "bg-primary-500" : "bg-white/20"
+                  asDefault ? "bg-primary-500" : "bg-muted"
                 )}
               >
                 <span
                   className={cn(
-                    "absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200",
+                    "absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-muted shadow transition-all duration-200",
                     asDefault && "translate-x-5"
                   )}
                 />
@@ -172,23 +172,23 @@ export function TemplateUploadDialog({
                 onChange={(event) => onYamlContentChange(event.target.value)}
                 className="min-h-[150px] font-mono text-xs"
               />
-              <p className="text-xs text-white/50">
+              <p className="text-xs text-muted-foreground">
                 注意：系统会自动移除实际节点信息，只保留配置结构
               </p>
             </div>
           )}
 
           {showVisibilityControls && (
-            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted border border-border">
               <div className="flex items-center gap-2">
                 {asDefault || isPublic ? (
-                  <Globe className="h-4 w-4 text-green-400" />
+                  <Globe className="h-4 w-4 text-success-foreground" />
                 ) : (
-                  <Lock className="h-4 w-4 text-white/50" />
+                  <Lock className="h-4 w-4 text-muted-foreground" />
                 )}
                 <div>
                   <div className="text-sm font-medium">{visibilityLabel}</div>
-                  <div className="text-xs text-white/50">{visibilityDescription}</div>
+                  <div className="text-xs text-muted-foreground">{visibilityDescription}</div>
                 </div>
               </div>
               <button
@@ -199,15 +199,15 @@ export function TemplateUploadDialog({
                 className={cn(
                   "relative w-10 h-5 rounded-full transition-colors flex-shrink-0",
                   asDefault
-                    ? "bg-green-500 opacity-60 cursor-not-allowed"
+                    ? "bg-success/10 opacity-60 cursor-not-allowed"
                     : isPublic
-                      ? "bg-green-500"
-                      : "bg-white/20"
+                      ? "bg-success/10"
+                      : "bg-muted"
                 )}
               >
                 <span
                   className={cn(
-                    "absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200",
+                    "absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-muted shadow transition-all duration-200",
                     (asDefault || isPublic) && "translate-x-5"
                   )}
                 />

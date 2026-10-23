@@ -2,17 +2,17 @@
 
 import * as React from "react";
 import { ChevronDown, ChevronRight, RotateCcw } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
-import { Switch } from "@subboost/ui/components/ui/switch";
+import { Switch } from "@subboost/ui/components/coss/compat/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@subboost/ui/components/ui/dropdown-menu";
-import { toast } from "@subboost/ui/components/ui/toaster";
+} from "@subboost/ui/components/coss/compat/dropdown-menu";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import {
   DEFAULT_LOAD_BALANCE_STRATEGY,
   type ProxyGroupGroupType,
@@ -37,7 +37,7 @@ import { ProxyGroupAdvancedPanel } from "./proxy-group-advanced-panel";
 import { ProxyGroupsModuleCard } from "./proxy-groups-module-card";
 
 const PROXY_GROUP_SECTION_LABEL_ROW_CLASS = "flex min-h-7 items-center gap-2";
-const PROXY_GROUP_SECTION_LABEL_CLASS = "text-xs text-white/50";
+const PROXY_GROUP_SECTION_LABEL_CLASS = "text-xs text-muted-foreground";
 const CUSTOM_CATEGORY_ID = "custom";
 
 export function ProxyGroupsCategories() {
@@ -244,7 +244,7 @@ export function ProxyGroupsCategories() {
             <label className={PROXY_GROUP_SECTION_LABEL_CLASS}>规则集 URL</label>
           </div>
           <div
-            className="min-w-0 rounded-md border border-white/10 bg-white/5 px-3 py-2 font-mono text-xs text-white/65"
+            className="min-w-0 rounded-md border border-border bg-muted px-3 py-2 font-mono text-xs text-muted-foreground"
             title={ruleProviderBaseUrl}
           >
             <span className="block truncate">{ruleProviderBaseUrl}</span>
@@ -252,10 +252,10 @@ export function ProxyGroupsCategories() {
         </div>
         <div className="min-w-0 space-y-1">
           <div className={PROXY_GROUP_SECTION_LABEL_ROW_CLASS}>
-            <label className="text-xs text-amber-300">高级模式</label>
+            <label className="text-xs text-warning-foreground">高级模式</label>
           </div>
-          <div className="flex h-9 w-full items-center justify-center gap-1 rounded-md border border-white/10 bg-white/5 px-2">
-            <span className="text-[10px] text-white/65">
+          <div className="flex h-9 w-full items-center justify-center gap-1 rounded-md border border-border bg-muted px-2">
+            <span className="text-[10px] text-muted-foreground">
               {proxyGroupAdvancedModeEnabled ? "已开启" : "未开启"}
             </span>
             <Switch checked={proxyGroupAdvancedModeEnabled} onCheckedChange={setProxyGroupAdvancedModeEnabled} />
@@ -267,7 +267,7 @@ export function ProxyGroupsCategories() {
         <div className={PROXY_GROUP_SECTION_LABEL_ROW_CLASS}>
           <label className={PROXY_GROUP_SECTION_LABEL_CLASS}>分流规则组</label>
           <label
-            className="ml-auto inline-flex items-center gap-1.5 text-[10px] text-white/60"
+            className="ml-auto inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"
             title="控制生成订阅中代理组名称开头的 emoji；开启后恢复原来的 emoji"
           >
             组名 emoji
@@ -282,7 +282,7 @@ export function ProxyGroupsCategories() {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="inline-flex h-6 items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 text-[10px] text-white/60 transition-colors hover:bg-white/10 hover:text-white/85"
+                  className="inline-flex h-6 items-center gap-1 rounded-md border border-border bg-muted px-2 text-[10px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground/85"
                   title="恢复隐藏分组"
                 >
                   <RotateCcw className="h-3 w-3" />
@@ -325,18 +325,18 @@ export function ProxyGroupsCategories() {
               return (
                 <div
                   key={categoryId}
-                  className="border border-white/10 rounded-lg overflow-hidden"
+                  className="border border-border rounded-lg overflow-hidden"
                 >
                   <button
                     onClick={() => toggleCategory(categoryId)}
-                    className="w-full flex items-center gap-2 px-2 py-1.5 bg-white/5 hover:bg-white/10 transition-colors"
+                    className="w-full flex items-center gap-2 px-2 py-1.5 bg-muted hover:bg-accent transition-colors"
                   >
                     {expandedCategories.has(categoryId) ? (
-                      <ChevronDown className="h-3.5 w-3.5 text-white/50" />
+                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                     ) : (
-                      <ChevronRight className="h-3.5 w-3.5 text-white/50" />
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
                     )}
-                    <span className="text-xs text-white font-medium">
+                    <span className="text-xs text-foreground font-medium">
                       {categoryInfo.name}
                     </span>
                     <Badge variant="secondary" className="ml-auto text-[10px]">
@@ -382,14 +382,14 @@ export function ProxyGroupsCategories() {
                                     title: `确认删除「${display.full}」？`,
                                     description: (
                                       <span className="block pt-2">
-                                        <span className="block rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
-                                          <span className="font-medium text-amber-200">
+                                        <span className="block rounded-md border border-warning/30 bg-warning/10 px-3 py-2 leading-6 text-warning-foreground">
+                                          <span className="font-medium text-warning-foreground">
                                             警告：
                                           </span>
                                           「{display.full}
                                           」属于核心分流组。删除后会从列表隐藏，并从生成配置中移除，可能导致生成的订阅不可用或分流异常。
                                         </span>
-                                        <span className="mt-3 block leading-6 text-white/65">
+                                        <span className="mt-3 block leading-6 text-muted-foreground">
                                           之后可以通过“已隐藏”菜单恢复该分组。
                                         </span>
                                       </span>
@@ -455,14 +455,14 @@ export function ProxyGroupsCategories() {
                               title: `确认关闭「${display.full}」？`,
                               description: (
                                 <span className="block pt-2">
-                                  <span className="block rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
-                                    <span className="font-medium text-amber-200">
+                                  <span className="block rounded-md border border-warning/30 bg-warning/10 px-3 py-2 leading-6 text-warning-foreground">
+                                    <span className="font-medium text-warning-foreground">
                                       警告：
                                     </span>
                                     「{display.full}
                                     」属于核心分流组。关闭后，生成的订阅可能无法正常使用，或出现分流异常。
                                   </span>
-                                  <span className="mt-3 block leading-6 text-white/65">
+                                  <span className="mt-3 block leading-6 text-muted-foreground">
                                     除非你打算之后手动修改配置文件，否则不建议取消勾选。
                                   </span>
                                 </span>

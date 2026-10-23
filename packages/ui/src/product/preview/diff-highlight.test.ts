@@ -101,16 +101,16 @@ describe("YamlHighlight", () => {
     });
 
     const html = collectHtml(rendered).join("\n");
-    expect(html).toContain("text-white/50");
-    expect(html).toContain("text-green-400");
+    expect(html).toContain("text-muted-foreground");
+    expect(html).toContain("text-success-foreground");
     expect(html).toContain("text-orange-400");
-    expect(html).toContain("text-emerald-400");
-    expect(html).toContain("text-red-400");
+    expect(html).toContain("text-success-foreground");
+    expect(html).toContain("text-destructive-foreground");
     expect(html).toContain("text-pink-400");
-    expect(html).toContain("text-sky-400");
+    expect(html).toContain("text-info-foreground");
     expect(html).toContain("&lt;tag&gt;&amp;&quot;&#039;");
-    expect(html).toContain("text-amber-400 font-medium");
-    expect(html).toContain("text-rose-400 font-medium");
+    expect(html).toContain("text-warning-foreground font-medium");
+    expect(html).toContain("text-destructive-foreground font-medium");
   });
 
   it("switches very large YAML content to plain mode", () => {

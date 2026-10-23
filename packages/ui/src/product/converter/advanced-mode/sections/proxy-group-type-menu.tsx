@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Check, ChevronDown } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@subboost/ui/components/ui/dropdown-menu";
+} from "@subboost/ui/components/coss/compat/dropdown-menu";
 import { cn } from "@subboost/ui/lib/utils";
 import {
   DEFAULT_LOAD_BALANCE_STRATEGY,
@@ -52,8 +52,8 @@ const NORMAL_TYPE_OPTIONS: Array<{ value: Exclude<ProxyGroupTypeMenuValue, "load
 ];
 
 const menuContentClassName =
-  "min-w-[var(--radix-dropdown-menu-trigger-width)] rounded-md border-white/10 bg-[#1a1a1a] text-white shadow-md";
-const menuItemClassName = "gap-2 text-xs text-white/80 focus:bg-white/10 focus:text-white";
+  "min-w-[var(--radix-dropdown-menu-trigger-width)] rounded-md border-border bg-card text-foreground shadow-md";
+const menuItemClassName = "gap-2 text-xs text-foreground/85 focus:bg-muted focus:text-foreground";
 
 export function getProxyGroupTypeLabel(groupType?: string) {
   switch (groupType) {
@@ -110,12 +110,12 @@ export function ProxyGroupTypeMenu({
             variant="outline"
             size="sm"
             className={cn(
-              "h-8 w-full justify-between rounded-md border-white/10 bg-white/10 px-3 text-xs font-normal text-white hover:bg-white/10",
+              "h-8 w-full justify-between rounded-md border-border bg-muted px-3 text-xs font-normal text-foreground hover:bg-accent",
               triggerClassName
             )}
           >
             <span className="truncate">{triggerLabel}</span>
-            <ChevronDown className="h-3.5 w-3.5 text-white/50" />
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
         )}
       </DropdownMenuTrigger>
@@ -168,7 +168,7 @@ export function ProxyGroupTypeMenu({
 function SelectionMark({ selected }: { selected: boolean }) {
   return (
     <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
-      {selected && <Check className="h-3.5 w-3.5 text-white/70" />}
+      {selected && <Check className="h-3.5 w-3.5 text-muted-foreground" />}
     </span>
   );
 }

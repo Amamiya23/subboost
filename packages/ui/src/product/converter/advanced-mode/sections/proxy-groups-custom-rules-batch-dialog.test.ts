@@ -46,13 +46,13 @@ vi.mock("lucide-react", () => ({
   ArrowRight: () => React.createElement("span", null, "arrow-icon"),
   Upload: () => React.createElement("span", null, "upload-icon"),
 }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
-vi.mock("@subboost/ui/components/ui/dialog", () => ({
+vi.mock("@subboost/ui/components/coss/compat/dialog", () => ({
   Dialog: (props: any) => {
     mocks.dialogs.push(props);
     return React.createElement("div", null, props.children);
@@ -61,13 +61,13 @@ vi.mock("@subboost/ui/components/ui/dialog", () => ({
   DialogHeader: (props: any) => React.createElement("header", props, props.children),
   DialogTitle: (props: any) => React.createElement("h2", props, props.children),
 }));
-vi.mock("@subboost/ui/components/ui/textarea", () => ({
+vi.mock("@subboost/ui/components/coss/compat/textarea", () => ({
   Textarea: (props: any) => {
     mocks.textareas.push(props);
     return React.createElement("textarea", props);
   },
 }));
-vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({ toast: mocks.toast }));
 vi.mock("@subboost/ui/product/interactions", () => ({
   useProductInteractionAdapter: () => mocks.interactions,
 }));

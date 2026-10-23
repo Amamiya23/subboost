@@ -51,7 +51,7 @@ vi.mock("@subboost/ui/store/config-store", () => ({
   useConfigStore: mocks.useConfigStore,
 }));
 
-vi.mock("@subboost/ui/components/ui/toaster", () => ({
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({
   toast: mocks.toast,
 }));
 

@@ -63,7 +63,7 @@ vi.mock("react/jsx-runtime", () => ({
   jsxs: (type: unknown, props: Record<string, unknown>) => ({ type, props }),
 }));
 
-vi.mock("@subboost/ui/components/ui/toaster", () => ({
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({
   ToastAction: "ToastAction",
   toast: mocks.toast,
 }));

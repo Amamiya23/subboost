@@ -43,39 +43,39 @@ export function CustomRulesPreview({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 text-xs font-medium text-white/60">
+      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
         <Shield className="h-3.5 w-3.5" />
         <span>自定义规则</span>
-        <span className="text-[10px] text-white/50">
+        <span className="text-[10px] text-muted-foreground">
           ({items.length})
         </span>
       </div>
-      <div className="space-y-1 rounded-lg border border-white/10 bg-white/[0.04] p-2">
+      <div className="space-y-1 rounded-lg border border-border bg-muted/[0.04] p-2">
         {items.slice(0, 10).map((rule, idx) => (
           <div
             key={rule.key}
-            className="flex min-w-0 flex-wrap items-center gap-1 rounded-md bg-white/[0.04] px-2 py-1 text-[10px]"
+            className="flex min-w-0 flex-wrap items-center gap-1 rounded-md bg-muted/[0.04] px-2 py-1 text-[10px]"
           >
-            <span className="w-5 shrink-0 tabular-nums text-white/40">
+            <span className="w-5 shrink-0 tabular-nums text-muted-foreground">
               {idx + 1}.
             </span>
-            <span className="rounded border border-white/15 bg-white/8 px-1.5 py-0.5 font-medium text-white/80">
+            <span className="rounded border border-border bg-muted px-1.5 py-0.5 font-medium text-foreground/85">
               {rule.type}
             </span>
             <span
-              className="min-w-0 max-w-[14rem] truncate text-white/70"
+              className="min-w-0 max-w-[14rem] truncate text-muted-foreground"
               title={rule.title}
             >
               {rule.value}
             </span>
             {rule.noResolve && (
-              <span className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-white/45">
+              <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-muted-foreground">
                 no-resolve
               </span>
             )}
-            <ArrowRight className="h-3 w-3 shrink-0 text-white/35" />
+            <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" />
             <span
-              className="max-w-[11rem] truncate rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-primary-300"
+              className="max-w-[11rem] truncate rounded border border-border bg-muted px-1.5 py-0.5 text-primary-300"
               title={rule.target}
             >
               {rule.target}
@@ -83,7 +83,7 @@ export function CustomRulesPreview({
           </div>
         ))}
         {items.length > 10 && (
-          <div className="py-1 text-center text-[10px] text-white/50">
+          <div className="py-1 text-center text-[10px] text-muted-foreground">
             ... 还有 {items.length - 10} 条规则
           </div>
         )}

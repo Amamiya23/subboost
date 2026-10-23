@@ -2,16 +2,16 @@
 
 import * as React from "react";
 import { ArrowRight, Check, Pencil, Trash2, X } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@subboost/ui/components/ui/select";
-import { Switch } from "@subboost/ui/components/ui/switch";
-import { toast } from "@subboost/ui/components/ui/toaster";
+} from "@subboost/ui/components/coss/compat/select";
+import { Switch } from "@subboost/ui/components/coss/compat/switch";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
 import { isPinnedModule } from "@subboost/core/generator/rules";
 import { getModuleRuleOrderKey } from "@subboost/core/generator/module-rules";
@@ -251,11 +251,11 @@ export function ProxyGroupsAddedRuleSets({
   if (visibleAddedRuleSets.length === 0) {
     if (!showSearchHint) return null;
     return (
-      <p className="py-2 text-center text-xs leading-5 text-white/60">
+      <p className="py-2 text-center text-xs leading-5 text-muted-foreground">
         {typeof totalRules === "number" ? (
           <>
             从
-            <span className="font-semibold tabular-nums text-emerald-300">
+            <span className="font-semibold tabular-nums text-success-foreground">
               {totalRules}
             </span>
             {"条在线规则集中搜索并添加你需要的规则"}
@@ -268,12 +268,12 @@ export function ProxyGroupsAddedRuleSets({
   }
 
   return (
-    <div className="space-y-1 border-t border-white/10 pt-2">
+    <div className="space-y-1 border-t border-border pt-2">
       <div className="flex min-h-5 items-center gap-2">
-        <span className="text-[11px] font-medium text-white/65">
+        <span className="text-[11px] font-medium text-muted-foreground">
           已添加规则集
         </span>
-        <span className="ml-auto text-[10px] text-white/40">
+        <span className="ml-auto text-[10px] text-muted-foreground">
           已添加 {visibleAddedRuleSets.length}
         </span>
       </div>
@@ -288,11 +288,11 @@ export function ProxyGroupsAddedRuleSets({
             return (
               <div
                 key={item.key}
-                className="rounded-md border border-white/15 bg-white/8 p-1.5"
+                className="rounded-md border border-border bg-muted p-1.5"
               >
                 <div className={RULE_EDIT_ROW_CLASS}>
                   <div
-                    className={`flex h-7 ${RULE_EDIT_PRIMARY_FIELD_CLASS} items-center truncate rounded-md border border-white/10 bg-white/5 px-2 font-mono text-xs text-white/75`}
+                    className={`flex h-7 ${RULE_EDIT_PRIMARY_FIELD_CLASS} items-center truncate rounded-md border border-border bg-muted px-2 font-mono text-xs text-muted-foreground`}
                     title={displayPath}
                   >
                     {displayPath}
@@ -323,7 +323,7 @@ export function ProxyGroupsAddedRuleSets({
                         ))}
                       </SelectContent>
                     </Select>
-                    <div className="flex h-7 shrink-0 items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2">
+                    <div className="flex h-7 shrink-0 items-center gap-1 rounded-lg border border-border bg-muted px-2">
                       <Switch
                         checked={draft.noResolve}
                         onCheckedChange={(noResolve) =>
@@ -332,7 +332,7 @@ export function ProxyGroupsAddedRuleSets({
                           )
                         }
                       />
-                      <span className="proxy-group-rule-no-resolve-label text-[10px] text-white/50">
+                      <span className="proxy-group-rule-no-resolve-label text-[10px] text-muted-foreground">
                         no-resolve
                       </span>
                     </div>
@@ -343,7 +343,7 @@ export function ProxyGroupsAddedRuleSets({
                         size="sm"
                         onClick={() => saveEditing(item)}
                         disabled={!draft.targetValue}
-                        className="h-7 w-7 shrink-0 p-0 text-emerald-300 hover:text-emerald-200"
+                        className="h-7 w-7 shrink-0 p-0 text-success-foreground hover:text-success-foreground"
                         title="保存规则集"
                       >
                         <Check className="h-3.5 w-3.5" />
@@ -363,7 +363,7 @@ export function ProxyGroupsAddedRuleSets({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeRuleSet(item)}
-                        className="h-7 w-7 shrink-0 p-0 text-white/40 hover:text-red-300"
+                        className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-destructive-foreground"
                         title="删除规则集"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -380,25 +380,25 @@ export function ProxyGroupsAddedRuleSets({
           return (
             <div
               key={item.key}
-              className="flex min-w-0 flex-wrap items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px]"
+              className="flex min-w-0 flex-wrap items-center gap-1 rounded-md border border-border bg-muted/[0.04] px-2 py-1 text-[10px]"
             >
-              <span className="rounded border border-white/15 bg-white/8 px-1.5 py-0.5 font-medium text-white/80">
+              <span className="rounded border border-border bg-muted px-1.5 py-0.5 font-medium text-foreground/85">
                 RULE-SET
               </span>
               <span
-                className="min-w-0 max-w-[16rem] truncate font-mono text-white/75"
+                className="min-w-0 max-w-[16rem] truncate font-mono text-muted-foreground"
                 title={displayPath}
               >
                 {displayPath}
               </span>
               {item.noResolve && (
-                <span className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-white/45">
+                <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-muted-foreground">
                   no-resolve
                 </span>
               )}
-              <ArrowRight className="h-3 w-3 shrink-0 text-white/35" />
+              <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" />
               <span
-                className="max-w-[11rem] truncate rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-white/70"
+                className="max-w-[11rem] truncate rounded border border-border bg-muted px-1.5 py-0.5 text-muted-foreground"
                 title={item.target.name}
               >
                 {item.target.name}
@@ -407,7 +407,7 @@ export function ProxyGroupsAddedRuleSets({
                 <button
                   type="button"
                   onClick={() => startEditing(item)}
-                  className="inline-flex h-5 w-5 items-center justify-center rounded-md text-white/35 transition-colors hover:bg-white/10 hover:text-white/80"
+                  className="inline-flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground/85"
                   title="编辑规则集"
                 >
                   <Pencil className="h-3 w-3" />
@@ -415,7 +415,7 @@ export function ProxyGroupsAddedRuleSets({
                 <button
                   type="button"
                   onClick={() => removeRuleSet(item)}
-                  className="inline-flex h-5 w-5 items-center justify-center rounded-md text-white/30 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                  className="inline-flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive-foreground"
                   title="删除规则集"
                 >
                   <Trash2 className="h-3 w-3" />

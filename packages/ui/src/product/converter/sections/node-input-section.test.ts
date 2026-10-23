@@ -74,28 +74,28 @@ vi.mock("lucide-react", () => ({
   Search: () => React.createElement("span", null, "search"),
 }));
 
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.inputs.push(props);
     return React.createElement("input", props);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/textarea", () => ({
+vi.mock("@subboost/ui/components/coss/compat/textarea", () => ({
   Textarea: (props: any) => {
     mocks.textareas.push(props);
     return React.createElement("textarea", props);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/badge", () => ({
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({
   Badge: (props: any) => React.createElement("span", { className: props.className }, props.children),
 }));
 
@@ -276,11 +276,11 @@ describe("NodeInputSection", () => {
     expect(setters[1]).toHaveBeenCalledWith("");
 
     const sameName = renderSection({ nodes: [node("Old")] }, { 0: "Old", 1: "Old" });
-    findIntrinsic("button", (props) => typeof props.className === "string" && props.className.includes("text-green-400")).onClick();
+    findIntrinsic("button", (props) => typeof props.className === "string" && props.className.includes("text-success-foreground")).onClick();
     expect(sameName.callbacks.onRenameNode).not.toHaveBeenCalledWith("Old", "Old");
 
     const cancel = renderSection({ nodes: [node("Old")] }, { 0: "Old", 1: "New" });
-    findIntrinsic("button", (props) => typeof props.className === "string" && props.className.includes("text-red-400")).onClick();
+    findIntrinsic("button", (props) => typeof props.className === "string" && props.className.includes("text-destructive-foreground")).onClick();
     expect(cancel.setters[0]).toHaveBeenCalledWith(null);
   });
 

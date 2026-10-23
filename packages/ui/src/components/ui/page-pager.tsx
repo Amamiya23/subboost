@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Input } from "@subboost/ui/components/ui/input";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Input } from "@subboost/ui/components/coss/compat/input";
 import { cn } from "@subboost/ui/lib/utils";
 
 export type PagePagerProps = {

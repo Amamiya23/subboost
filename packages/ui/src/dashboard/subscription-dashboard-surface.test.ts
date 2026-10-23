@@ -60,19 +60,19 @@ vi.mock("lucide-react", () => ({
   Star: () => null,
   Trash2: () => null,
 }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.captures.buttons.push(props);
     return props.asChild ? props.children : null;
   },
 }));
-vi.mock("@subboost/ui/components/ui/card", () => ({
+vi.mock("@subboost/ui/components/coss/compat/card", () => ({
   Card: (props: any) => props.children,
   CardContent: (props: any) => props.children,
   CardHeader: (props: any) => props.children,
   CardTitle: (props: any) => props.children,
 }));
-vi.mock("@subboost/ui/components/ui/dropdown-menu", () => ({
+vi.mock("@subboost/ui/components/coss/compat/dropdown-menu", () => ({
   DropdownMenu: (props: any) => props.children,
   DropdownMenuTrigger: (props: any) => props.children,
   DropdownMenuContent: (props: any) => props.children,
@@ -83,7 +83,7 @@ vi.mock("@subboost/ui/components/ui/dropdown-menu", () => ({
   },
 }));
 vi.mock("@subboost/ui/components/ui/confirm-dialog", () => ({ confirmDialog: mocks.confirmDialog }));
-vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({ toast: mocks.toast }));
 vi.mock("@subboost/ui/store/user-store", () => ({ useUserStore: () => mocks.userStore }));
 vi.mock("@subboost/core/subscription/auto-update-interval", () => ({
   autoUpdateIntervalHoursToSeconds: (hours: number) => Math.round(hours * 3600),
@@ -356,7 +356,7 @@ describe("SubscriptionDashboardSurface", () => {
     expect(setters[2]).toHaveBeenCalledWith("sub-1");
     expect(setters[2]).toHaveBeenCalledWith(null);
 
-    mocks.captures.menuItems.find((props: any) => props.className?.includes("text-red-300")).onSelect();
+    mocks.captures.menuItems.find((props: any) => props.className?.includes("text-destructive-foreground")).onSelect();
     await flushPromises();
     expect(mocks.confirmDialog).toHaveBeenCalledWith(expect.objectContaining({ confirmText: "删除" }));
     expect(adapter.deleteSubscription).toHaveBeenCalledWith("sub-1");
@@ -487,7 +487,7 @@ describe("SubscriptionDashboardSurface", () => {
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "refresh failed", variant: "destructive" }));
 
     mocks.confirmDialog.mockResolvedValueOnce(false);
-    mocks.captures.menuItems.find((props: any) => props.className?.includes("text-red-300")).onSelect();
+    mocks.captures.menuItems.find((props: any) => props.className?.includes("text-destructive-foreground")).onSelect();
     await flushPromises();
     expect(adapter.deleteSubscription).not.toHaveBeenCalled();
 
@@ -499,7 +499,7 @@ describe("SubscriptionDashboardSurface", () => {
 
     const deleteFailAdapter = createAdapter({ deleteSubscription: vi.fn(async () => { throw new Error("delete failed"); }) });
     renderSurface(deleteFailAdapter, { 0: [subscription], 1: false, 2: null, 3: null });
-    mocks.captures.menuItems.find((props: any) => props.className?.includes("text-red-300")).onSelect();
+    mocks.captures.menuItems.find((props: any) => props.className?.includes("text-destructive-foreground")).onSelect();
     await flushPromises();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "删除失败，请稍后重试", variant: "destructive" }));
   });

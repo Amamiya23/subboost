@@ -28,7 +28,7 @@ vi.mock("lucide-react", () => ({
   Menu: () => React.createElement("span", null, "menu"),
 }));
 
-vi.mock("@subboost/ui/components/ui/dialog", async () => {
+vi.mock("@subboost/ui/components/coss/compat/dialog", async () => {
   const ReactModule = await import("react");
   return {
     Dialog: (props: any) => ReactModule.createElement("div", null, props.children),
@@ -46,7 +46,7 @@ vi.mock("@subboost/ui/lib/utils", () => ({
   cn: (...parts: Array<string | false | null | undefined>) => parts.filter(Boolean).join(" "),
 }));
 
-vi.mock("@subboost/ui/components/ui/toaster", () => ({
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({
   toast: mocks.toast,
 }));
 

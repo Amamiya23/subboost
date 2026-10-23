@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/ui/card";
-import { Input } from "@subboost/ui/components/ui/input";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/coss/compat/card";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Alert, AlertDescription, AlertTitle } from "@subboost/ui/components/coss/alert";
 import { useUserStore } from "@subboost/ui/store/user-store";
 
 type Settings = { url: string; username: string; path: string; hasPassword: boolean };
@@ -76,7 +77,7 @@ export function WebDavBackupCard() {
     <Card className="lg:col-span-2">
       <CardHeader><CardTitle className="text-base">WebDAV 加密备份</CardTitle></CardHeader>
       <CardContent className="space-y-5">
-        <p className="text-sm text-white/60">备份已保存的订阅、节点、配置、自动更新状态和个人模板。可用同一备份密码恢复到新部署。管理员账号和浏览器中的未保存草稿不包含在内。</p>
+        <p className="text-sm text-muted-foreground">备份已保存的订阅、节点、配置、自动更新状态和个人模板。可用同一备份密码恢复到新部署。管理员账号和浏览器中的未保存草稿不包含在内。</p>
         <fieldset disabled={disabled} className="grid gap-4 sm:grid-cols-2 disabled:opacity-60">
           <legend className="sr-only">WebDAV 连接设置</legend>
           <label className="space-y-2 text-sm sm:col-span-2" htmlFor="webdav-url"><span>WebDAV 地址</span>
@@ -87,14 +88,14 @@ export function WebDavBackupCard() {
             <Input id="webdav-password" type="password" value={config.password} placeholder={hasPassword ? "已保存，留空保留原密码" : "输入 WebDAV 密码"} onChange={(event) => setConfig({ ...config, password: event.target.value })} autoComplete="new-password" /></label>
           <label className="space-y-2 text-sm sm:col-span-2" htmlFor="webdav-path"><span>备份文件路径（相对于 WebDAV 地址）</span>
             <Input id="webdav-path" value={config.path} onChange={(event) => setConfig({ ...config, path: event.target.value })} placeholder="subboost/backup.enc.json" autoComplete="off" />
-            <span className="block text-xs text-white/45">每次备份覆盖此文件；修改文件名可保留多份备份。地址需为公网 HTTPS，基础目录需已存在。</span></label>
+            <span className="block text-xs text-muted-foreground">每次备份覆盖此文件；修改文件名可保留多份备份。地址需为公网 HTTPS，基础目录需已存在。</span></label>
         </fieldset>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" disabled={disabled} onClick={() => void run("test")}>{busy === "test" ? "测试中…" : "测试连接"}</Button>
           <Button variant="outline" disabled={disabled} onClick={() => void run("save")}>{busy === "save" ? "保存中…" : "保存连接设置"}</Button>
         </div>
-        <div className="border-t border-white/10 pt-5 space-y-4">
-          <p className="text-sm text-white/60">备份使用 AES-256-GCM 加密。请单独保管备份密码；密码不会保存，遗忘后无法恢复。</p>
+        <div className="border-t pt-5 space-y-4">
+          <p className="text-sm text-muted-foreground">备份使用 AES-256-GCM 加密。请单独保管备份密码；密码不会保存，遗忘后无法恢复。</p>
           <fieldset disabled={disabled} className="grid gap-4 sm:grid-cols-2 disabled:opacity-60">
             <legend className="sr-only">备份加密密码</legend>
             <label className="space-y-2 text-sm" htmlFor="backup-password"><span>备份密码（至少 10 个字符）</span>
@@ -106,16 +107,26 @@ export function WebDavBackupCard() {
             <Button disabled={disabled} onClick={() => void run("backup")}>{busy === "backup" ? "加密并备份中…" : "立即加密备份"}</Button>
             <Button variant="outline" disabled={disabled} onClick={() => setConfirmRestore(true)}>从此文件恢复…</Button>
           </div>
-          {confirmRestore && <div className="space-y-3 rounded-md border border-amber-400/30 bg-amber-400/5 p-4">
-            <p className="text-sm text-amber-200">恢复将覆盖当前账户的全部订阅和个人模板，并保留备份中的订阅令牌。建议先将当前数据备份到另一个文件。请确认文件路径和备份密码正确。</p>
+          {confirmRestore && <div className="space-y-3 rounded-lg border border-warning/30 bg-warning/8 p-4">
+            <p className="text-sm text-warning-foreground">恢复将覆盖当前账户的全部订阅和个人模板，并保留备份中的订阅令牌。建议先将当前数据备份到另一个文件。请确认文件路径和备份密码正确。</p>
             <div className="flex flex-wrap gap-2">
               <Button variant="destructive" disabled={disabled} onClick={() => void run("restore")}>{busy === "restore" ? "解密并恢复中…" : "确认覆盖并恢复"}</Button>
               <Button variant="outline" disabled={disabled} onClick={() => setConfirmRestore(false)}>取消</Button>
             </div>
           </div>}
         </div>
-        {message && <p role="status" className="text-sm text-emerald-300">{message}</p>}
-        {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
+        {message && (
+          <Alert variant="success">
+            <AlertTitle>操作完成</AlertTitle>
+            <AlertDescription>{message}</AlertDescription>
+          </Alert>
+        )}
+        {error && (
+          <Alert variant="error">
+            <AlertTitle>操作失败</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
       </CardContent>
     </Card>
   );

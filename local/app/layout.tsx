@@ -3,7 +3,8 @@ import "@subboost/ui/styles/globals.css";
 import { MobileNav } from "@subboost/ui/components/layout/mobile-nav";
 import { ScrollLockStabilizer } from "@subboost/ui/components/layout/scroll-lock-stabilizer";
 import { ConfirmDialogHost } from "@subboost/ui/components/ui/confirm-dialog";
-import { Toaster } from "@subboost/ui/components/ui/toaster";
+import { Toaster } from "@subboost/ui/components/coss/compat/toaster";
+import { ThemeScript } from "@subboost/ui/components/layout/theme-toggle";
 import { LocalHeader } from "@local/components/local-header";
 import {
   SUBBOOST_FAVICON_PATH,
@@ -33,19 +34,23 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: SUBBOOST_THEME_COLOR,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fcfcfc" },
+    { media: "(prefers-color-scheme: dark)", color: SUBBOOST_THEME_COLOR },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN" className="dark">
+    <html lang="zh-CN" suppressHydrationWarning>
       <head>
+        <ThemeScript />
         <link rel="preload" href="/fonts/clash-display-600.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/switzer-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       </head>
       <body className="font-sans">
         <ScrollLockStabilizer />
-        <div className="min-h-screen flex flex-col">
+        <div className="isolate flex min-h-screen flex-col">
           <LocalHeader />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <MobileNav mode="local" />

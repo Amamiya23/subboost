@@ -2,8 +2,8 @@
 
 import { AlertTriangle, Globe } from "lucide-react";
 import { DEFAULT_SUBBOOST_CONFIG } from "@subboost/core/config/defaults";
-import { Badge } from "@subboost/ui/components/ui/badge";
-import { Textarea } from "@subboost/ui/components/ui/textarea";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
+import { Textarea } from "@subboost/ui/components/coss/compat/textarea";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 import { SectionHeader } from "../section-header";
 
@@ -24,7 +24,7 @@ export function DnsSection({
         isExpanded={isExpanded}
         onToggle={onToggle}
         badge={
-          <Badge variant="outline" className="ml-auto border-white/15 bg-white/5 text-white/60">
+          <Badge variant="outline" className="ml-auto border-border bg-muted text-muted-foreground">
             YAML
           </Badge>
         }
@@ -34,7 +34,7 @@ export function DnsSection({
           <Textarea
             value={dnsYaml}
             onChange={(e) => setDnsYaml(e.target.value)}
-            className="font-mono text-xs min-h-[400px] bg-white/5 border-white/10"
+            className="font-mono text-xs min-h-[400px] bg-muted border-border"
             placeholder={`# 基础配置
 mixed-port: ${DEFAULT_SUBBOOST_CONFIG.mixedPort}
 allow-lan: ${DEFAULT_SUBBOOST_CONFIG.allowLan}
@@ -46,8 +46,8 @@ dns:
   ...`}
           />
           {generatedYamlError && (
-            <div className="mt-2 flex items-start gap-2 rounded-md border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-100">
-              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-rose-300" />
+            <div className="mt-2 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive-foreground">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <span className="whitespace-pre-wrap break-words">{generatedYamlError}</span>
             </div>
           )}

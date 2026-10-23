@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   switches: [] as any[],
 }));
 
-vi.mock("@radix-ui/react-popover", () => ({
+vi.mock("@subboost/ui/components/coss/compat/popover", () => ({
   Arrow: () => null,
   Content: ({ align, children, className, side }: any) => React.createElement("div", { align, className, side }, children),
   Portal: (props: any) => React.createElement("div", null, props.children),
@@ -33,21 +33,21 @@ vi.mock("lucide-react", () => ({
   X: () => React.createElement("span", null, "x-icon"),
 }));
 
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.inputs.push(props);
     return React.createElement("input", props);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/switch", () => ({
+vi.mock("@subboost/ui/components/coss/compat/switch", () => ({
   Switch: (props: any) => {
     mocks.switches.push(props);
     return React.createElement("input", { type: "checkbox", checked: props.checked, onChange: props.onCheckedChange });
@@ -276,8 +276,8 @@ describe("ProxyGroupsModuleCard", () => {
     );
 
     expect(html).toContain("手动选择代理节点");
-    expect(html).toContain('text-white">手动选择代理节点');
-    expect(html).toContain('text-emerald-300">3 规则');
+    expect(html).toContain('text-foreground">手动选择代理节点');
+    expect(html).toContain('text-success-foreground">3 规则');
     expect(html).not.toContain('title="手动选择代理节点');
     expect(html).not.toContain('title="3 规则');
 

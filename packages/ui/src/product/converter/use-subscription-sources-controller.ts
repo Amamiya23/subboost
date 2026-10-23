@@ -6,7 +6,7 @@ import { normalizeSubscriptionImportErrorInfo } from "@subboost/core/subscriptio
 import type { ParsedNode } from "@subboost/core/types/node";
 import { getNodeSourceIds, useConfigStore, type SourceType, type SubscriptionSource } from "@subboost/ui/store/config-store";
 import { useUserStore } from "@subboost/ui/store/user-store";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { useProductInteractionAdapter, type ProductInteractionResult } from "@subboost/ui/product/interactions";
 import { markSourceAsPendingImport } from "@subboost/ui/product/subscription/source-import-state";
 import { moveSubscriptionSource } from "@subboost/ui/product/subscription/source-order";

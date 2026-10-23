@@ -19,11 +19,20 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { Button } from "@subboost/ui/components/ui/button";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@subboost/ui/components/ui/dropdown-menu";
-import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/ui/card";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@subboost/ui/components/coss/compat/dropdown-menu";
+import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/coss/compat/card";
+import { Alert } from "@subboost/ui/components/coss/alert";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@subboost/ui/components/coss/empty";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { useUserStore, type User } from "@subboost/ui/store/user-store";
 import {
   autoUpdateIntervalHoursToSeconds,
@@ -353,22 +362,20 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
   const copySubscriptionHref = adapter.copySubscriptionHref ?? ((sub: Subscription) => `/builder?copySubscriptionId=${encodeURIComponent(sub.id)}`);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       {adapter.renderAnnouncement?.({ user })}
 
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold mb-1">我的订阅</h1>
-          <p className="text-white/50">管理您的订阅链接</p>
+          <h1 className="font-heading text-2xl font-semibold">我的订阅</h1>
+          <p className="mt-1 text-sm text-muted-foreground">管理订阅链接、配置与自动更新</p>
         </div>
         <div className="flex items-center gap-2">
           {adapter.renderHeaderActions?.({ user })}
-          <Link href={newSubscriptionHref}>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              新建订阅
-            </Button>
-          </Link>
+          <Button render={<Link href={newSubscriptionHref} />}>
+            <Plus aria-hidden="true" />
+            新建订阅
+          </Button>
         </div>
       </div>
 
@@ -382,33 +389,37 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-4">
+            <div className="flex flex-col gap-3">
               {[1, 2].map((i) => (
-                <div key={i} className="h-24 bg-white/10 rounded-lg animate-pulse" />
+                <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
               ))}
             </div>
           ) : loadError ? (
-            <div className="py-12 text-center">
-              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-amber-300" />
-              <h3 className="mb-2 text-lg font-medium">订阅列表加载失败</h3>
-              <p className="mb-4 text-white/50">{loadError}</p>
-              <Button variant="outline" onClick={() => void fetchSubscriptions()}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                重试
-              </Button>
-            </div>
+            <Alert variant="error" className="grid-cols-[auto_1fr]">
+              <AlertTriangle aria-hidden="true" />
+              <div className="flex flex-col gap-3">
+                <span className="font-medium">订阅列表加载失败</span>
+                <span className="text-muted-foreground">{loadError}</span>
+                <Button variant="outline" size="sm" className="w-fit" onClick={() => void fetchSubscriptions()}>
+                  <RefreshCw aria-hidden="true" />
+                  重试
+                </Button>
+              </div>
+            </Alert>
           ) : subscriptions.length === 0 ? (
-            <div className="text-center py-12">
-              <FileCode className="h-12 w-12 mx-auto text-white/40 mb-4" />
-              <h3 className="text-lg font-medium mb-2">暂无订阅</h3>
-              <p className="text-white/50 mb-4">创建您的第一个订阅配置</p>
-              <Link href={newSubscriptionHref}>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon"><FileCode aria-hidden="true" /></EmptyMedia>
+                <EmptyTitle>暂无订阅</EmptyTitle>
+                <EmptyDescription>生成配置后即可保存和管理订阅链接</EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <Button render={<Link href={newSubscriptionHref} />}>
+                  <Plus aria-hidden="true" />
                   新建订阅
                 </Button>
-              </Link>
-            </div>
+              </EmptyContent>
+            </Empty>
           ) : (
             <div className="space-y-4">
               {subscriptions.map((sub) => (
@@ -454,7 +465,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
           <QuickActionCard
             href={adapter.templatesHref}
             icon={<FileCode className="h-6 w-6" />}
-            iconClassName="bg-purple-500/20 text-purple-500"
+            iconClassName="bg-info/10 text-info-foreground"
             title="我的模板"
             description="管理和分享您的配置模板"
           />
@@ -464,7 +475,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
           <QuickActionCard
             href={adapter.settingsHref}
             icon={<Settings className="h-6 w-6" />}
-            iconClassName="bg-gray-500/20 text-gray-500"
+            iconClassName="bg-muted text-muted-foreground"
             title={adapter.settingsTitle ?? "账户设置"}
             description={adapter.settingsDescription ?? "管理您的账户和数据导出"}
           />
@@ -478,12 +489,12 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
 
 function DashboardSkeleton() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="animate-pulse space-y-6">
-        <div className="h-8 w-48 bg-white/10 rounded" />
+        <div className="h-8 w-48 bg-muted rounded" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 bg-white/10 rounded-md" />
+            <div key={i} className="h-32 bg-muted rounded-md" />
           ))}
         </div>
       </div>
@@ -493,16 +504,16 @@ function DashboardSkeleton() {
 
 function LoginPrompt({ loginHref }: { loginHref: string }) {
   return (
-    <div className="container mx-auto px-4 py-16 text-center">
-      <div className="max-w-md mx-auto space-y-4">
-        <Shield className="h-16 w-16 mx-auto text-white/50" />
-        <h1 className="text-2xl font-bold">请先登录</h1>
-        <p className="text-white/50">登录后可以管理您的订阅和模板</p>
-        <Link href={loginHref}>
-          <Button size="lg">登录</Button>
-        </Link>
-      </div>
-    </div>
+    <Empty className="mx-auto min-h-[calc(100vh-4rem)] max-w-md">
+      <EmptyHeader>
+        <EmptyMedia variant="icon"><Shield aria-hidden="true" /></EmptyMedia>
+        <EmptyTitle>请先登录</EmptyTitle>
+        <EmptyDescription>登录后管理订阅与模板</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button size="lg" render={<Link href={loginHref} />}>登录</Button>
+      </EmptyContent>
+    </Empty>
   );
 }
 
@@ -530,7 +541,7 @@ function SubscriptionRow({
   onSettings: (sub: Subscription) => void;
 }) {
   return (
-    <div className="flex flex-col gap-4 p-4 sm:p-5 rounded-xl bg-ink-50 border border-bone/10 hover:border-bone/20 transition-colors sm:flex-row sm:items-center sm:justify-between sm:gap-5">
+    <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 transition-colors hover:bg-accent/24 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
       <div className="flex min-w-0 flex-1 items-start gap-4 sm:items-center">
         <div className="shrink-0 py-1 text-ink-600">
           <FileCode className="h-5 w-5" />
@@ -555,7 +566,7 @@ function SubscriptionRow({
               </span>
             )}
             {!sub.autoUpdateInterval && sub.autoUpdateState.disabledAt && sub.autoUpdateState.disabledReason && (
-              <span className="flex items-center gap-1 text-amber-300">
+              <span className="flex items-center gap-1 text-warning-foreground">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 自动更新已关闭：{sub.autoUpdateState.disabledReason}
               </span>
@@ -565,23 +576,20 @@ function SubscriptionRow({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
-        <Button asChild variant="ghost" size="sm" className="gap-2" title="进入配置生成器编辑该订阅（更新后链接不变）">
-          <Link href={editHref}>
-            <Settings className="h-4 w-4" />
-            编辑
-          </Link>
+        <Button variant="ghost" size="sm" title="进入配置生成器编辑该订阅（更新后链接不变）" render={<Link href={editHref} />}>
+          <Settings aria-hidden="true" />
+          编辑
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => void onCopy(sub.subscriptionUrl, sub.id)}
-          className="gap-2"
           title="复制订阅链接"
         >
           {copiedId === sub.id ? (
             <>
-              <Check className="h-4 w-4 text-green-500" />
-              <span className="text-green-500" role="status">已复制</span>
+              <Check className="h-4 w-4 text-success-foreground" />
+              <span className="text-success-foreground" role="status">已复制</span>
             </>
           ) : (
             <>
@@ -592,11 +600,11 @@ function SubscriptionRow({
         </Button>
         <SubscriptionQrCodeDialog subscriptionUrl={sub.subscriptionUrl} subscriptionName={sub.name} />
         {refreshingId === sub.id && (
-          <span role="status" className="inline-flex items-center gap-1 text-xs text-white/70"><RefreshCw className="h-3.5 w-3.5 animate-spin" />刷新中…</span>
+          <span role="status" className="inline-flex items-center gap-1 text-xs text-muted-foreground"><RefreshCw className="size-3.5 animate-spin" />刷新中…</span>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" aria-label={`${sub.name}的更多操作`}><MoreVertical className="h-4 w-4" />更多</Button>
+            <Button variant="ghost" size="sm" aria-label={`${sub.name}的更多操作`}><MoreVertical aria-hidden="true" />更多</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild><Link href={copyHref}><CopyPlus className="mr-2 h-4 w-4" />复制配置</Link></DropdownMenuItem>
@@ -604,7 +612,7 @@ function SubscriptionRow({
             <DropdownMenuItem title="重新生成配置并刷新缓存" disabled={refreshingId === sub.id} onSelect={() => void onRefresh(sub.id)}><RefreshCw className="mr-2 h-4 w-4" />刷新订阅</DropdownMenuItem>
             <DropdownMenuItem title="下载订阅配置" onSelect={() => void onDownload(sub)}><Download className="mr-2 h-4 w-4" />下载配置</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-300 focus:text-red-200" onSelect={() => void onDelete(sub.id)}><Trash2 className="mr-2 h-4 w-4" />删除订阅</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive-foreground focus:text-destructive-foreground" onSelect={() => void onDelete(sub.id)}><Trash2 className="mr-2 h-4 w-4" />删除订阅</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -627,15 +635,15 @@ function QuickActionCard({
 }) {
   return (
     <Link href={href}>
-      <Card className="cursor-pointer hover:border-white/20 transition-colors">
+      <Card className="cursor-pointer hover:border-border transition-colors">
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
             <div className={`p-3 rounded-lg ${iconClassName}`}>{icon}</div>
             <div>
               <h3 className="font-medium">{title}</h3>
-              <p className="text-sm text-white/50">{description}</p>
+              <p className="text-sm text-muted-foreground">{description}</p>
             </div>
-            <ExternalLink className="ml-auto h-5 w-5 text-white/40" />
+            <ExternalLink className="ml-auto h-5 w-5 text-muted-foreground" />
           </div>
         </CardContent>
       </Card>

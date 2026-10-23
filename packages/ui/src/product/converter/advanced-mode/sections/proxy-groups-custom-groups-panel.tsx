@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { Check, Trash2 } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Input } from "@subboost/ui/components/ui/input";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { PROXY_GROUP_MODULES, type ProxyGroupModule } from "@subboost/core/generator/proxy-groups";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { DEFAULT_LOAD_BALANCE_STRATEGY, type LoadBalanceStrategy, type ProxyGroupGroupType } from "@subboost/core/types/config";
@@ -187,7 +187,7 @@ export function ProxyGroupsCustomGroupsPanel({
             value={newCustomGroupDescription}
             onChange={(event) => setNewCustomGroupDescription(event.target.value)}
             placeholder="描述文本（默认: 自定义代理组）"
-            className="h-7 min-w-0 border-white/10 bg-white/5 text-xs"
+            className="h-7 min-w-0 border-border bg-muted text-xs"
           />
         </div>
         <Button
@@ -227,7 +227,7 @@ export function ProxyGroupsCustomGroupsPanel({
 
       {/* 自定义分组列表 */}
       {customProxyGroups.length === 0 ? (
-        <div className="text-xs text-white/40 py-3 text-center">暂无自定义分组</div>
+        <div className="text-xs text-muted-foreground py-3 text-center">暂无自定义分组</div>
       ) : (
         <div className="space-y-1">
           {customProxyGroups.map((group) => {
@@ -305,7 +305,7 @@ export function ProxyGroupsCustomGroupsPanel({
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="h-7 px-2 text-white/35 hover:text-red-300"
+                            className="h-7 px-2 text-muted-foreground hover:text-destructive-foreground"
                             onClick={() => removeModuleRule(group.id, r.id)}
                             title="删除规则集"
                             aria-label={`删除 ${r.name} 规则集`}
@@ -402,7 +402,7 @@ export function ProxyGroupsCustomGroupsPanel({
                 }
                 rulesContentOverride={
                   totalRules === 0 ? (
-                    <p className="px-2 py-3 text-center text-[11px] text-white/40">
+                    <p className="px-2 py-3 text-center text-[11px] text-muted-foreground">
                       还没有规则集。可在“搜索规则库”中选择规则后添加到该分组。
                     </p>
                   ) : (

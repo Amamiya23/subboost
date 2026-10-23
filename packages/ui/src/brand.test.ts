@@ -32,7 +32,7 @@ describe("SubBoost brand constants", () => {
       description: SUBBOOST_PRODUCT_DESCRIPTION,
       start_url: "/",
       display: "standalone",
-      background_color: "#0f0d1a",
+      background_color: "#111111",
       theme_color: SUBBOOST_THEME_COLOR,
       orientation: "portrait-primary",
       icons: [

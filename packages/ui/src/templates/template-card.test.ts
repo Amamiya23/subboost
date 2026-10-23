@@ -39,13 +39,13 @@ vi.mock("lucide-react", () => ({
   Lock: () => React.createElement("span", null, "lock-icon"),
   Trash2: () => React.createElement("span", null, "trash-icon"),
 }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.captures.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
-vi.mock("@subboost/ui/components/ui/card", () => ({
+vi.mock("@subboost/ui/components/coss/compat/card", () => ({
   Card: (props: any) => React.createElement("section", props, props.children),
   CardContent: (props: any) => React.createElement("div", props, props.children),
 }));
@@ -116,7 +116,7 @@ describe("TemplateCard", () => {
 
     const engageButton = mocks.captures.nativeButtons.find((button) => button.title === "取消收藏");
     expect(engageButton.disabled).toBe(false);
-    expect(engageButton.className).toContain("text-[var(--red-11)]");
+    expect(engageButton.className).toContain("text-destructive-foreground");
     engageButton.onClick();
     expect(props.onEngage).toHaveBeenCalled();
   });

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AlertTriangle, HelpCircle, XCircle } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@subboost/ui/components/ui/dialog";
+} from "@subboost/ui/components/coss/compat/dialog";
 
 export type ConfirmDialogVariant = "default" | "warning" | "destructive";
 

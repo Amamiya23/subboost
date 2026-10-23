@@ -3,8 +3,9 @@
 import * as React from "react";
 import { LogOut, ServerCog, ShieldCheck } from "lucide-react";
 
-import { Button } from "@subboost/ui/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/ui/card";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/coss/compat/card";
+import { Badge } from "@subboost/ui/components/coss/badge";
 import { useUserStore } from "@subboost/ui/store/user-store";
 import { WebDavBackupCard } from "@local/components/webdav-backup-card";
 
@@ -21,34 +22,36 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold mb-1">账户设置</h1>
-          <p className="text-white/50">本地管理员、订阅容量、加密备份和运行端点</p>
-        </div>
+    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8 flex items-center gap-3">
+        <h1 className="font-heading text-2xl font-semibold">账户设置</h1>
+        <Badge variant="outline">本地部署</Badge>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <WebDavBackupCard />
         <Card>
           <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-            <div className="rounded-lg bg-white/12 p-2 text-white/70">
-              <ShieldCheck className="h-5 w-5" />
+            <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-foreground">
+              <ShieldCheck aria-hidden="true" />
             </div>
             <CardTitle className="text-base">本地管理员</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-xs text-white/40">用户名</p>
-              <p className="mt-1 font-medium">{user?.username || "未登录"}</p>
+          <CardContent className="flex flex-col gap-5">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg bg-muted/60 p-3">
+                <p className="text-xs text-muted-foreground">用户名</p>
+                <p className="mt-1 truncate font-medium">{user?.username || "未登录"}</p>
+              </div>
+              <div className="rounded-lg bg-muted/60 p-3">
+                <p className="text-xs text-muted-foreground">订阅容量</p>
+                <p className="mt-1 font-medium tabular-nums">
+                  {user ? `${user.subscriptionCount} / ${user.quota.maxSubscriptions}` : "-"}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-white/40">已保存订阅</p>
-              <p className="mt-1 font-medium">{user ? `${user.subscriptionCount} / ${user.quota.maxSubscriptions}` : "-"}</p>
-            </div>
-            <Button variant="destructive" className="gap-2" onClick={() => void handleLogout()} disabled={!user}>
-              <LogOut className="h-4 w-4" />
+            <Button variant="destructive-outline" onClick={() => void handleLogout()} disabled={!user}>
+              <LogOut aria-hidden="true" />
               退出登录
             </Button>
           </CardContent>
@@ -56,19 +59,20 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-            <div className="rounded-lg bg-sky-500/20 p-2 text-sky-300">
-              <ServerCog className="h-5 w-5" />
+            <div className="flex size-10 items-center justify-center rounded-lg bg-info/10 text-info-foreground">
+              <ServerCog aria-hidden="true" />
             </div>
             <CardTitle className="text-base">运行端点</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-white/60">
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p className="text-xs font-medium text-muted-foreground">健康检查端点</p>
             <div>
-              <p className="text-xs text-white/40">存活检查</p>
-              <code className="mt-1 block rounded-md bg-white/5 px-3 py-2 text-white/70">/api/health/live</code>
+              <p className="text-xs text-muted-foreground">存活检查</p>
+              <code className="mt-1 block rounded-md bg-muted px-3 py-2 text-muted-foreground">/api/health/live</code>
             </div>
             <div>
-              <p className="text-xs text-white/40">就绪检查</p>
-              <code className="mt-1 block rounded-md bg-white/5 px-3 py-2 text-white/70">/api/health/ready</code>
+              <p className="text-xs text-muted-foreground">就绪检查</p>
+              <code className="mt-1 block rounded-md bg-muted px-3 py-2 text-muted-foreground">/api/health/ready</code>
             </div>
           </CardContent>
         </Card>

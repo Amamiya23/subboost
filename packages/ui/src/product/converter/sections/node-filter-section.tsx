@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Filter } from "lucide-react";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Badge } from "@subboost/ui/components/ui/badge";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
 import { cn } from "@subboost/ui/lib/utils";
 import { SectionHeader } from "./section-header";
 
@@ -55,8 +55,8 @@ export function NodeFilterSection({
                 className={cn(
                   "px-2 py-0.5 rounded transition-colors",
                   filterMode === "include"
-                    ? "bg-green-500/20 text-green-400"
-                    : "text-white/40 hover:text-white/60"
+                    ? "bg-success/10 text-success-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 包含
@@ -66,8 +66,8 @@ export function NodeFilterSection({
                 className={cn(
                   "px-2 py-0.5 rounded transition-colors",
                   filterMode === "exclude"
-                    ? "bg-red-500/20 text-red-400"
-                    : "text-white/40 hover:text-white/60"
+                    ? "bg-destructive/10 text-destructive-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 排除
@@ -79,7 +79,7 @@ export function NodeFilterSection({
               placeholder="输入关键词过滤节点..."
               className="h-7 text-xs"
             />
-            <p className="text-[10px] text-white/30">
+            <p className="text-[10px] text-muted-foreground">
               支持多个关键词，用 | 分隔，例如: 香港|日本|新加坡
             </p>
           </div>

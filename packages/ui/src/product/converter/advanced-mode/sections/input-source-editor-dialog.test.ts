@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   textareas: [] as any[],
 }));
 
-vi.mock("@radix-ui/react-popover", () => ({
+vi.mock("@subboost/ui/components/coss/compat/popover", () => ({
   Arrow: () => React.createElement("span", null, "arrow"),
   Content: (props: any) => React.createElement("div", props, props.children),
   Portal: (props: any) => React.createElement("div", null, props.children),
@@ -20,13 +20,13 @@ vi.mock("@radix-ui/react-popover", () => ({
 vi.mock("lucide-react", () => ({
   HelpCircle: () => React.createElement("span", null, "help-icon"),
 }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
-vi.mock("@subboost/ui/components/ui/dialog", () => ({
+vi.mock("@subboost/ui/components/coss/compat/dialog", () => ({
   Dialog: (props: any) => {
     mocks.dialogs.push(props);
     return React.createElement("div", null, props.children);
@@ -35,19 +35,19 @@ vi.mock("@subboost/ui/components/ui/dialog", () => ({
   DialogHeader: (props: any) => React.createElement("header", props, props.children),
   DialogTitle: (props: any) => React.createElement("h2", props, props.children),
 }));
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.inputs.push(props);
     return React.createElement("input", props);
   },
 }));
-vi.mock("@subboost/ui/components/ui/switch", () => ({
+vi.mock("@subboost/ui/components/coss/compat/switch", () => ({
   Switch: (props: any) => {
     mocks.switches.push(props);
     return React.createElement("input", { type: "checkbox", checked: props.checked, onChange: props.onCheckedChange });
   },
 }));
-vi.mock("@subboost/ui/components/ui/textarea", () => ({
+vi.mock("@subboost/ui/components/coss/compat/textarea", () => ({
   Textarea: (props: any) => {
     mocks.textareas.push(props);
     return React.createElement("textarea", props);

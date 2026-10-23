@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { Check, ChevronDown, ChevronRight, Link as LinkIcon, Pencil, Plus, Search, SlidersHorizontal, Trash2, X } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Switch } from "@subboost/ui/components/ui/switch";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Switch } from "@subboost/ui/components/coss/compat/switch";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { DEFAULT_LOAD_BALANCE_STRATEGY, type ProxyGroupGroupType } from "@subboost/core/types/config";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
 import { validateRelayNamedChain } from "@subboost/core/generator/relay-named-chain";
@@ -180,8 +180,8 @@ export function DialerProxyGroupsSection({
             className={cn(
               "ml-auto",
               dialerProxyGroups.length > 0
-                ? "border-blue-500/50 bg-blue-500/10 text-blue-300"
-                : "border-white/15 bg-white/5 text-white/60"
+                ? "border-info/30 bg-info/10 text-info-foreground"
+                : "border-border bg-muted text-muted-foreground"
             )}
           >
             {dialerProxyGroups.length > 0 ? `${dialerProxyGroups.length} 组` : "可选"}
@@ -241,19 +241,19 @@ export function DialerProxyGroupsSection({
             };
 
             return (
-              <div key={group.id} className="bg-white/5 rounded-lg border border-white/10">
+              <div key={group.id} className="bg-muted rounded-lg border border-border">
               {/* 组标题 */}
               <div
-                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-white/5"
+                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-accent"
                 onClick={() => {
                   if (isEditing) return;
                   toggleDialerGroupExpand(group.id);
                 }}
               >
                 {expandedDialerGroups.has(group.id) ? (
-                  <ChevronDown className="h-4 w-4 text-white/50" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-white/50" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
 
                 {isEditing ? (
@@ -268,7 +268,7 @@ export function DialerProxyGroupsSection({
                   />
                 ) : (
                   <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-sm font-medium text-white truncate" title={group.name}>
+                    <span className="text-sm font-medium text-foreground truncate" title={group.name}>
                       {group.name}
                     </span>
                     <Button
@@ -383,7 +383,7 @@ export function DialerProxyGroupsSection({
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="h-7 shrink-0 px-2 text-white/35 hover:text-white/80"
+                          className="h-7 shrink-0 px-2 text-muted-foreground hover:text-foreground/85"
                           title={`类型：${dialerTypeLabel}`}
                           aria-label={`修改 ${group.name} 类型`}
                           onClick={(event) => event.stopPropagation()}
@@ -397,7 +397,7 @@ export function DialerProxyGroupsSection({
                         e.stopPropagation();
                         removeDialerProxyGroup(group.id);
                       }}
-                      className="p-1 text-white/30 hover:text-red-400"
+                      className="p-1 text-muted-foreground hover:text-destructive-foreground"
                       title="删除"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -408,9 +408,9 @@ export function DialerProxyGroupsSection({
 
               {/* 展开的组内容 */}
               {expandedDialerGroups.has(group.id) && (
-                <div className="px-3 pb-3 space-y-3 border-t border-white/10">
-                  <div className="mt-3 space-y-3 rounded-md border border-white/10 bg-white/[0.03] p-3">
-                    <label className="flex items-center justify-between gap-3 text-xs text-white/75">
+                <div className="px-3 pb-3 space-y-3 border-t border-border">
+                  <div className="mt-3 space-y-3 rounded-md border border-border bg-muted p-3">
+                    <label className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                       保留入口名称
                       <Switch
                         aria-label={`${group.name} 保留入口名称`}
@@ -426,13 +426,13 @@ export function DialerProxyGroupsSection({
                         }}
                       />
                     </label>
-                    <p className="text-[11px] leading-relaxed text-white/45">
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
                       {preserveRelayNames
                         ? "客户端沿用每个入口的名称，实际通过该入口连接落地；辅助入口不加入常用分流组，也不生成额外中转组。原始配置中仍可查看内部节点。"
                         : "普通模式在客户端选择落地节点；开启后无需改名或逐个排除辅助节点。"}
                     </p>
                     {preserveRelayNames && <>
-                      <label className="flex items-center justify-between gap-3 text-xs text-white/65">
+                      <label className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                         同时提供落地单独直连选项
                         <Switch
                           aria-label={`${group.name} 同时提供落地单独直连选项`}
@@ -440,16 +440,16 @@ export function DialerProxyGroupsSection({
                           onCheckedChange={(checked) => updateDialerProxyGroup(group.id, { exposeLanding: Boolean(checked) })}
                         />
                       </label>
-                      {group.relayNodes.map((name) => <p key={name} className="break-words text-[11px] text-white/65">
+                      {group.relayNodes.map((name) => <p key={name} className="break-words text-[11px] text-muted-foreground">
                         客户端显示：{name} · 实际链路：设备 → {name} → {group.targetNodes[0] || "请选择落地"} → 网站
                       </p>)}
-                      <p className="text-[11px] text-white/40">支持多个入口共用一个落地。链式节点连接失败时不会退回入口出口或直连落地；客户端分流组的切换策略仍然生效。</p>
+                      <p className="text-[11px] text-muted-foreground">支持多个入口共用一个落地。链式节点连接失败时不会退回入口出口或直连落地；客户端分流组的切换策略仍然生效。</p>
                     </>}
-                    {chainErrors.length > 0 && <p role="alert" className="text-xs text-amber-300">{chainErrors.join("；")}</p>}
+                    {chainErrors.length > 0 && <p role="alert" className="text-xs text-warning-foreground">{chainErrors.join("；")}</p>}
                     {missingNames.map((name) => <button
                       key={name}
                       type="button"
-                      className="text-xs text-amber-300 underline"
+                      className="text-xs text-warning-foreground underline"
                       onClick={() => updateDialerProxyGroup(group.id, {
                         relayNodes: group.relayNodes.filter((item) => item !== name),
                         targetNodes: group.targetNodes.filter((item) => item !== name),
@@ -459,9 +459,9 @@ export function DialerProxyGroupsSection({
                   {/* 中转节点选择 */}
                   <div className="mt-3">
                     <div className="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <label className="text-xs text-white/50">中转节点（流量入口）</label>
+                      <label className="text-xs text-muted-foreground">中转节点（流量入口）</label>
                       <div className="relative w-full sm:max-w-[220px]">
-                        <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/30" />
+                        <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           value={relaySearchByGroupId[group.id] ?? ""}
                           onChange={(e) =>
@@ -469,7 +469,7 @@ export function DialerProxyGroupsSection({
                           }
                           placeholder="搜索中转节点..."
                           disabled={availableRelayNodes.length === 0}
-                          className="h-7 bg-white/5 pl-7 text-xs border-white/10"
+                          className="h-7 bg-muted pl-7 text-xs border-border"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
@@ -484,8 +484,8 @@ export function DialerProxyGroupsSection({
                             className={cn(
                               "flex items-center gap-2 px-2 py-1 rounded text-xs cursor-pointer transition-colors",
                               isSelected
-                                ? "bg-white/12 text-white/65"
-                                : "hover:bg-white/5 text-white/70"
+                                ? "bg-muted text-muted-foreground"
+                                : "hover:bg-accent text-muted-foreground"
                             )}
                             onClick={() => {
                               if (isSelected) {
@@ -498,10 +498,10 @@ export function DialerProxyGroupsSection({
                             <div
                               className={cn(
                                 "h-3 w-3 rounded border flex items-center justify-center",
-                                isSelected ? "bg-white/15 border-white/25" : "border-white/30"
+                                isSelected ? "bg-muted border-border" : "border-border"
                               )}
                             >
-                              {isSelected && <Check className="h-2 w-2 text-white" />}
+                              {isSelected && <Check className="h-2 w-2 text-foreground" />}
                             </div>
                             <Badge variant="outline" className="text-[10px] px-1 py-0">
                               {node.type}
@@ -511,9 +511,9 @@ export function DialerProxyGroupsSection({
                         );
                       })}
                       {availableRelayNodes.length === 0 ? (
-                        <p className="text-xs text-white/30 text-center py-2">无可用节点</p>
+                        <p className="text-xs text-muted-foreground text-center py-2">无可用节点</p>
                       ) : relaySearchKeyword && visibleRelayNodes.length === 0 ? (
-                        <p className="text-xs text-white/30 text-center py-2">未找到匹配节点</p>
+                        <p className="text-xs text-muted-foreground text-center py-2">未找到匹配节点</p>
                       ) : null}
                     </div>
                   </div>
@@ -521,9 +521,9 @@ export function DialerProxyGroupsSection({
                   {/* 目标节点选择 */}
                   <div>
                     <div className="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <label className="text-xs text-white/50">落地节点（流量出口）</label>
+                      <label className="text-xs text-muted-foreground">落地节点（流量出口）</label>
                       <div className="relative w-full sm:max-w-[220px]">
-                        <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/30" />
+                        <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           value={targetSearchByGroupId[group.id] ?? ""}
                           onChange={(e) =>
@@ -531,7 +531,7 @@ export function DialerProxyGroupsSection({
                           }
                           placeholder="搜索落地节点..."
                           disabled={availableTargetNodes.length === 0}
-                          className="h-7 bg-white/5 pl-7 text-xs border-white/10"
+                          className="h-7 bg-muted pl-7 text-xs border-border"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
@@ -553,10 +553,10 @@ export function DialerProxyGroupsSection({
                                 "flex items-center gap-2 px-2 py-1 rounded text-xs transition-colors",
                                 usedByOther ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
                                 isSelected
-                                  ? "bg-green-500/20 text-green-400"
+                                  ? "bg-success/10 text-success-foreground"
                                   : usedByOther
                                     ? ""
-                                    : "hover:bg-white/5 text-white/70"
+                                    : "hover:bg-accent text-muted-foreground"
                               )}
                               onClick={() => {
                                 if (usedByOther) return;
@@ -571,25 +571,25 @@ export function DialerProxyGroupsSection({
                               <div
                                 className={cn(
                                   "h-3 w-3 rounded border flex items-center justify-center",
-                                  isSelected ? "bg-green-500 border-green-500" : "border-white/30"
+                                  isSelected ? "bg-success/10 border-success/30" : "border-border"
                                 )}
                               >
-                                {isSelected && <Check className="h-2 w-2 text-white" />}
+                                {isSelected && <Check className="h-2 w-2 text-foreground" />}
                               </div>
                               <Badge variant="outline" className="text-[10px] px-1 py-0">
                                 {node.type}
                               </Badge>
                               <span className="truncate">{node.name}</span>
                               {usedByOther && (
-                                <span className="text-[10px] text-white/30 ml-auto">已被其他组使用</span>
+                                <span className="text-[10px] text-muted-foreground ml-auto">已被其他组使用</span>
                               )}
                             </div>
                           );
                         })}
                       {availableTargetNodes.length === 0 ? (
-                        <p className="text-xs text-white/30 text-center py-2">请先选择中转节点</p>
+                        <p className="text-xs text-muted-foreground text-center py-2">请先选择中转节点</p>
                       ) : targetSearchKeyword && visibleTargetNodes.length === 0 ? (
-                        <p className="text-xs text-white/30 text-center py-2">未找到匹配节点</p>
+                        <p className="text-xs text-muted-foreground text-center py-2">未找到匹配节点</p>
                       ) : null}
                     </div>
                   </div>
@@ -600,7 +600,7 @@ export function DialerProxyGroupsSection({
           })}
 
           {nodes.length === 0 && dialerProxyGroups.length === 0 && (
-            <p className="text-xs text-white/30 text-center py-2">请先导入节点后配置中转代理组</p>
+            <p className="text-xs text-muted-foreground text-center py-2">请先导入节点后配置中转代理组</p>
           )}
 
           {/* 添加中转组按钮 */}
@@ -608,7 +608,7 @@ export function DialerProxyGroupsSection({
             <Button
               variant="outline"
               size="sm"
-              className="w-full h-7 text-xs border-dashed border-white/20 text-white/50 hover:text-white/70 hover:border-white/30"
+              className="w-full h-7 text-xs border-dashed border-border text-muted-foreground hover:text-foreground hover:border-border"
               onClick={() => setShowDialerMenu(!showDialerMenu)}
             >
               <Plus className="h-3.5 w-3.5 mr-1" />
@@ -616,19 +616,19 @@ export function DialerProxyGroupsSection({
             </Button>
 
             {showDialerMenu && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl z-10 overflow-hidden">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-10 overflow-hidden">
                 {/* 预设地区选项 */}
                 {PRESET_RELAY_NAMES.map((name) => (
                   <button
                     key={name}
                     onClick={() => handleAddDialerGroup(name)}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/5 transition-colors text-sm text-white/70 hover:text-white"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-accent transition-colors text-sm text-muted-foreground hover:text-foreground"
                   >
                     <span>{name}</span>
                   </button>
                 ))}
                 {/* 自定义选项 */}
-                <div className="border-t border-white/10 p-2">
+                <div className="border-t border-border p-2">
                   <div className="flex gap-2">
                     <ProxyGroupNameEditor
                       value={customDialerDraft}

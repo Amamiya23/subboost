@@ -23,14 +23,14 @@ vi.mock("lucide-react", () => ({
   ShieldCheck: () => React.createElement("span", null, "ShieldCheck"),
 }));
 
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/card", () => ({
+vi.mock("@subboost/ui/components/coss/compat/card", () => ({
   Card: (props: any) => React.createElement("section", props, props.children),
   CardContent: (props: any) => React.createElement("div", props, props.children),
   CardHeader: (props: any) => React.createElement("header", props, props.children),
@@ -239,7 +239,7 @@ describe("local app pages and adapters", () => {
     let html = renderToStaticMarkup(React.createElement(SettingsPage));
     expect(html).toContain("未登录");
     expect(html).toContain("/api/health/live");
-    expect(mocks.buttons.find((button: any) => button.variant === "destructive")).toMatchObject({
+    expect(mocks.buttons.find((button: any) => button.variant === "destructive-outline")).toMatchObject({
       disabled: true,
     });
 
@@ -253,7 +253,7 @@ describe("local app pages and adapters", () => {
     html = renderToStaticMarkup(React.createElement(SettingsPage));
     expect(html).toContain("admin");
     expect(html).toContain("2 / 9999");
-    const logoutButton = mocks.buttons.find((button: any) => button.variant === "destructive");
+    const logoutButton = mocks.buttons.find((button: any) => button.variant === "destructive-outline");
     expect(logoutButton).toMatchObject({ disabled: false });
     logoutButton.onClick();
     await Promise.resolve();

@@ -5,13 +5,13 @@ import { Loader2, RotateCcw, Save } from "lucide-react";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
 import { buildGeneratedRuleEntries } from "@subboost/core/generator/rules";
 import type { SubBoostTemplateConfig } from "@subboost/core/types/template-config";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@subboost/ui/components/ui/dialog";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Textarea } from "@subboost/ui/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@subboost/ui/components/ui/tabs";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@subboost/ui/components/coss/compat/dialog";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Textarea } from "@subboost/ui/components/coss/compat/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@subboost/ui/components/coss/compat/tabs";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { parseTemplateDocument, serializeTemplateDocument } from "./template-document";
 import { templateFieldClass, templateOutlineButtonClass, templatePrimaryButtonClass } from "./template-styles";
 
@@ -73,10 +73,10 @@ export function TemplateEditorDialog({ template, canEdit, onClose, onSave, onRes
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) void close(); }}>
-      <DialogContent className="w-[calc(100%-2rem)] max-h-[90dvh] sm:max-w-4xl border-[var(--gray-6)] bg-[var(--gray-2)] text-[var(--gray-12)]">
+      <DialogContent className="w-[calc(100%-2rem)] max-h-[90dvh] sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle className="text-[var(--gray-12)]">{canEdit ? "编辑模板" : "查看模板"}</DialogTitle>
-          <DialogDescription className="text-[var(--gray-11)]">{template.name}</DialogDescription>
+          <DialogTitle>{canEdit ? "编辑模板" : "查看模板"}</DialogTitle>
+          <DialogDescription>{template.name}</DialogDescription>
         </DialogHeader>
         <fieldset disabled={busy} className="min-w-0 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -90,25 +90,25 @@ export function TemplateEditorDialog({ template, canEdit, onClose, onSave, onRes
             </label>
           </div>
           <Tabs defaultValue="groups" className="space-y-4">
-            <TabsList className="max-w-full border border-[var(--gray-6)] bg-[var(--gray-3)]">
+            <TabsList className="max-w-full">
               {[["groups", "代理组"], ["rules", "规则"], ["source", "配置源码"]].map(([value, label]) => (
-                <TabsTrigger key={value} value={value} className="text-[var(--gray-11)] data-[state=active]:bg-[var(--gray-5)] data-[state=active]:text-[var(--gray-12)]">{label}</TabsTrigger>
+                <TabsTrigger key={value} value={value}>{label}</TabsTrigger>
               ))}
             </TabsList>
             <TabsContent value="groups" className="max-h-[45vh] overflow-y-auto">
               {config && <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {PROXY_GROUP_MODULES.filter((module) => !module.pinned).map((module) => (
-                  <label key={module.id} className="flex items-center gap-3 rounded-md border border-[var(--gray-6)] bg-[var(--gray-3)] p-3 text-sm hover:bg-[var(--gray-4)]">
+                  <label key={module.id} className="flex items-center gap-3 rounded-md border bg-muted p-3 text-sm hover:bg-accent">
                     <input type="checkbox" checked={Boolean(config.enabledProxyGroups?.includes(module.id) && !config.hiddenProxyGroups?.includes(module.id))} disabled={!canEdit} onChange={() => toggleGroup(module.id)} className="size-4 shrink-0 accent-[var(--lime-9)]" />
                     <span>{config.proxyGroupNameOverrides?.[module.id] || module.name}</span>
                   </label>
                 ))}
-                {config.customProxyGroups?.map((group) => <div key={group.id} className="rounded-md border border-[var(--gray-6)] p-3 text-sm">{group.name}</div>)}
+                {config.customProxyGroups?.map((group) => <div key={group.id} className="rounded-md border p-3 text-sm">{group.name}</div>)}
               </div>}
             </TabsContent>
             <TabsContent value="rules" className="max-h-[45vh] overflow-y-auto">
-              <ol className="divide-y divide-[var(--gray-6)]">
-                {rules.map((rule) => <li key={rule.key} className="break-all py-2 font-mono text-xs text-[var(--gray-11)]">{rule.text}</li>)}
+              <ol className="divide-y">
+                {rules.map((rule) => <li key={rule.key} className="break-all py-2 font-mono text-xs text-muted-foreground">{rule.text}</li>)}
               </ol>
             </TabsContent>
             <TabsContent value="source">
@@ -116,7 +116,7 @@ export function TemplateEditorDialog({ template, canEdit, onClose, onSave, onRes
               <Textarea id="template-config-source" value={source} onChange={(event) => setSource(event.target.value)} readOnly={!canEdit} spellCheck={false} className={`h-[42vh] min-h-64 resize-y font-mono text-xs leading-6 ${templateFieldClass}`} aria-invalid={!parsed.ok} aria-describedby={!parsed.ok ? "template-config-error" : undefined} />
             </TabsContent>
           </Tabs>
-          {!parsed.ok && <p id="template-config-error" role="alert" className="whitespace-pre-wrap text-sm text-[var(--red-11)]">{parsed.error}</p>}
+          {!parsed.ok && <p id="template-config-error" role="alert" className="whitespace-pre-wrap text-sm text-destructive-foreground">{parsed.error}</p>}
         </fieldset>
         <DialogFooter className="gap-2 sm:justify-between sm:space-x-0">
           <div>{canEdit && template.isModified && onReset && <Button variant="outline" onClick={() => void reset()} disabled={busy} className={templateOutlineButtonClass}><RotateCcw />恢复内置</Button>}</div>

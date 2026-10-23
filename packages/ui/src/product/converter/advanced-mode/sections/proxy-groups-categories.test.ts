@@ -65,9 +65,9 @@ vi.mock("lucide-react", () => ({
   RotateCcw: () => null,
   Shuffle: () => null,
 }));
-vi.mock("@subboost/ui/components/ui/badge", () => ({ Badge: (props: any) => props.children }));
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({ Badge: (props: any) => props.children }));
 vi.mock("@subboost/ui/components/ui/confirm-dialog", () => ({ confirmDialog: mocks.confirmDialog }));
-vi.mock("@subboost/ui/components/ui/dropdown-menu", () => ({
+vi.mock("@subboost/ui/components/coss/compat/dropdown-menu", () => ({
   DropdownMenu: (props: any) => props.children,
   DropdownMenuContent: (props: any) => props.children,
   DropdownMenuItem: (props: any) => {
@@ -77,13 +77,13 @@ vi.mock("@subboost/ui/components/ui/dropdown-menu", () => ({
   DropdownMenuLabel: (props: any) => props.children,
   DropdownMenuTrigger: (props: any) => props.children,
 }));
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.captures.inputs.push(props);
     return null;
   },
 }));
-vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({ toast: mocks.toast }));
 vi.mock("@subboost/core/generator/proxy-groups", () => ({
   CATEGORY_INFO: {
     core: { name: "核心", order: 1 },

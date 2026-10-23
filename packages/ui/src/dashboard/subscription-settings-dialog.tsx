@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@subboost/ui/components/ui/button";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +8,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@subboost/ui/components/ui/dialog";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Label } from "@subboost/ui/components/ui/label";
-import { Switch } from "@subboost/ui/components/ui/switch";
+} from "@subboost/ui/components/coss/compat/dialog";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Label } from "@subboost/ui/components/coss/compat/label";
+import { Switch } from "@subboost/ui/components/coss/compat/switch";
 import { SmartNodeMatchingHelp } from "@subboost/ui/components/subscription/smart-node-matching-help";
 import {
   getAutoUpdateIntervalPolicyMinLabel,
@@ -80,7 +80,7 @@ export function SubscriptionSettingsDialog({
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm text-white/70">更新时智能匹配节点</p>
+                <p className="text-sm text-muted-foreground">更新时智能匹配节点</p>
                 <SmartNodeMatchingHelp enabled={smartNodeMatchingEnabled} />
               </div>
             </div>
@@ -89,14 +89,14 @@ export function SubscriptionSettingsDialog({
 
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-sm text-white/70">启用自动更新</p>
-              <p className="text-xs text-white/40 mt-1">开启后服务器会按间隔刷新缓存</p>
+              <p className="text-sm text-muted-foreground">启用自动更新</p>
+              <p className="text-xs text-muted-foreground mt-1">开启后服务器会按间隔刷新缓存</p>
             </div>
             <Switch checked={autoUpdateEnabled} onCheckedChange={setAutoUpdateEnabled} />
           </div>
 
           {!autoUpdateEnabled && subscription?.autoUpdateState.disabledAt && subscription.autoUpdateState.disabledReason && (
-            <div className="rounded-md border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-100">
+            <div className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs leading-relaxed text-warning-foreground">
               自动更新已关闭：{subscription.autoUpdateState.disabledReason}。当前可用配置仍会保留；检查订阅 URL 后可重新开启自动更新。
             </div>
           )}

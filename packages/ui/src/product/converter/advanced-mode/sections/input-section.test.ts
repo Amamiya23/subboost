@@ -76,7 +76,7 @@ vi.mock("react/jsx-runtime", async (importOriginal) => {
   };
 });
 
-vi.mock("@radix-ui/react-popover", () => ({
+vi.mock("@subboost/ui/components/coss/compat/popover", () => ({
   Root: (props: any) => props.children,
   Trigger: (props: any) => props.children,
   Portal: (props: any) => props.children,
@@ -96,26 +96,26 @@ vi.mock("lucide-react", () => ({
   Server: () => null,
   X: () => null,
 }));
-vi.mock("@subboost/ui/components/ui/badge", () => ({ Badge: (props: any) => props.children }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({ Badge: (props: any) => props.children }));
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.captures.buttons.push(props);
     return null;
   },
 }));
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.captures.inputs.push(props);
     return null;
   },
 }));
-vi.mock("@subboost/ui/components/ui/textarea", () => ({
+vi.mock("@subboost/ui/components/coss/compat/textarea", () => ({
   Textarea: (props: any) => {
     mocks.captures.textareas.push(props);
     return null;
   },
 }));
-vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({ toast: mocks.toast }));
 vi.mock("@subboost/core/subscription/import-error", () => ({
   normalizeSubscriptionImportErrorInfo: (value: any) => (value ? { message: value.message || String(value) } : null),
 }));

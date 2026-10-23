@@ -51,7 +51,7 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-white/5 bg-black/50 backdrop-blur-md",
+        "fixed inset-x-0 bottom-0 z-50 border-t bg-background/92 backdrop-blur-xl md:hidden",
         zeroRightClassName
       )}
     >
@@ -79,11 +79,13 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
               }}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 w-full h-full transition-colors",
-                isActive ? "text-white" : "text-white/40 hover:text-white/70"
+                isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <item.icon className="h-5 w-5" />
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className={cn("flex size-7 items-center justify-center rounded-md", isActive && "bg-accent")}>
+                <item.icon className="size-4" aria-hidden="true" />
+              </span>
+              <span className="text-[11px] font-medium">{item.label}</span>
             </Link>
           );
         })}

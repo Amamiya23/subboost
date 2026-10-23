@@ -8,7 +8,7 @@ export const SUBBOOST_PRODUCT_DESCRIPTION =
 export const SUBBOOST_FOOTER_DESCRIPTION =
   "Clash 订阅转换、生成和管理工具，让配置更简单";
 
-export const SUBBOOST_THEME_COLOR = "#1e1b4b";
+export const SUBBOOST_THEME_COLOR = "#111111";
 
 export const SUBBOOST_ICON_PATH = "/icon.png";
 
@@ -56,7 +56,7 @@ export function createSubBoostManifest(): SubBoostManifest {
     description: SUBBOOST_PRODUCT_DESCRIPTION,
     start_url: "/",
     display: "standalone",
-    background_color: "#0f0d1a",
+    background_color: "#111111",
     theme_color: SUBBOOST_THEME_COLOR,
     orientation: "portrait-primary",
     icons: [

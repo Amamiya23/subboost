@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Layers } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
 import { isPinnedModule } from "@subboost/core/generator/rules";
 import { useConfigStore } from "@subboost/ui/store/config-store";
@@ -30,7 +30,7 @@ export function ProxyGroupsSection({
         isExpanded={isExpanded}
         onToggle={onToggle}
         badge={
-          <Badge variant="outline" className="ml-auto border-blue-500/50 bg-blue-500/10 text-blue-300">
+          <Badge variant="outline" className="ml-auto border-info/30 bg-info/10 text-info-foreground">
             {enabledCount}/{totalCount}
           </Badge>
         }

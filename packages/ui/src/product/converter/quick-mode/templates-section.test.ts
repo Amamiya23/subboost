@@ -86,13 +86,13 @@ vi.mock("lucide-react", () => ({
   Heart: () => null,
   Loader2: () => null,
 }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.captures.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.captures.inputs.push(props);
     return React.createElement("input", {
@@ -102,13 +102,13 @@ vi.mock("@subboost/ui/components/ui/input", () => ({
     });
   },
 }));
-vi.mock("@subboost/ui/components/ui/card", () => ({
+vi.mock("@subboost/ui/components/coss/compat/card", () => ({
   Card: (props: any) => {
     mocks.captures.cards.push(props);
     return React.createElement("section", props, props.children);
   },
 }));
-vi.mock("@subboost/ui/components/ui/dialog", () => ({
+vi.mock("@subboost/ui/components/coss/compat/dialog", () => ({
   Dialog: (props: any) => {
     mocks.captures.dialog = props;
     return props.children;
@@ -117,7 +117,7 @@ vi.mock("@subboost/ui/components/ui/dialog", () => ({
   DialogHeader: (props: any) => props.children,
   DialogTitle: (props: any) => props.children,
 }));
-vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({ toast: mocks.toast }));
 vi.mock("@subboost/ui/lib/utils", () => ({ cn: (...parts: unknown[]) => parts.filter(Boolean).join(" ") }));
 vi.mock("@subboost/ui/store/config-store", () => {
   const useConfigStore = () => mocks.store;

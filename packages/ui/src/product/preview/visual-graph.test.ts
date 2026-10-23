@@ -368,7 +368,7 @@ describe("VisualGraph", () => {
     });
     expect(mocks.captures.protocolBadges.map((props: any) => props.type)).toEqual(["anytls", "unknown"]);
     expect(html).toContain("bg-teal-400");
-    expect(html).toContain("bg-gray-400");
+    expect(html).toContain("bg-muted");
   });
 
   it("merges built-in rule edits moved from another module and skips invalid edit records", () => {

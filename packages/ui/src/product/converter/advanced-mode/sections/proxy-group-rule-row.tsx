@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { ArrowRightLeft, Trash2 } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
-import { Button } from "@subboost/ui/components/ui/button";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@subboost/ui/components/ui/dropdown-menu";
+} from "@subboost/ui/components/coss/compat/dropdown-menu";
 import { cn } from "@subboost/ui/lib/utils";
 import type { CustomRule } from "@subboost/core/types/config";
 import type {
@@ -62,11 +62,11 @@ export function ProxyGroupRuleRow({
   return (
     <div
       className={cn(
-        "proxy-group-rule-row grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 rounded border border-white/10 bg-white/[0.04] px-2 py-2",
+        "proxy-group-rule-row grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 rounded border border-border bg-muted/[0.04] px-2 py-2",
         isInactive &&
           (isMoved
             ? "border-orange-500/25 bg-orange-500/10"
-            : "border-red-500/20 bg-red-500/10"),
+            : "border-destructive/30 bg-destructive/10"),
       )}
     >
       <div className="min-w-0 space-y-1">
@@ -76,10 +76,10 @@ export function ProxyGroupRuleRow({
               "min-w-0 break-words text-xs font-medium leading-5",
               isInactive
                 ? cn(
-                    "text-white/50 line-through",
+                    "text-muted-foreground line-through",
                     isMoved ? "decoration-orange-300/70" : "decoration-red-300/70"
                   )
-                : "text-white"
+                : "text-foreground"
             )}
             title={title}
           >
@@ -94,10 +94,10 @@ export function ProxyGroupRuleRow({
             "min-w-0 break-all font-mono text-[10px]",
             isInactive
               ? cn(
-                  "text-white/30 line-through",
+                  "text-muted-foreground line-through",
                   isMoved ? "decoration-orange-300/50" : "decoration-red-300/50",
                 )
-              : "text-white/35",
+              : "text-muted-foreground",
           )}
           title={detailTitle || detail}
         >
@@ -187,7 +187,7 @@ export function ProxyGroupManualRuleRow({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-7 px-2 text-white/35 hover:text-red-300"
+            className="h-7 px-2 text-muted-foreground hover:text-destructive-foreground"
             title="删除规则"
             aria-label={`删除 ${rule.value} 规则`}
             onClick={() => onRemove(item)}
@@ -222,24 +222,24 @@ export function ProxyGroupRuleMoveMenu({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-7 px-2 text-white/45 hover:text-white/80"
+          className="h-7 px-2 text-muted-foreground hover:text-foreground/85"
           title={title}
           aria-label={ariaLabel}
         >
           <ArrowRightLeft className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 border-white/10 bg-black/95 text-white shadow-2xl">
+      <DropdownMenuContent align="end" className="w-56 border-border bg-popover text-popover-foreground shadow-lg">
         {kinds.map((kind, index) => {
           const groupTargets = targets.filter((target) => target.kind === kind);
           return (
             <React.Fragment key={kind}>
-              {index > 0 && <DropdownMenuSeparator className="bg-white/10" />}
-              <DropdownMenuLabel className="px-2 py-1 text-[10px] font-medium text-white/45">
+              {index > 0 && <DropdownMenuSeparator className="bg-muted" />}
+              <DropdownMenuLabel className="px-2 py-1 text-[10px] font-medium text-muted-foreground">
                 {targetKindLabels[kind]}
               </DropdownMenuLabel>
               {groupTargets.length === 0 ? (
-                <DropdownMenuItem className="text-xs text-white/35" disabled>
+                <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
                   {emptyTargetLabels[kind]}
                 </DropdownMenuItem>
               ) : (
@@ -247,7 +247,7 @@ export function ProxyGroupRuleMoveMenu({
                   <DropdownMenuItem
                     key={`${target.kind}:${target.id}`}
                     disabled={isCurrentTarget(target, currentTarget)}
-                    className="text-xs text-white/70 focus:bg-white/10 focus:text-white"
+                    className="text-xs text-muted-foreground focus:bg-muted focus:text-foreground"
                     onSelect={() => {
                       void onMove(target);
                     }}
@@ -273,7 +273,7 @@ function RuleStateBadge({ state }: { state: Exclude<ProxyGroupRuleRowState, "act
         "px-1.5 py-0 text-[9px]",
         isMoved
           ? "border-orange-500/50 bg-orange-500/10 text-orange-300"
-          : "border-red-500/50 bg-red-500/10 text-red-300",
+          : "border-destructive/30 bg-destructive/10 text-destructive-foreground",
       )}
     >
       {isMoved ? "已移动" : "已移除"}
@@ -283,10 +283,10 @@ function RuleStateBadge({ state }: { state: Exclude<ProxyGroupRuleRowState, "act
 
 function RuleSourceBadge({ source }: { source: RuleSource }) {
   const className = {
-    preset: "border-white/10 bg-blue-500/10 text-blue-200",
-    custom: "border-emerald-500/20 bg-emerald-500/10 text-emerald-200",
-    manual: "border-white/15 bg-white/8 text-white/80",
-    experimental: "border-amber-500/30 bg-amber-500/10 text-amber-200",
+    preset: "border-border bg-info/10 text-info-foreground",
+    custom: "border-success/30 bg-success/10 text-success-foreground",
+    manual: "border-border bg-muted text-foreground/85",
+    experimental: "border-warning/30 bg-warning/10 text-warning-foreground",
   }[source];
   const label = {
     preset: "预设",
@@ -308,7 +308,7 @@ function RuleBehaviorBadge({ behavior }: { behavior: "domain" | "ipcidr" }) {
 
 function RuleTextBadge({ children }: { children: React.ReactNode }) {
   return (
-    <Badge variant="outline" className="border-white/10 bg-white/5 px-1.5 py-0 text-[9px] text-white/55">
+    <Badge variant="outline" className="border-border bg-muted px-1.5 py-0 text-[9px] text-muted-foreground">
       {children}
     </Badge>
   );
@@ -316,7 +316,7 @@ function RuleTextBadge({ children }: { children: React.ReactNode }) {
 
 function NoResolveBadge() {
   return (
-    <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 px-1.5 py-0 text-[9px] text-amber-200">
+    <Badge variant="outline" className="border-warning/30 bg-warning/10 px-1.5 py-0 text-[9px] text-warning-foreground">
       no-resolve
     </Badge>
   );

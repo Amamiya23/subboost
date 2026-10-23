@@ -2,16 +2,16 @@
 
 import * as React from "react";
 import { ArrowRight, Check, Pencil, Trash2, X } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Input } from "@subboost/ui/components/ui/input";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Input } from "@subboost/ui/components/coss/compat/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@subboost/ui/components/ui/select";
-import { Switch } from "@subboost/ui/components/ui/switch";
+} from "@subboost/ui/components/coss/compat/select";
+import { Switch } from "@subboost/ui/components/coss/compat/switch";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { resolveProxyGroupTargetName } from "@subboost/core/proxy-group-targets";
@@ -222,7 +222,7 @@ export function ProxyGroupsCustomRules() {
   return (
     <div className="min-w-0 space-y-2">
       <div className={RULE_HEADER_ROW_CLASS}>
-        <span className="text-xs font-medium text-white/80">
+        <span className="text-xs font-medium text-foreground/85">
           方法二：手动添加规则
         </span>
         <Button
@@ -292,12 +292,12 @@ export function ProxyGroupsCustomRules() {
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex h-7 shrink-0 items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2">
+            <div className="flex h-7 shrink-0 items-center gap-1 rounded-lg border border-border bg-muted px-2">
               <Switch
                 checked={newRuleNoResolve}
                 onCheckedChange={setNewRuleNoResolve}
               />
-              <span className="proxy-group-rule-no-resolve-label text-[10px] text-white/50">no-resolve</span>
+              <span className="proxy-group-rule-no-resolve-label text-[10px] text-muted-foreground">no-resolve</span>
             </div>
             <Button
               type="button"
@@ -314,12 +314,12 @@ export function ProxyGroupsCustomRules() {
       </div>
 
       {customRules.length > 0 && (
-        <div className="space-y-1 border-t border-white/10 pt-2">
+        <div className="space-y-1 border-t border-border pt-2">
           <div className="flex min-h-5 items-center gap-2">
-            <span className="text-[11px] font-medium text-white/65">
+            <span className="text-[11px] font-medium text-muted-foreground">
               已添加规则
             </span>
-            <span className="ml-auto text-[10px] text-white/40">
+            <span className="ml-auto text-[10px] text-muted-foreground">
               已添加 {customRules.length}
             </span>
           </div>
@@ -335,7 +335,7 @@ export function ProxyGroupsCustomRules() {
               return (
                 <div
                   key={rule.id}
-                  className="rounded-md border border-white/15 bg-white/8 p-1.5"
+                  className="rounded-md border border-border bg-muted p-1.5"
                 >
                   <div className={RULE_EDIT_ROW_CLASS}>
                     <div className={RULE_EDIT_PRIMARY_GROUP_CLASS}>
@@ -406,7 +406,7 @@ export function ProxyGroupsCustomRules() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <div className="flex h-7 shrink-0 items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2">
+                      <div className="flex h-7 shrink-0 items-center gap-1 rounded-lg border border-border bg-muted px-2">
                         <Switch
                           checked={Boolean(editingRuleDraft.noResolve)}
                           onCheckedChange={(noResolve) =>
@@ -415,7 +415,7 @@ export function ProxyGroupsCustomRules() {
                             )
                           }
                         />
-                        <span className="proxy-group-rule-no-resolve-label text-[10px] text-white/50">
+                        <span className="proxy-group-rule-no-resolve-label text-[10px] text-muted-foreground">
                           no-resolve
                         </span>
                       </div>
@@ -426,7 +426,7 @@ export function ProxyGroupsCustomRules() {
                           size="sm"
                           onClick={saveEditingRule}
                           disabled={!editingRuleDraft.value.trim()}
-                          className="h-7 w-7 shrink-0 p-0 text-emerald-300 hover:text-emerald-200"
+                          className="h-7 w-7 shrink-0 p-0 text-success-foreground hover:text-success-foreground"
                           title="保存规则"
                         >
                           <Check className="h-3.5 w-3.5" />
@@ -449,7 +449,7 @@ export function ProxyGroupsCustomRules() {
                             removeCustomRule(index);
                             cancelEditingRule();
                           }}
-                          className="h-7 w-7 shrink-0 p-0 text-white/40 hover:text-red-300"
+                          className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-destructive-foreground"
                           title="删除规则"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -465,28 +465,28 @@ export function ProxyGroupsCustomRules() {
             return (
               <div
                 key={rule.id}
-                className="flex min-w-0 flex-wrap items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px]"
+                className="flex min-w-0 flex-wrap items-center gap-1 rounded-md border border-border bg-muted/[0.04] px-2 py-1 text-[10px]"
               >
-                <span className="rounded border border-white/15 bg-white/8 px-1.5 py-0.5 font-medium text-white/80">
+                <span className="rounded border border-border bg-muted px-1.5 py-0.5 font-medium text-foreground/85">
                   自定义
                 </span>
-                <span className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 font-medium text-white/55">
+                <span className="rounded border border-border bg-muted px-1.5 py-0.5 font-medium text-muted-foreground">
                   {rule.type}
                 </span>
                 <span
-                  className="min-w-0 max-w-[16rem] truncate text-white/75"
+                  className="min-w-0 max-w-[16rem] truncate text-muted-foreground"
                   title={rule.value}
                 >
                   {rule.value}
                 </span>
                 {rule.noResolve && (
-                  <span className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-white/45">
+                  <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-muted-foreground">
                     no-resolve
                   </span>
                 )}
-                <ArrowRight className="h-3 w-3 shrink-0 text-white/35" />
+                <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" />
                 <span
-                  className="max-w-[11rem] truncate rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-white/70"
+                  className="max-w-[11rem] truncate rounded border border-border bg-muted px-1.5 py-0.5 text-muted-foreground"
                   title={ruleTargetName}
                 >
                   {ruleTargetName}
@@ -495,7 +495,7 @@ export function ProxyGroupsCustomRules() {
                   <button
                     type="button"
                     onClick={() => startEditingRule(rule)}
-                    className="inline-flex h-5 w-5 items-center justify-center rounded-md text-white/35 transition-colors hover:bg-white/10 hover:text-white/80"
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground/85"
                     title="编辑规则"
                   >
                     <Pencil className="h-3 w-3" />
@@ -503,7 +503,7 @@ export function ProxyGroupsCustomRules() {
                   <button
                     type="button"
                     onClick={() => removeCustomRule(index)}
-                    className="inline-flex h-5 w-5 items-center justify-center rounded-md text-white/30 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive-foreground"
                     title="删除规则"
                   >
                     <Trash2 className="h-3 w-3" />

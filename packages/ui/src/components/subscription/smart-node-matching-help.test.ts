@@ -2,7 +2,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@radix-ui/react-popover", () => ({
+vi.mock("@subboost/ui/components/coss/compat/popover", () => ({
   Root: (props: any) => React.createElement("div", null, props.children),
   Trigger: (props: any) => React.createElement("span", null, props.children),
   Portal: (props: any) => React.createElement("div", null, props.children),

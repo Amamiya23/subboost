@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import * as Popover from "@radix-ui/react-popover";
+import * as Popover from "@subboost/ui/components/coss/compat/popover";
 import { Check, ChevronDown, ChevronRight, HelpCircle, Pencil, SlidersHorizontal, Trash2, X } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Switch } from "@subboost/ui/components/ui/switch";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Switch } from "@subboost/ui/components/coss/compat/switch";
 import {
   getEffectiveModuleRuleItems,
   getExcludedModuleRuleIds,
@@ -42,7 +42,7 @@ function ModuleHintPopover({ moduleId }: { moduleId: string }) {
       <Popover.Trigger asChild>
         <button
           type="button"
-          className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-foreground/85 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           aria-label={label}
           title={label}
           onClick={(e) => e.stopPropagation()}
@@ -55,18 +55,18 @@ function ModuleHintPopover({ moduleId }: { moduleId: string }) {
           side="bottom"
           align="start"
           sideOffset={8}
-          className="z-50 w-[340px] rounded-md border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
+          className="z-50 w-[340px] rounded-md border border-border bg-background/88 backdrop-blur-md shadow-2xl p-3"
         >
           {isGemini ? (
             <div className="space-y-2 text-xs">
               <div className="flex items-center gap-2">
-                <HelpCircle className="h-4 w-4 text-amber-300" />
-                <div className="text-white font-medium">Gemini 分流说明</div>
+                <HelpCircle className="h-4 w-4 text-warning-foreground" />
+                <div className="text-foreground font-medium">Gemini 分流说明</div>
               </div>
-              <div className="text-white/60 leading-relaxed">
+              <div className="text-muted-foreground leading-relaxed">
                 由于 Gemini 验证机制调整，Gemini 与 Google 需要分流到同一出口节点，否则可能出现登录/验证失败问题。
               </div>
-              <ul className="ml-4 list-disc space-y-1 text-white/60">
+              <ul className="ml-4 list-disc space-y-1 text-muted-foreground">
                 <li>默认：Gemini 位于 AI 服务分流之中</li>
                 <li>也提供：单独的 Gemini 分流组供手动选择</li>
               </ul>
@@ -74,13 +74,13 @@ function ModuleHintPopover({ moduleId }: { moduleId: string }) {
           ) : (
             <div className="space-y-2 text-xs">
               <div className="flex items-center gap-2">
-                <HelpCircle className="h-4 w-4 text-amber-300" />
-                <div className="text-white font-medium">谷歌学术分流说明</div>
+                <HelpCircle className="h-4 w-4 text-warning-foreground" />
+                <div className="text-foreground font-medium">谷歌学术分流说明</div>
               </div>
-              <div className="text-white/60 leading-relaxed">
+              <div className="text-muted-foreground leading-relaxed">
                 谷歌学术对 IP 质量要求高于其它 Google 服务，建议使用IP质量更高的节点。
               </div>
-              <ul className="ml-4 list-disc space-y-1 text-white/60">
+              <ul className="ml-4 list-disc space-y-1 text-muted-foreground">
                 <li>默认：谷歌学术位于教育资源分流之中</li>
                 <li>也提供：单独的谷歌学术分流组供手动选择</li>
               </ul>
@@ -246,11 +246,11 @@ export function ProxyGroupsModuleCard({
   ) : null;
 
   return (
-    <div className="overflow-hidden rounded border border-white/10 bg-white/5">
+    <div className="overflow-hidden rounded border border-border bg-muted">
       <div
         className={cn(
           "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 px-2 py-2",
-          hasExpandedContent && "cursor-pointer transition-colors hover:bg-white/5"
+          hasExpandedContent && "cursor-pointer transition-colors hover:bg-accent"
         )}
         onClick={() => {
           if (hasExpandedContent) onToggleRulesExpanded();
@@ -259,9 +259,9 @@ export function ProxyGroupsModuleCard({
       >
         {!isEditing && (hasExpandedContent ? (
           isRulesExpanded ? (
-            <ChevronDown className="h-4 w-4 shrink-0 text-white/50" />
+            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
           ) : (
-            <ChevronRight className="h-4 w-4 shrink-0 text-white/50" />
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
           )
         ) : (
           <span className="h-4 w-4 shrink-0" />
@@ -295,7 +295,7 @@ export function ProxyGroupsModuleCard({
                   <Input
                     value={editingDescription ?? ""}
                     placeholder="描述文本（默认: 自定义代理组）"
-                    className="h-7 min-w-0 border-white/10 bg-white/5 text-xs"
+                    className="h-7 min-w-0 border-border bg-muted text-xs"
                     onChange={(event) => onChangeEditingDescription(event.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") onCommitEditing();
@@ -328,7 +328,7 @@ export function ProxyGroupsModuleCard({
           ) : (
             <div className="proxy-group-module-header flex min-w-0 w-full flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <div className="flex min-w-0 max-w-full items-center gap-2">
-                <span className="min-w-0 break-words text-sm font-medium text-white">
+                <span className="min-w-0 break-words text-sm font-medium text-foreground">
                   {display.full}
                 </span>
                 <div className="flex shrink-0 items-center gap-1">
@@ -376,7 +376,7 @@ export function ProxyGroupsModuleCard({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-7 shrink-0 px-2 text-white/35 hover:text-white/80"
+                    className="h-7 shrink-0 px-2 text-muted-foreground hover:text-foreground/85"
                     title={`类型：${typeLabel}`}
                     aria-label={`修改 ${display.full} 类型`}
                   >
@@ -388,7 +388,7 @@ export function ProxyGroupsModuleCard({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 shrink-0 px-2 text-white/30 hover:text-red-400"
+              className="h-7 shrink-0 px-2 text-muted-foreground hover:text-destructive-foreground"
               onClick={(e) => {
                 e.stopPropagation();
                 onHide();

@@ -243,7 +243,7 @@ function HomeSurfaceInner({ adapter }: Props) {
 function HomeSurfaceFallback() {
   return (
     <div className="w-full max-w-[clamp(1200px,95vw,2400px)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-3 lg:py-5 min-h-[calc(100vh-64px)] flex flex-col">
-      <div className="mono-label flex h-[clamp(26rem,60vh,39rem)] items-center justify-center rounded-md border border-white/8 bg-white/[0.02] text-white/30">
+      <div className="mono-label flex h-[clamp(26rem,60vh,39rem)] items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
         INITIALIZING WORKSPACE…
       </div>
     </div>

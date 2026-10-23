@@ -18,7 +18,7 @@ import {
 } from "@subboost/core/subscription/subscription-userinfo";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 import { captureAuthConfigHandoff } from "@subboost/ui/store/config-store/auth-handoff";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import {
   ensureNodeOriginName,
   ensureNodesHaveValidSourceIds,

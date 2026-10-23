@@ -11,7 +11,7 @@ import {
 } from "@subboost/ui/product/interactions";
 import { getCompactDateStampInBeijing } from "@subboost/core/time/beijing";
 import { useConfigStore } from "@subboost/ui/store/config-store";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 
 type UseHomeActionsOptions = {
   generatedYaml: string;

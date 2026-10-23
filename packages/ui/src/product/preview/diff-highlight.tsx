@@ -38,13 +38,13 @@ export function DiffHighlight({ oldText, newText, className }: DiffHighlightProp
     <div className={cn("rounded-lg overflow-hidden", className)}>
       {/* 统计信息 */}
       {(stats.added > 0 || stats.removed > 0) && (
-        <div className="flex items-center gap-3 px-3 py-2 bg-white/5 border-b border-white/10 text-xs">
-          <span className="text-white/60">变更统计:</span>
+        <div className="flex items-center gap-3 px-3 py-2 bg-muted border-b border-border text-xs">
+          <span className="text-muted-foreground">变更统计:</span>
           {stats.added > 0 && (
-            <span className="text-green-400">+{stats.added} 行</span>
+            <span className="text-success-foreground">+{stats.added} 行</span>
           )}
           {stats.removed > 0 && (
-            <span className="text-red-400">-{stats.removed} 行</span>
+            <span className="text-destructive-foreground">-{stats.removed} 行</span>
           )}
         </div>
       )}
@@ -57,21 +57,21 @@ export function DiffHighlight({ oldText, newText, className }: DiffHighlightProp
               key={idx}
               className={cn(
                 "flex",
-                line.type === "add" && "bg-green-500/10",
-                line.type === "remove" && "bg-red-500/10"
+                line.type === "add" && "bg-success/10",
+                line.type === "remove" && "bg-destructive/10"
               )}
             >
               {/* 行号 */}
-              <span className="w-10 px-2 py-0.5 text-right text-white/50 select-none border-r border-white/10 flex-shrink-0">
+              <span className="w-10 px-2 py-0.5 text-right text-muted-foreground select-none border-r border-border flex-shrink-0">
                 {line.lineNumber}
               </span>
               
               {/* 差异标记 */}
               <span className={cn(
                 "w-6 px-1.5 py-0.5 text-center select-none flex-shrink-0",
-                line.type === "add" && "text-green-400",
-                line.type === "remove" && "text-red-400",
-                line.type === "unchanged" && "text-white/50"
+                line.type === "add" && "text-success-foreground",
+                line.type === "remove" && "text-destructive-foreground",
+                line.type === "unchanged" && "text-muted-foreground"
               )}>
                 {line.type === "add" ? "+" : line.type === "remove" ? "-" : " "}
               </span>
@@ -79,8 +79,8 @@ export function DiffHighlight({ oldText, newText, className }: DiffHighlightProp
               {/* 内容 */}
               <span className={cn(
                 "flex-1 px-2 py-0.5 whitespace-pre",
-                line.type === "add" && "text-green-300",
-                line.type === "remove" && "text-red-300",
+                line.type === "add" && "text-success-foreground",
+                line.type === "remove" && "text-destructive-foreground",
                 line.type === "unchanged" && "text-dark-300"
               )}>
                 {line.content || " "}
@@ -285,7 +285,7 @@ export function YamlHighlight({ content, className }: { content: string; classNa
   return (
     <div className={cn("overflow-auto", className)}>
       {renderStats.shouldUsePlain && (
-        <div className="mb-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-200">
+        <div className="mb-2 rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-[11px] text-warning-foreground">
           <div className="flex items-center justify-between gap-2">
             <span>
               YAML 内容较大，已切换纯文本模式以避免卡顿
@@ -296,7 +296,7 @@ export function YamlHighlight({ content, className }: { content: string; classNa
               <button
                 type="button"
                 onClick={() => setForceHighlight(false)}
-                className="rounded border border-amber-300/40 px-2 py-0.5 text-[10px] text-amber-100 transition-colors hover:bg-amber-300/10"
+                className="rounded border border-warning/30 px-2 py-0.5 text-[10px] text-warning-foreground transition-colors hover:bg-warning/10"
               >
                 恢复纯文本
               </button>
@@ -304,7 +304,7 @@ export function YamlHighlight({ content, className }: { content: string; classNa
               <button
                 type="button"
                 onClick={() => setForceHighlight(true)}
-                className="rounded border border-amber-300/40 px-2 py-0.5 text-[10px] text-amber-100 transition-colors hover:bg-amber-300/10"
+                className="rounded border border-warning/30 px-2 py-0.5 text-[10px] text-warning-foreground transition-colors hover:bg-warning/10"
               >
                 强制语法高亮
               </button>
@@ -314,16 +314,16 @@ export function YamlHighlight({ content, className }: { content: string; classNa
       )}
 
       {renderMode === "plain" ? (
-        <pre className="px-3 py-2 text-xs font-mono whitespace-pre text-slate-200">{content}</pre>
+        <pre className="px-3 py-2 text-xs font-mono whitespace-pre text-foreground">{content}</pre>
       ) : (
         <pre className="text-xs font-mono">
           {highlightedLines.map(({ number, html }) => (
-            <div key={number} className="flex hover:bg-white/5">
-              <span className="w-10 px-2 py-0.5 text-right text-white/50 select-none border-r border-white/10 flex-shrink-0">
+            <div key={number} className="flex hover:bg-accent">
+              <span className="w-10 px-2 py-0.5 text-right text-muted-foreground select-none border-r border-border flex-shrink-0">
                 {number}
               </span>
               <span
-                className="flex-1 px-3 py-0.5 whitespace-pre text-slate-200"
+                className="flex-1 px-3 py-0.5 whitespace-pre text-foreground"
                 dangerouslySetInnerHTML={{ __html: html }}
               />
             </div>
@@ -340,7 +340,7 @@ export function YamlHighlight({ content, className }: { content: string; classNa
 function highlightYamlLine(line: string): string {
   // 注释
   if (line.trim().startsWith("#")) {
-    return `<span class="text-white/50">${escapeHtml(line)}</span>`;
+    return `<span class="text-muted-foreground">${escapeHtml(line)}</span>`;
   }
 
   // 空行
@@ -354,7 +354,7 @@ function highlightYamlLine(line: string): string {
     const [, indent, dash, space, value] = arrayMatch;
     const trimmedValue = value.trim();
     const highlightedValue = highlightYamlValue(trimmedValue);
-    return `${escapeHtml(indent)}<span class="text-yellow-400">${dash}</span>${escapeHtml(space)}${highlightedValue}`;
+    return `${escapeHtml(indent)}<span class="text-warning-foreground">${dash}</span>${escapeHtml(space)}${highlightedValue}`;
   }
 
   // 键值对
@@ -362,7 +362,7 @@ function highlightYamlLine(line: string): string {
   if (keyMatch) {
     const [, indent, key, colon, value] = keyMatch;
     const highlightedValue = highlightYamlValue(value.trim());
-    return `${escapeHtml(indent)}<span class="text-cyan-400">${escapeHtml(key)}</span><span class="text-white">${colon}</span> ${highlightedValue}`;
+    return `${escapeHtml(indent)}<span class="text-cyan-400">${escapeHtml(key)}</span><span class="text-foreground">${colon}</span> ${highlightedValue}`;
   }
 
   return escapeHtml(line);
@@ -386,7 +386,7 @@ function highlightYamlValue(value: string): string {
 
   // 字符串（带引号）
   if (/^".*"$/.test(value)) {
-    return `<span class="text-green-400">${escapeHtml(value)}</span>`;
+    return `<span class="text-success-foreground">${escapeHtml(value)}</span>`;
   }
 
   // 数字
@@ -396,13 +396,13 @@ function highlightYamlValue(value: string): string {
 
   // 布尔值
   if (/^(true|false)$/i.test(value)) {
-    const color = value.toLowerCase() === "true" ? "text-emerald-400" : "text-rose-400";
+    const color = value.toLowerCase() === "true" ? "text-success-foreground" : "text-destructive-foreground";
     return `<span class="${color}">${escapeHtml(value)}</span>`;
   }
 
   // null
   if (/^(null|~)$/i.test(value)) {
-    return `<span class="text-red-400">${escapeHtml(value)}</span>`;
+    return `<span class="text-destructive-foreground">${escapeHtml(value)}</span>`;
   }
 
   // 协议类型关键词
@@ -412,10 +412,10 @@ function highlightYamlValue(value: string): string {
 
   // 特殊值关键词
   if (/^(auto|chrome|firefox|safari|edge|qq|random|tcp|ws|grpc|h2|quic)$/.test(value)) {
-    return `<span class="text-sky-400">${escapeHtml(value)}</span>`;
+    return `<span class="text-info-foreground">${escapeHtml(value)}</span>`;
   }
 
-  return `<span class="text-slate-200">${escapeHtml(value)}</span>`;
+  return `<span class="text-foreground">${escapeHtml(value)}</span>`;
 }
 
 /**
@@ -464,19 +464,19 @@ function highlightInlineObject(obj: string): string {
 
     let keyColor = "text-cyan-400";
     if (["name", "type", "server", "port"].includes(key)) {
-      keyColor = "text-amber-400 font-medium";
+      keyColor = "text-warning-foreground font-medium";
     } else if (["password", "uuid", "cipher"].includes(key)) {
       keyColor = "text-violet-400";
     } else if (["tls", "sni", "servername", "skip-cert-verify", "client-fingerprint"].includes(key)) {
       keyColor = "text-teal-400";
     } else if (key === "dialer-proxy") {
-      keyColor = "text-rose-400 font-medium";
+      keyColor = "text-destructive-foreground font-medium";
     }
 
-    return `<span class="${keyColor}">${escapeHtml(key)}</span><span class="text-white/60">:</span> ${highlightYamlValue(val)}`;
+    return `<span class="${keyColor}">${escapeHtml(key)}</span><span class="text-muted-foreground">:</span> ${highlightYamlValue(val)}`;
   });
 
-  return `<span class="text-white/40">{</span>${highlighted.join(`<span class="text-white/40">,</span> `)}<span class="text-white/40">}</span>`;
+  return `<span class="text-muted-foreground">{</span>${highlighted.join(`<span class="text-muted-foreground">,</span> `)}<span class="text-muted-foreground">}</span>`;
 }
 
 /**
@@ -517,7 +517,7 @@ function highlightInlineArray(arr: string): string {
   if (current.trim()) parts.push(current.trim());
 
   const highlighted = parts.map((part) => highlightYamlValue(part));
-  return `<span class="text-white/40">[</span>${highlighted.join(`<span class="text-white/40">,</span> `)}<span class="text-white/40">]</span>`;
+  return `<span class="text-muted-foreground">[</span>${highlighted.join(`<span class="text-muted-foreground">,</span> `)}<span class="text-muted-foreground">]</span>`;
 }
 
 /**

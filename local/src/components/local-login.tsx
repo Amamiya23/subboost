@@ -3,8 +3,15 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { CircleAlert, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { getLocalAdminSetupCredentialError, LOCAL_ADMIN_PASSWORD_MIN_LENGTH } from "@local/lib/admin-credentials";
+import { Alert } from "@subboost/ui/components/coss/alert";
+import { Button } from "@subboost/ui/components/coss/button";
+import { Card } from "@subboost/ui/components/coss/card";
+import { Field, FieldDescription, FieldLabel } from "@subboost/ui/components/coss/field";
+import { Input } from "@subboost/ui/components/coss/input";
+import { Skeleton } from "@subboost/ui/components/coss/skeleton";
+import { ThemeToggle } from "@subboost/ui/components/layout/theme-toggle";
 import { hasAuthConfigHandoff } from "@subboost/ui/store/config-store/auth-handoff";
 
 type AuthState = {
@@ -88,97 +95,124 @@ export function LocalLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <Image src="/logo.png" alt="SubBoost" width={64} height={64} className="rounded-md shadow-lg " />
+    <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+      <div className="absolute end-4 top-4">
+        <ThemeToggle />
+      </div>
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <Link href="/" className="inline-flex items-center gap-3" aria-label="返回 SubBoost 首页">
+            <Image src="/logo.png" alt="" width={44} height={44} className="rounded-lg border bg-card p-1 shadow-sm" />
+            <span className="font-heading text-xl font-semibold">SubBoost</span>
           </Link>
-          <h1 className="text-2xl font-bold mt-4 text-white">欢迎使用 SubBoost</h1>
-          <p className="text-white/50 mt-2">{setupRequired ? "初始化本地管理员账号" : "登录以使用订阅管理功能"}</p>
+          <div className="flex flex-col gap-1">
+            <h1 className="font-heading text-2xl font-semibold">
+              {setupRequired ? "初始化管理员" : "登录"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {setupRequired ? "创建本地管理员账号" : "继续管理订阅与配置"}
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-md p-6 space-y-4">
+        <Card className="p-6 sm:p-7">
           {auth ? (
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <label htmlFor="admin-username" className="block text-sm text-white/80">管理员账号</label>
-              <input
-                id="admin-username"
-                type="text"
-                autoComplete="username"
-                placeholder="管理员账号"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
-              />
-              <label htmlFor="admin-password" className="block text-sm text-white/80">密码</label>
-              <div className="relative">
-                <input
-                  id="admin-password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete={setupRequired ? "new-password" : "current-password"}
-                  aria-describedby={setupRequired ? "local-admin-password-help" : undefined}
-                  placeholder="密码"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors pr-12"
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <Field>
+                <FieldLabel htmlFor="admin-username">管理员账号</FieldLabel>
+                <Input
+                  id="admin-username"
+                  type="text"
+                  size="lg"
+                  autoComplete="username"
+                  placeholder="输入管理员账号"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
                 />
-                <button
-                  type="button"
-                  aria-label={showPassword ? "隐藏密码" : "显示密码"}
-                  aria-pressed={showPassword}
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="admin-password">密码</FieldLabel>
+                <div className="relative w-full">
+                  <Input
+                    id="admin-password"
+                    type={showPassword ? "text" : "password"}
+                    size="lg"
+                    autoComplete={setupRequired ? "new-password" : "current-password"}
+                    aria-describedby={setupRequired ? "local-admin-password-help" : undefined}
+                    placeholder="输入密码"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    className="pe-11"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                    aria-pressed={showPassword}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute end-1 top-1/2 -translate-y-1/2"
+                  >
+                    {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                  </Button>
+                </div>
+                {setupRequired ? (
+                  <FieldDescription id="local-admin-password-help">
+                    至少 {LOCAL_ADMIN_PASSWORD_MIN_LENGTH} 个字符
+                  </FieldDescription>
+                ) : null}
+              </Field>
               {setupRequired ? (
-                <p id="local-admin-password-help" className="-mt-1 text-xs text-white/45">
-                  至少 {LOCAL_ADMIN_PASSWORD_MIN_LENGTH} 个字符
-                </p>
-              ) : null}
-              {setupRequired ? (
-                <label htmlFor="admin-password-confirm" className="block text-sm text-white/80">确认密码</label>
-              ) : null}
-              {setupRequired ? (
-                <input
-                  id="admin-password-confirm"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="new-password"
-                  placeholder="确认密码"
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
-                />
+                <Field>
+                  <FieldLabel htmlFor="admin-password-confirm">确认密码</FieldLabel>
+                  <Input
+                    id="admin-password-confirm"
+                    type={showPassword ? "text" : "password"}
+                    size="lg"
+                    autoComplete="new-password"
+                    placeholder="再次输入密码"
+                    value={passwordConfirm}
+                    onChange={(event) => setPasswordConfirm(event.target.value)}
+                  />
+                </Field>
               ) : null}
 
               {error ? (
-                <p className="text-red-400 text-sm" aria-live="polite">
-                  {error}
-                </p>
+                <Alert variant="error" aria-live="polite">
+                  <CircleAlert aria-hidden="true" />
+                  <span>{error}</span>
+                </Alert>
               ) : null}
 
-              <button
+              <Button
                 type="submit"
-                disabled={loading || !username || !password || (setupRequired && !passwordConfirm)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 btn-primary"
+                size="lg"
+                className="w-full"
+                loading={loading}
+                disabled={!username || !password || (setupRequired && !passwordConfirm)}
               >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                <ShieldCheck aria-hidden="true" />
                 {setupRequired ? "创建管理员" : "登录"}
-              </button>
+              </Button>
             </form>
           ) : error ? (
-            <div className="space-y-4 text-center">
-              <p role="alert" className="text-sm text-red-300">{error}</p>
-              <button type="button" className="btn-primary" onClick={() => { setError(""); setAuthRetry((value) => value + 1); }}>
+            <div className="flex flex-col gap-4">
+              <Alert variant="error">
+                <CircleAlert aria-hidden="true" />
+                <span>{error}</span>
+              </Alert>
+              <Button type="button" onClick={() => { setError(""); setAuthRetry((value) => value + 1); }}>
                 重试
-              </button>
+              </Button>
             </div>
           ) : (
-            <div className="h-36 animate-pulse rounded-md bg-white/5" />
+            <div className="flex flex-col gap-3" aria-label="正在加载登录状态">
+              <Skeleton className="h-9" />
+              <Skeleton className="h-9" />
+              <Skeleton className="h-9" />
+            </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

@@ -8,9 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@subboost/ui/components/ui/dialog";
+} from "@subboost/ui/components/coss/compat/dialog";
 import { cn } from "@subboost/ui/lib/utils";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { formatInBeijing } from "@subboost/core/time/beijing";
 import {
   getSubscriptionImportErrorBadgeText,
@@ -58,14 +58,14 @@ function ErrorDetailDialog({ error, children }: ErrorDetailDialogProps) {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-red-400" />
+            <AlertCircle className="h-5 w-5 text-destructive-foreground" />
             导入错误
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 text-sm">
-          <div className="flex items-center gap-4 text-xs text-white/50">
-            <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-300 border border-red-500/20">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="px-2 py-0.5 rounded bg-destructive/10 text-destructive-foreground border border-destructive/30">
               {categoryLabel}
             </span>
             <span className="flex items-center gap-1">
@@ -76,11 +76,11 @@ function ErrorDetailDialog({ error, children }: ErrorDetailDialogProps) {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-white/50 text-xs">{error.isUserFacingReason ? "提示内容" : "错误信息"}</span>
+              <span className="text-muted-foreground text-xs">{error.isUserFacingReason ? "提示内容" : "错误信息"}</span>
               <button
                 type="button"
                 onClick={() => copyText(message)}
-                className="text-xs text-white/40 hover:text-white flex items-center gap-1 transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
               >
                 <Copy className="h-3 w-3" />
                 复制
@@ -90,8 +90,8 @@ function ErrorDetailDialog({ error, children }: ErrorDetailDialogProps) {
               className={cn(
                 "rounded-lg p-3 text-xs whitespace-pre-wrap break-all",
                 error.isUserFacingReason
-                  ? "bg-amber-500/10 border border-amber-400/30 text-amber-100"
-                  : "bg-black/30 border border-white/5 text-white/80 font-mono"
+                  ? "bg-warning/10 border border-warning/30 text-warning-foreground"
+                  : "bg-muted border text-foreground/85 font-mono"
               )}
             >
               {message}
@@ -101,17 +101,17 @@ function ErrorDetailDialog({ error, children }: ErrorDetailDialogProps) {
           {showTechnicalDetail && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-white/50 text-xs">技术细节</span>
+                <span className="text-muted-foreground text-xs">技术细节</span>
                 <button
                   type="button"
                   onClick={() => copyText(technicalDetail!, "已复制技术细节")}
-                  className="text-xs text-white/40 hover:text-white flex items-center gap-1 transition-colors"
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
                 >
                   <Copy className="h-3 w-3" />
                   复制
                 </button>
               </div>
-              <div className="bg-black/30 border border-white/5 rounded-lg p-3 text-white/80 text-xs font-mono whitespace-pre-wrap break-all max-h-32 overflow-y-auto custom-scrollbar">
+              <div className="bg-muted border rounded-lg p-3 text-foreground/85 text-xs font-mono whitespace-pre-wrap break-all max-h-32 overflow-y-auto custom-scrollbar">
                 {technicalDetail}
               </div>
             </div>
@@ -119,15 +119,15 @@ function ErrorDetailDialog({ error, children }: ErrorDetailDialogProps) {
 
           {error.suggestedActions.length > 0 && (
             <div className="space-y-2">
-              <span className="text-white/50 text-xs">建议操作</span>
+              <span className="text-muted-foreground text-xs">建议操作</span>
               <div className="space-y-1.5">
                 {error.suggestedActions.map((action, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-2 p-2 rounded-lg bg-white/5 border border-white/5"
+                    className="flex items-start gap-2 p-2 rounded-lg bg-muted border border-border/5"
                   >
-                    <ChevronRight className="h-3.5 w-3.5 text-white/30 mt-0.5 flex-shrink-0" />
-                    <span className="text-xs text-white/70">{action}</span>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <span className="text-xs text-muted-foreground">{action}</span>
                   </div>
                 ))}
               </div>
@@ -167,15 +167,15 @@ export function SubscriptionImportErrorBadge({
         type="button"
         className={cn(
           "inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none",
-          "bg-red-500/15 text-red-300 border border-red-500/20",
-          "hover:bg-red-500/25 hover:text-red-200 transition-colors cursor-pointer",
+          "bg-destructive/10 text-destructive-foreground border border-destructive/30",
+          "hover:bg-destructive/10 hover:text-destructive-foreground transition-colors cursor-pointer",
           "focus:outline-none focus:ring-2 focus:ring-red-500/40",
           className
         )}
         aria-label="查看错误详情"
       >
         <span>{badgeText}</span>
-        <Menu className="ml-1 h-3 w-3 text-red-200/70" aria-hidden="true" />
+        <Menu className="ml-1 h-3 w-3 text-destructive-foreground" aria-hidden="true" />
       </button>
     </ErrorDetailDialog>
   );

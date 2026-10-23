@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import { List, Search } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
-import { Button } from "@subboost/ui/components/ui/button";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Switch } from "@subboost/ui/components/ui/switch";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Switch } from "@subboost/ui/components/coss/compat/switch";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { DEFAULT_NODE_NAME_TEMPLATE } from "@subboost/core/node-name-template";
 import { useConfigStore, type SubscriptionSource } from "@subboost/ui/store/config-store";
 import { useProductInteractionAdapter } from "@subboost/ui/product/interactions";
@@ -136,10 +136,10 @@ export function NodeManagementSection({
           title: "确认开启「监听端口」？",
           description: (
             <span className="block pt-2">
-              <span className="block rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
+              <span className="block rounded-md border border-warning/30 bg-warning/10 px-3 py-2 leading-6 text-warning-foreground">
                 警告：请确保你的设备处于受信任网络；如果你的监听端口暴露在公网，任何人都可以使用你的节点。
               </span>
-              <span className="mt-3 block leading-6 text-white/65">
+              <span className="mt-3 block leading-6 text-muted-foreground">
                 如果你不清楚安全风险及规避方法，请不要开启。
               </span>
             </span>
@@ -412,14 +412,14 @@ export function NodeManagementSection({
         badge={
           <div className="ml-auto flex items-center gap-2">
             {nodes.length > 0 ? (
-              <Badge variant="outline" className="border-green-500/50 bg-green-500/10 text-green-300">
+              <Badge variant="outline" className="border-success/30 bg-success/10 text-success-foreground">
                 {nodes.length} 个节点
               </Badge>
             ) : (
               <Badge variant="secondary">无节点</Badge>
             )}
             {deletedMarkedNodes.length > 0 && (
-              <Badge variant="outline" className="border-red-500/50 bg-red-500/10 text-red-300">
+              <Badge variant="outline" className="border-destructive/30 bg-destructive/10 text-destructive-foreground">
                 {deletedMarkedNodes.length} 已删除
               </Badge>
             )}
@@ -431,17 +431,17 @@ export function NodeManagementSection({
         <div className="mt-2 pl-6">
           <div className="flex items-center gap-2 pb-2 pr-2">
             <div className="relative flex-1 min-w-0">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30" />
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 value={nodeSearchKeyword}
                 onChange={(e) => setNodeSearchKeyword(e.target.value)}
                 placeholder="搜索节点..."
                 disabled={nodes.length === 0 && deletedMarkedNodes.length === 0}
-                className="pl-7 text-xs h-7 bg-white/5 border-white/10"
+                className="pl-7 text-xs h-7 bg-muted border-border"
               />
             </div>
             <div
-              className="flex h-7 shrink-0 items-center gap-2 rounded-md border border-white/10 bg-white/5 px-2"
+              className="flex h-7 shrink-0 items-center gap-2 rounded-md border border-border bg-muted px-2"
               title="为节点配置 socks5/http 协议的本地监听端口"
             >
               <Switch
@@ -451,7 +451,7 @@ export function NodeManagementSection({
                 disabled={nodes.length === 0 && !hasConfiguredListenerPorts}
                 aria-label="监听端口"
               />
-              <label htmlFor={listenerPortSwitchId} className="cursor-pointer select-none text-xs text-white/70">
+              <label htmlFor={listenerPortSwitchId} className="cursor-pointer select-none text-xs text-muted-foreground">
                 监听端口
               </label>
             </div>

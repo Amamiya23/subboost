@@ -1,15 +1,15 @@
 import * as React from "react";
 import { Globe, Heart, Loader2 } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Card } from "@subboost/ui/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@subboost/ui/components/ui/dialog";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Card } from "@subboost/ui/components/coss/compat/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@subboost/ui/components/coss/compat/dialog";
 import { cn } from "@subboost/ui/lib/utils";
 import { useConfigStore, type SubBoostTemplateConfig } from "@subboost/ui/store/config-store";
 import type { TemplateType } from "@subboost/core/types/config";
 import { useUserStore } from "@subboost/ui/store/user-store";
 import { BUILTIN_TEMPLATE_IDS } from "@subboost/core/templates/builtin";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { useProductApiAdapter, type QuickTemplateSummary } from "@subboost/ui/product/api-adapter";
 import { useProductInteractionAdapter } from "@subboost/ui/product/interactions";
 import { templates } from "./constants";
@@ -248,7 +248,7 @@ export function TemplatesSection() {
                   />
                   <div>
                     <div className="flex items-center gap-2">
-                      <label htmlFor={`builtin-template-${template.id}`} className="cursor-pointer text-sm font-medium text-white after:absolute after:inset-0">{builtinSummaries[BUILTIN_TEMPLATE_IDS[template.id]]?.name ?? template.name}</label>
+                      <label htmlFor={`builtin-template-${template.id}`} className="cursor-pointer text-sm font-medium text-foreground after:absolute after:inset-0">{builtinSummaries[BUILTIN_TEMPLATE_IDS[template.id]]?.name ?? template.name}</label>
                       {builtinEngagementEnabled && (
                         <button
                           onClick={(e) => {
@@ -258,7 +258,7 @@ export function TemplatesSection() {
                           disabled={!user}
                           className={cn(
                             "relative z-10 inline-flex items-center gap-0.5 text-xs transition-colors",
-                            builtinEngagement[template.id]?.isEngaged ? "text-red-400" : "text-white/40 hover:text-red-400",
+                            builtinEngagement[template.id]?.isEngaged ? "text-destructive-foreground" : "text-muted-foreground hover:text-destructive-foreground",
                             !user && "cursor-not-allowed opacity-50"
                           )}
                           title={user ? engagementAction : engagementLoginRequired}
@@ -290,15 +290,15 @@ export function TemplatesSection() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-4 h-4 rounded-full border-2 border-white/30 flex items-center justify-center flex-shrink-0">
-                    <Globe className="h-3 w-3 text-white/65" />
+                  <div className="w-4 h-4 rounded-full border-2 border-border flex items-center justify-center flex-shrink-0">
+                    <Globe className="h-3 w-3 text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-sm font-medium text-white">{catalogName}</span>
-                    <p className="text-xs text-white/40 mt-0.5 truncate">{catalogDescription}</p>
+                    <span className="text-sm font-medium text-foreground">{catalogName}</span>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{catalogDescription}</p>
                   </div>
                 </div>
-                <div className="text-right text-xs text-white/40 flex-shrink-0">
+                <div className="text-right text-xs text-muted-foreground flex-shrink-0">
                   <div>{catalogSelectAction}</div>
                 </div>
               </div>
@@ -325,17 +325,17 @@ export function TemplatesSection() {
                 <Loader2 className="h-6 w-6 animate-spin text-primary-500" />
               </div>
             ) : filteredCatalogTemplates.length === 0 ? (
-              <div className="text-center py-10 text-sm text-white/50">暂无可用模板</div>
+              <div className="text-center py-10 text-sm text-muted-foreground">暂无可用模板</div>
             ) : (
               <div className="max-h-[420px] overflow-auto custom-scrollbar space-y-2 pr-1">
                 {filteredCatalogTemplates.map((t) => (
                   <div
                     key={t.id}
-                    className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-start justify-between gap-3"
+                    className="p-3 rounded-lg bg-muted border border-border flex items-start justify-between gap-3"
                   >
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-white truncate">{t.name}</div>
-                      <div className="text-xs text-white/50 mt-1 line-clamp-2">{t.description || ""}</div>
+                      <div className="text-sm font-medium text-foreground truncate">{t.name}</div>
+                      <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{t.description || ""}</div>
                     </div>
                     <Button
                       size="sm"

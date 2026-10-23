@@ -33,14 +33,14 @@ vi.mock("lucide-react", () => ({
   ArrowUp: () => null,
   ListOrdered: () => null,
 }));
-vi.mock("@subboost/ui/components/ui/badge", () => ({
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({
   Badge: (props: any) => React.createElement("span", props, props.children),
 }));
 vi.mock("@subboost/ui/components/ui/confirm-dialog", () => ({ confirmDialog: mocks.confirmDialog }));
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => React.createElement("input", props),
 }));
-vi.mock("@subboost/ui/components/ui/switch", () => ({
+vi.mock("@subboost/ui/components/coss/compat/switch", () => ({
   Switch: (props: any) => React.createElement("button", props),
 }));
 vi.mock("@subboost/core/generator/rules", () => ({
@@ -200,7 +200,7 @@ describe("RulesManagementSection", () => {
       defaultTree,
       (element) =>
         typeof element.props.className === "string" &&
-        element.props.className.includes("border-white/10 bg-white/5 px-3 py-1.5"),
+        element.props.className.includes("border-border bg-muted px-3 py-1.5"),
     )[0];
     const row = collectElements(
       defaultTree,
@@ -232,8 +232,8 @@ describe("RulesManagementSection", () => {
     expect(collectText(detail)).not.toContain("🚀 节点选择");
     expect(collectText(detail)).not.toContain("no-resolve");
     expect(detail.props.title).toBe("IP-CIDR,35.212.230.0/24,🚀 节点选择");
-    expect(entryRow.props.className).toContain("border-white/10");
-    expect(entryRow.props.className).toContain("bg-white/5");
+    expect(entryRow.props.className).toContain("border-border");
+    expect(entryRow.props.className).toContain("bg-muted");
     expect(row.props.className).not.toContain("sm:grid");
     expect(orderControls.props.className).toContain("shrink-0");
     expect(modeRows.map((element) => element.props.className)).toEqual([

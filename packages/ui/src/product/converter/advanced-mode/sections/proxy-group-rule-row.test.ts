@@ -12,18 +12,18 @@ vi.mock("lucide-react", () => ({
   Trash2: () => React.createElement("span", null, "trash-icon"),
 }));
 
-vi.mock("@subboost/ui/components/ui/badge", () => ({
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({
   Badge: (props: any) => React.createElement("span", props, props.children),
 }));
 
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     captures.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/dropdown-menu", () => ({
+vi.mock("@subboost/ui/components/coss/compat/dropdown-menu", () => ({
   DropdownMenu: (props: any) => React.createElement("div", null, props.children),
   DropdownMenuContent: (props: any) => React.createElement("div", props, props.children),
   DropdownMenuItem: (props: any) => {

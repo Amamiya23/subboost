@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import * as Popover from "@radix-ui/react-popover";
+import * as Popover from "@subboost/ui/components/coss/compat/popover";
 import { HelpCircle, Plus, RotateCcw, Trash2 } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
-import { Button } from "@subboost/ui/components/ui/button";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
-import { Switch } from "@subboost/ui/components/ui/switch";
+import { Switch } from "@subboost/ui/components/coss/compat/switch";
 import { PROXY_GROUP_MODULES, type ProxyGroupModule, type ProxyGroupRule } from "@subboost/core/generator/proxy-groups";
 import {
   type EffectiveModuleRule,
@@ -242,11 +242,11 @@ export function ProxyGroupsModuleRulesPanel({
       title: "确认修改预设规则集？",
       description: (
         <span className="block pt-2">
-          <span className="block rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
-            <span className="font-medium text-amber-200">警告：</span>
+          <span className="block rounded-md border border-warning/30 bg-warning/10 px-3 py-2 leading-6 text-warning-foreground">
+            <span className="font-medium text-warning-foreground">警告：</span>
             删除或移动预设规则会改变当前配置的分流命中结果。
           </span>
-          <span className="mt-3 block leading-6 text-white/65">
+          <span className="mt-3 block leading-6 text-muted-foreground">
             如果你不知道修改规则集的影响，请不要动它。
           </span>
         </span>
@@ -287,7 +287,7 @@ export function ProxyGroupsModuleRulesPanel({
   return (
     <div className="space-y-1">
       {rules.length === 0 && manualRules.length === 0 ? (
-        <div className="px-3 py-4 text-center text-[11px] text-white/40">
+        <div className="px-3 py-4 text-center text-[11px] text-muted-foreground">
           当前没有生效的规则集。
         </div>
       ) : (
@@ -313,7 +313,7 @@ export function ProxyGroupsModuleRulesPanel({
                         "h-7 px-2",
                         rule.state === "moved"
                           ? "text-orange-300/70 hover:text-orange-200"
-                          : "text-red-300/70 hover:text-red-200",
+                          : "text-destructive-foreground hover:text-destructive-foreground",
                       )}
                       title={rule.state === "moved" ? "恢复默认目标" : "恢复规则集"}
                       aria-label={`${rule.state === "moved" ? "恢复默认目标" : "恢复"} ${rule.name} 规则集`}
@@ -344,7 +344,7 @@ export function ProxyGroupsModuleRulesPanel({
                   <>
                     {isCnIpRule && (
                       <div className="flex h-7 shrink-0 items-center gap-1">
-                        <span className="proxy-group-rule-no-resolve-label text-[10px] text-white/50">no-resolve</span>
+                        <span className="proxy-group-rule-no-resolve-label text-[10px] text-muted-foreground">no-resolve</span>
                         <Switch checked={cnIpNoResolve} onCheckedChange={onChangeCnIpNoResolve} />
                       </div>
                     )}
@@ -364,7 +364,7 @@ export function ProxyGroupsModuleRulesPanel({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-7 px-2 text-white/35 hover:text-red-300"
+                      className="h-7 px-2 text-muted-foreground hover:text-destructive-foreground"
                       title="删除规则集"
                       onClick={async () => {
                         if (rule.source === "preset" && !(await ensurePresetEditWarning())) return;
@@ -395,8 +395,8 @@ export function ProxyGroupsModuleRulesPanel({
         <div>
           <div
             className={cn(
-              "proxy-group-rule-row grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 rounded border border-white/10 bg-white/[0.04] px-2 py-2",
-              !experimentalCnUseCnRuleSet && "border-red-500/20 bg-red-500/10"
+              "proxy-group-rule-row grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 rounded border border-border bg-muted/[0.04] px-2 py-2",
+              !experimentalCnUseCnRuleSet && "border-destructive/30 bg-destructive/10"
             )}
           >
             <div className="min-w-0 space-y-1">
@@ -405,22 +405,22 @@ export function ProxyGroupsModuleRulesPanel({
                   className={cn(
                     "min-w-0 break-words text-xs font-medium leading-5",
                     experimentalCnUseCnRuleSet
-                      ? "text-white"
-                      : "text-white/50 line-through decoration-red-300/70"
+                      ? "text-foreground"
+                      : "text-muted-foreground line-through decoration-red-300/70"
                   )}
                   title={EXPERIMENTAL_CN_RULE.name}
                 >
                   {EXPERIMENTAL_CN_RULE.name}
                 </span>
                 {!experimentalCnUseCnRuleSet && (
-                  <Badge variant="outline" className="border-red-500/50 bg-red-500/10 px-1.5 py-0 text-[9px] text-red-300">
+                  <Badge variant="outline" className="border-destructive/30 bg-destructive/10 px-1.5 py-0 text-[9px] text-destructive-foreground">
                     已移除
                   </Badge>
                 )}
-                <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 px-1.5 py-0 text-[9px] text-amber-200">
+                <Badge variant="outline" className="border-warning/30 bg-warning/10 px-1.5 py-0 text-[9px] text-warning-foreground">
                   实验性
                 </Badge>
-                <Badge variant="outline" className="border-white/10 bg-white/5 px-1.5 py-0 text-[9px] text-white/55">
+                <Badge variant="outline" className="border-border bg-muted px-1.5 py-0 text-[9px] text-muted-foreground">
                   域名
                 </Badge>
               </div>
@@ -429,8 +429,8 @@ export function ProxyGroupsModuleRulesPanel({
                 className={cn(
                   "min-w-0 break-all font-mono text-[10px]",
                   experimentalCnUseCnRuleSet
-                    ? "text-white/35"
-                    : "text-white/30 line-through decoration-red-300/50"
+                    ? "text-muted-foreground"
+                    : "text-muted-foreground line-through decoration-red-300/50"
                 )}
                 title={`${EXPERIMENTAL_CN_RULE.id} · ${EXPERIMENTAL_CN_RULE.path}`}
               >
@@ -457,7 +457,7 @@ export function ProxyGroupsModuleRulesPanel({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-7 px-2 text-white/35 hover:text-red-300"
+                    className="h-7 px-2 text-muted-foreground hover:text-destructive-foreground"
                     title="删除规则集"
                     aria-label={`删除 ${EXPERIMENTAL_CN_RULE.name} 规则集`}
                     onClick={() => onChangeExperimentalCnUseCnRuleSet(false)}
@@ -470,7 +470,7 @@ export function ProxyGroupsModuleRulesPanel({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 text-red-300/70 hover:text-red-200"
+                  className="h-7 px-2 text-destructive-foreground hover:text-destructive-foreground"
                   title="恢复规则集"
                   aria-label={`恢复 ${EXPERIMENTAL_CN_RULE.name} 规则集`}
                   onClick={() => onChangeExperimentalCnUseCnRuleSet(true)}
@@ -484,14 +484,14 @@ export function ProxyGroupsModuleRulesPanel({
       )}
 
       {module.id === "cn" && availableCnCandidateRules.length > 0 && (
-        <div className="rounded border border-white/10 bg-white/[0.03] px-2 py-2">
+        <div className="rounded border border-border bg-muted px-2 py-2">
           <div className="mb-2 flex items-center gap-1.5">
-            <div className="text-xs font-medium text-white">中国相关子规则集</div>
+            <div className="text-xs font-medium text-foreground">中国相关子规则集</div>
             <Popover.Root>
               <Popover.Trigger asChild>
                 <button
                   type="button"
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-foreground/85 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   aria-label="实验性：中国业务子规则集"
                   title="实验性：中国业务子规则集"
                 >
@@ -503,18 +503,18 @@ export function ProxyGroupsModuleRulesPanel({
                   side="bottom"
                   align="start"
                   sideOffset={8}
-                  className="z-50 w-[420px] rounded-md border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
+                  className="z-50 w-[420px] rounded-md border border-border bg-background/88 backdrop-blur-md shadow-2xl p-3"
                 >
                   <div className="space-y-2 text-xs">
                     <div className="flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4 text-amber-300" />
-                      <div className="text-white font-medium">
+                      <HelpCircle className="h-4 w-4 text-warning-foreground" />
+                      <div className="text-foreground font-medium">
                         实验性：中国业务子规则集
                       </div>
                     </div>
-                    <div className="text-white/60 leading-relaxed">
+                    <div className="text-muted-foreground leading-relaxed">
                       这些是已启用规则集的中国子集，通常表示对应服务有中国业务；但不代表必然适合分流至
-                      <span className="text-white/75"> 🔒 国内服务</span>，请按自身需求启用。
+                      <span className="text-muted-foreground"> 🔒 国内服务</span>，请按自身需求启用。
                     </div>
                   </div>
                   <Popover.Arrow className="fill-white/10" />
@@ -526,23 +526,23 @@ export function ProxyGroupsModuleRulesPanel({
             {availableCnCandidateRules.map((rule) => (
               <div
                 key={rule.id}
-                className="proxy-group-rule-row grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 rounded border border-white/10 bg-white/[0.03] px-2 py-2"
+                className="proxy-group-rule-row grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 rounded border border-border bg-muted px-2 py-2"
               >
                 <div className="min-w-0 space-y-1">
                   <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                    <span className="min-w-0 break-words text-xs font-medium leading-5 text-white" title={rule.name}>
+                    <span className="min-w-0 break-words text-xs font-medium leading-5 text-foreground" title={rule.name}>
                       {rule.name}
                     </span>
-                    <Badge variant="outline" className="border-white/10 bg-white/5 px-1.5 py-0 text-[9px] text-white/55">
+                    <Badge variant="outline" className="border-border bg-muted px-1.5 py-0 text-[9px] text-muted-foreground">
                       域名
                     </Badge>
                     {rule.parentRuleId && (
-                      <Badge variant="outline" className="border-white/10 bg-white/5 px-1.5 py-0 text-[9px] text-white/45">
+                      <Badge variant="outline" className="border-border bg-muted px-1.5 py-0 text-[9px] text-muted-foreground">
                         {rule.parentRuleId}
                       </Badge>
                     )}
                   </div>
-                  <div className="min-w-0 break-all font-mono text-[10px] text-white/35" title={`${rule.id} · ${rule.path}`}>
+                  <div className="min-w-0 break-all font-mono text-[10px] text-muted-foreground" title={`${rule.id} · ${rule.path}`}>
                     {rule.path}
                   </div>
                 </div>
@@ -551,7 +551,7 @@ export function ProxyGroupsModuleRulesPanel({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-7 px-2 text-white/45 hover:text-emerald-200"
+                    className="h-7 px-2 text-muted-foreground hover:text-success-foreground"
                     title="启用规则集"
                     aria-label={`启用 ${rule.name} 规则集`}
                     onClick={() =>

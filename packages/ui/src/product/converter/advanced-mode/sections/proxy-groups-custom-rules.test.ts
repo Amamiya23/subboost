@@ -60,13 +60,13 @@ vi.mock("lucide-react", () => ({
   Trash2: () => null,
   X: () => null,
 }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.captures.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.captures.inputs.push(props);
     return React.createElement("input", {
@@ -76,7 +76,7 @@ vi.mock("@subboost/ui/components/ui/input", () => ({
     });
   },
 }));
-vi.mock("@subboost/ui/components/ui/select", () => ({
+vi.mock("@subboost/ui/components/coss/compat/select", () => ({
   Select: (props: any) => {
     mocks.captures.selects.push(props);
     return React.createElement("select", null, props.children);
@@ -95,7 +95,7 @@ vi.mock("@subboost/ui/components/ui/select", () => ({
   },
   SelectValue: () => React.createElement("span"),
 }));
-vi.mock("@subboost/ui/components/ui/switch", () => ({
+vi.mock("@subboost/ui/components/coss/compat/switch", () => ({
   Switch: (props: any) => {
     mocks.captures.switches.push(props);
     return React.createElement("button", {

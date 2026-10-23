@@ -10,8 +10,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@subboost/ui/components/ui/dialog";
-import { Button } from "@subboost/ui/components/ui/button";
+} from "@subboost/ui/components/coss/compat/dialog";
+import { Button } from "@subboost/ui/components/coss/compat/button";
 import { hasUnsavedConfig } from "./config-save-state";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 
@@ -89,7 +89,7 @@ export function UnsavedPrompt() {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-yellow-500" />
+            <AlertTriangle className="h-5 w-5 text-warning-foreground" />
             未保存的更改
           </DialogTitle>
           <DialogDescription>

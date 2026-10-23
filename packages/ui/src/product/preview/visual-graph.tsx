@@ -371,16 +371,16 @@ export function VisualGraph() {
     if (enabledDialerProxyGroups.length > 0) inUse.add("dialer");
 
     const items = [
-      { id: "core", label: "核心", dotClass: "bg-blue-500/50", order: 0 },
-      { id: "dialer", label: "中转", dotClass: "bg-amber-500/50", order: 1 },
-      { id: "service", label: "常用", dotClass: "bg-green-500/50", order: 2 },
-      { id: "social", label: "社交", dotClass: "bg-purple-500/50", order: 3 },
+      { id: "core", label: "核心", dotClass: "bg-info/10", order: 0 },
+      { id: "dialer", label: "中转", dotClass: "bg-warning/10", order: 1 },
+      { id: "service", label: "常用", dotClass: "bg-success/10", order: 2 },
+      { id: "social", label: "社交", dotClass: "bg-info/10", order: 3 },
       { id: "media", label: "媒体", dotClass: "bg-pink-500/50", order: 4 },
       { id: "game", label: "游戏", dotClass: "bg-orange-500/50", order: 5 },
       { id: "tech", label: "技术", dotClass: "bg-cyan-500/50", order: 6 },
-      { id: "finance", label: "支付", dotClass: "bg-yellow-500/50", order: 7 },
-      { id: "other", label: "其它", dotClass: "bg-slate-500/50", order: 8 },
-      { id: "custom", label: "自定义", dotClass: "bg-white/50", order: 9 },
+      { id: "finance", label: "支付", dotClass: "bg-warning/10", order: 7 },
+      { id: "other", label: "其它", dotClass: "bg-muted-foreground/50", order: 8 },
+      { id: "custom", label: "自定义", dotClass: "bg-muted0", order: 9 },
     ];
 
     return items
@@ -390,7 +390,7 @@ export function VisualGraph() {
 
   if (nodes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-white/50">
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
         <Network className="h-12 w-12 mb-3 opacity-50" />
         <p className="text-sm">添加节点后显示可视化关系图</p>
       </div>
@@ -400,11 +400,11 @@ export function VisualGraph() {
   return (
     <div ref={containerRef} className="h-full overflow-auto p-4 space-y-3">
       {/* 图例 */}
-      <div className="flex flex-wrap gap-2 pb-3 border-b border-white/10">
+      <div className="flex flex-wrap gap-2 pb-3 border-b border-border">
         {legendItems.map((item) => (
           <div
             key={item.id}
-            className="flex items-center gap-1.5 text-[10px] text-white/60"
+            className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
           >
             <div className={cn("w-2.5 h-2.5 rounded", item.dotClass)} />
             <span>{item.label}</span>
@@ -414,23 +414,23 @@ export function VisualGraph() {
 
       {/* 统计信息 */}
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-lg bg-white/5 p-2">
+        <div className="rounded-lg bg-muted p-2">
           <div className="text-lg font-bold text-primary-500">
             {nodes.length}
           </div>
-          <div className="text-[10px] text-white/50">节点</div>
+          <div className="text-[10px] text-muted-foreground">节点</div>
         </div>
-        <div className="rounded-lg bg-white/5 p-2">
-          <div className="text-lg font-bold text-green-500">
+        <div className="rounded-lg bg-muted p-2">
+          <div className="text-lg font-bold text-success-foreground">
             {displayGroups.length}
           </div>
-          <div className="text-[10px] text-white/50">代理组</div>
+          <div className="text-[10px] text-muted-foreground">代理组</div>
         </div>
-        <div className="rounded-lg bg-white/5 p-2">
-          <div className="text-lg font-bold text-purple-500">
+        <div className="rounded-lg bg-muted p-2">
+          <div className="text-lg font-bold text-info-foreground">
             {displayGroups.reduce((acc, g) => acc + g.rules.length, 0)}
           </div>
-          <div className="text-[10px] text-white/50">规则集</div>
+          <div className="text-[10px] text-muted-foreground">规则集</div>
         </div>
       </div>
 
@@ -450,42 +450,42 @@ export function VisualGraph() {
 
       {/* 节点列表预览 */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs font-medium text-white/60">
+        <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
           <span className="flex items-center gap-2">
             <Server className="h-3.5 w-3.5" />
             节点列表
           </span>
-          <span className="text-[10px] text-white/50">
+          <span className="text-[10px] text-muted-foreground">
             共 {nodes.length} 个
           </span>
         </div>
 
-        <div className="max-h-48 overflow-y-auto space-y-1 rounded-lg bg-white/5 p-2">
+        <div className="max-h-48 overflow-y-auto space-y-1 rounded-lg bg-muted p-2">
           {nodes.slice(0, 50).map((node, idx) => (
             <div
               key={node.name + idx}
-              className="flex items-center gap-2 rounded-md px-2 py-1 text-[10px] hover:bg-white/5"
+              className="flex items-center gap-2 rounded-md px-2 py-1 text-[10px] hover:bg-accent"
             >
               <div
                 className={cn(
                   "h-2 w-2 rounded-full flex-shrink-0 shadow-[0_0_0_3px_rgba(255,255,255,0.03)]",
                   node.type === "ss"
-                    ? "bg-blue-400"
+                    ? "bg-info/10"
                     : node.type === "vmess"
-                      ? "bg-green-400"
+                      ? "bg-success/10"
                       : node.type === "vless"
-                        ? "bg-purple-400"
+                        ? "bg-info/10"
                         : node.type === "trojan"
-                          ? "bg-red-400"
+                          ? "bg-destructive/10"
                           : node.type === "anytls"
                             ? "bg-teal-400"
                             : node.type === "hysteria2"
                               ? "bg-orange-400"
-                              : "bg-gray-400",
+                              : "bg-muted",
                 )}
               />
               <span
-                className="min-w-0 flex-1 truncate text-white/90 font-medium"
+                className="min-w-0 flex-1 truncate text-foreground/85 font-medium"
                 title={node.name}
               >
                 {node.name}
@@ -494,7 +494,7 @@ export function VisualGraph() {
             </div>
           ))}
           {nodes.length > 50 && (
-            <div className="text-center text-[10px] text-white/50 py-1">
+            <div className="text-center text-[10px] text-muted-foreground py-1">
               ... 还有 {nodes.length - 50} 个节点
             </div>
           )}

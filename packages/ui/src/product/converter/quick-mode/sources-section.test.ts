@@ -65,7 +65,7 @@ vi.mock("react/jsx-runtime", async (importOriginal) => {
   };
 });
 
-vi.mock("@radix-ui/react-popover", () => ({
+vi.mock("@subboost/ui/components/coss/compat/popover", () => ({
   Root: (props: any) => props.children,
   Trigger: (props: any) => props.children,
   Portal: (props: any) => props.children,
@@ -84,26 +84,26 @@ vi.mock("lucide-react", () => ({
   Plus: () => null,
   X: () => null,
 }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.captures.buttons.push(props);
     return null;
   },
 }));
-vi.mock("@subboost/ui/components/ui/textarea", () => ({
+vi.mock("@subboost/ui/components/coss/compat/textarea", () => ({
   Textarea: (props: any) => {
     mocks.captures.textareas.push(props);
     return null;
   },
 }));
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.captures.inputs.push(props);
     return null;
   },
 }));
-vi.mock("@subboost/ui/components/ui/badge", () => ({ Badge: (props: any) => props.children }));
-vi.mock("@subboost/ui/components/ui/dialog", () => ({
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({ Badge: (props: any) => props.children }));
+vi.mock("@subboost/ui/components/coss/compat/dialog", () => ({
   Dialog: (props: any) => {
     mocks.captures.dialog = props;
     return props.children;
@@ -112,7 +112,7 @@ vi.mock("@subboost/ui/components/ui/dialog", () => ({
   DialogHeader: (props: any) => props.children,
   DialogTitle: (props: any) => props.children,
 }));
-vi.mock("@subboost/ui/components/ui/switch", () => ({
+vi.mock("@subboost/ui/components/coss/compat/switch", () => ({
   Switch: (props: any) => {
     mocks.captures.switches.push(props);
     return null;
@@ -135,7 +135,7 @@ vi.mock("@subboost/ui/store/config-store", () => {
   };
 });
 vi.mock("@subboost/ui/store/user-store", () => ({ useUserStore: () => mocks.userStore }));
-vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({ toast: mocks.toast }));
 vi.mock("@subboost/ui/product/converter/subscription-import-error", () => ({
   SubscriptionImportErrorBadge: (props: any) => {
     mocks.captures.errorBadge = props;

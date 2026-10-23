@@ -12,9 +12,9 @@ import {
   Upload,
   Zap,
 } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@subboost/ui/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@subboost/ui/components/ui/tabs";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@subboost/ui/components/coss/compat/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@subboost/ui/components/coss/compat/tabs";
 import { QuickMode } from "@subboost/ui/product/converter/quick-mode";
 import { AdvancedMode } from "@subboost/ui/product/converter/advanced-mode";
 import { UnsavedPrompt } from "@subboost/ui/product/home/unsaved-prompt";
@@ -146,7 +146,7 @@ export function HomeLayout({
 
       {noticeSlot}
       {copySubscriptionId && !editingSubscription && (
-        <div role="status" className="mb-4 rounded-md border border-primary-500/20 bg-primary-500/5 px-4 py-3 text-sm text-white/75">
+        <div role="status" className="mb-4 rounded-md border border-primary-500/20 bg-primary-500/5 px-4 py-3 text-sm text-muted-foreground">
           {isLoadingEditingSubscription
             ? "正在复制配置…"
             : copyNotReady
@@ -174,16 +174,16 @@ export function HomeLayout({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle className="text-base lg:text-lg flex items-center gap-2 min-w-0">
                     <span className="mono-label text-acid/90">01</span>
-                    <Settings2 className="h-5 w-5 text-white/65" />
+                    <Settings2 className="h-5 w-5 text-muted-foreground" />
                     <span className="shrink-0">{editingSubscription ? "编辑订阅" : "配置生成器"}</span>
                     {isLoadingEditingSubscription && (editSubscriptionId || copySubscriptionId) && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] text-white/85">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-foreground/85">
                         <Loader2 className="h-3 w-3 animate-spin" />
                         加载订阅中...
                       </span>
                     )}
                     {editingSubscription && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] text-white/85 min-w-0">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-foreground/85 min-w-0">
                         <span className="max-w-[10rem] sm:max-w-[16rem] truncate">
                           {editingSubscription.name}
                         </span>
@@ -218,7 +218,7 @@ export function HomeLayout({
               </CardContent>
               <CardFooter className="justify-center gap-2 flex-shrink-0 pt-3 flex-row flex-wrap">
                 {pendingSourceCount > 0 && (
-                  <p role="status" className="w-full text-center text-xs text-amber-200">
+                  <p role="status" className="w-full text-center text-xs text-warning-foreground">
                     {pendingSourceCount} 个来源尚未导入。导入后才能保存最新订阅。
                   </p>
                 )}
@@ -273,7 +273,7 @@ export function HomeLayout({
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base lg:text-lg flex items-center gap-2">
                     <span className="mono-label text-acid/90">02</span>
-                    <Eye className="h-5 w-5 text-white/65" />
+                    <Eye className="h-5 w-5 text-muted-foreground" />
                     预览
                   </CardTitle>
                   <TabsList className={artisticTabsListClassName}>
@@ -288,14 +288,14 @@ export function HomeLayout({
               </CardHeader>
               <CardContent className={`pt-0 relative lg:flex-1 lg:overflow-hidden ${DESKTOP_PANEL_CONTENT_MIN_HEIGHT_CLASS}`}>
                 <TabsContent value="yaml" className="mt-0 data-[state=inactive]:hidden lg:absolute lg:inset-0">
-                  <div className="h-[clamp(420px,70vh,820px)] lg:h-full rounded-md bg-white/5 border border-white/10 overflow-auto custom-scrollbar">
+                  <div className="h-[clamp(420px,70vh,820px)] lg:h-full rounded-md bg-muted border border-border overflow-auto custom-scrollbar">
                     {generatedYamlError ? (
-                      <div className="h-full p-4 text-sm text-rose-200">
-                        <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
-                          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-rose-300" />
+                      <div className="h-full p-4 text-sm text-destructive-foreground">
+                        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+                          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                           <div>
-                            <div className="font-medium text-rose-100">基础和 DNS 配置有错误</div>
-                            <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-rose-100/90">
+                            <div className="font-medium">基础和 DNS 配置有错误</div>
+                            <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
                               {generatedYamlError}
                             </pre>
                           </div>
@@ -308,7 +308,7 @@ export function HomeLayout({
                         className="h-full"
                       />
                     ) : (
-                      <pre className="p-4 font-mono text-xs text-white/60 whitespace-pre">
+                      <pre className="p-4 font-mono text-xs text-muted-foreground whitespace-pre">
                         {`# 请先添加订阅或节点
 # 配置将在此处预览
 
@@ -331,7 +331,7 @@ export function HomeLayout({
                   </div>
                 </TabsContent>
                 <TabsContent value="visual" className="mt-0 data-[state=inactive]:hidden lg:absolute lg:inset-0">
-                  <div className="h-[clamp(420px,70vh,820px)] lg:h-full rounded-md bg-white/5 border border-white/10 overflow-hidden">
+                  <div className="h-[clamp(420px,70vh,820px)] lg:h-full rounded-md bg-muted border border-border overflow-hidden">
                     <VisualGraph />
                   </div>
                 </TabsContent>
@@ -374,13 +374,13 @@ export function HomeLayout({
           <div id="ai" className={`lg:col-span-4 xl:col-span-4 flex flex-col gap-3 min-h-0 ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}>
             <Card className={`w-full flex-1 flex flex-col overflow-hidden min-h-0 ${DESKTOP_PANEL_MIN_HEIGHT_CLASS}`}>
               <CardHeader className="pb-3 flex-shrink-0">
-                <CardTitle className="text-base lg:text-lg flex items-center gap-2 text-white">
+                <CardTitle className="text-base lg:text-lg flex items-center gap-2 text-foreground">
                   <span className="mono-label text-acid/90">03</span>
                   AI 助手
                 </CardTitle>
               </CardHeader>
               <CardContent className={`flex-1 min-h-0 flex items-center justify-center ${DESKTOP_PANEL_CONTENT_MIN_HEIGHT_CLASS}`}>
-                <p className="mono-label text-white/40">AI 助手施工中</p>
+                <p className="mono-label text-muted-foreground">AI 助手施工中</p>
               </CardContent>
             </Card>
           </div>
@@ -388,7 +388,7 @@ export function HomeLayout({
       </div>
 
       <div className="h-20 md:hidden" aria-hidden="true" />
-      <div className="fixed bottom-16 inset-x-0 z-40 flex items-center justify-end gap-2 border-t border-white/10 bg-ink-50 px-4 py-3 md:hidden" aria-label="配置操作">
+      <div className="fixed bottom-16 inset-x-0 z-40 flex items-center justify-end gap-2 border-t border-border bg-ink-50 px-4 py-3 md:hidden" aria-label="配置操作">
         <Button variant="outline" onClick={() => document.getElementById("preview")?.scrollIntoView({ block: "start" })}>
           查看预览
         </Button>

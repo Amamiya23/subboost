@@ -1,11 +1,11 @@
 "use client";
 
-import * as Popover from "@radix-ui/react-popover";
+import * as Popover from "@subboost/ui/components/coss/compat/popover";
 import { AlertCircle, Check, HelpCircle, Loader2, Maximize2, Plus, Server, X, Menu, ChevronUp, ChevronDown } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Textarea } from "@subboost/ui/components/ui/textarea";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Textarea } from "@subboost/ui/components/coss/compat/textarea";
 import { cn } from "@subboost/ui/lib/utils";
 import type { SourceType } from "@subboost/ui/store/config-store";
 import { getSubscriptionUserInfoDisplay } from "@subboost/ui/product/subscription/subscription-userinfo-display";
@@ -87,8 +87,8 @@ export function InputSection({
                             className={cn(
                               "source-type-button",
                               source.type === type
-                                ? "bg-white/12 text-white/65"
-                                : "text-white/30 hover:text-white/50 hover:bg-white/5"
+                                ? "bg-muted text-muted-foreground"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent"
                             )}
                             title={info.label}
                             aria-label={info.label}
@@ -107,12 +107,12 @@ export function InputSection({
                         <Popover.Trigger asChild>
                           <button
                             type="button"
-                            className="inline-flex items-center gap-1 rounded-full border border-green-500/50 bg-green-500/5 px-2 py-0.5 text-xs font-semibold text-green-300 transition-colors hover:bg-green-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-black whitespace-nowrap"
+                            className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-xs font-semibold text-success-foreground transition-colors hover:bg-success/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background whitespace-nowrap"
                             title="查看流量/到期"
                             aria-label="查看流量/到期"
                           >
                             ✓ {source.nodeCount} 节点
-                            <Menu className="h-3 w-3 text-green-300/70" aria-hidden="true" />
+                            <Menu className="h-3 w-3 text-success-foreground" aria-hidden="true" />
                           </button>
                         </Popover.Trigger>
                         <Popover.Portal>
@@ -120,20 +120,20 @@ export function InputSection({
                             side="bottom"
                             align="start"
                             sideOffset={8}
-                            className="z-50 w-[260px] rounded-md border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
+                            className="z-50 w-[260px] rounded-md border border-border bg-background/88 backdrop-blur-md shadow-2xl p-3"
                           >
                             <div className="space-y-2 text-xs">
                               <div className="flex items-center gap-2">
-                                <HelpCircle className="h-4 w-4 text-green-300" />
-                                <div className="text-white font-medium">订阅信息</div>
+                                <HelpCircle className="h-4 w-4 text-success-foreground" />
+                                <div className="text-foreground font-medium">订阅信息</div>
                               </div>
                               {hasUserInfoDisplay && userInfoDisplay ? (
-                                <div className="space-y-1 text-white/60">
+                                <div className="space-y-1 text-muted-foreground">
                                   {userInfoDisplay.traffic ? <div>已用流量：{userInfoDisplay.traffic}</div> : null}
                                   {userInfoDisplay.expire ? <div>到期时间：{userInfoDisplay.expire}</div> : null}
                                 </div>
                               ) : (
-                                <div className="text-white/60 leading-relaxed">暂无已用流量/到期时间信息</div>
+                                <div className="text-muted-foreground leading-relaxed">暂无已用流量/到期时间信息</div>
                               )}
                             </div>
                             <Popover.Arrow className="fill-white/10" />
@@ -178,7 +178,7 @@ export function InputSection({
                     <button
                       onClick={() => void handleImportSource(source.id)}
                       disabled={!source.content.trim() || source.parsing}
-                      className="inline-flex h-11 sm:h-8 shrink-0 items-center gap-1.5 rounded border border-white/20 px-3 text-xs text-white/90 hover:bg-white/8 focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="inline-flex h-11 sm:h-8 shrink-0 items-center gap-1.5 rounded border border-border px-3 text-xs text-foreground/85 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40 disabled:cursor-not-allowed"
                       title={source.parsing ? "导入中..." : source.parsed ? "重新导入" : "导入此源"}
                     >
                       {source.parsing ? (
@@ -192,7 +192,7 @@ export function InputSection({
                     {sources.length > 1 && (
                       <button
                         onClick={() => removeSource(source.id)}
-                        className="source-icon-button hover:text-red-300"
+                        className="source-icon-button hover:text-destructive-foreground"
                         title="删除"
                         aria-label="删除来源"
                       >
@@ -222,7 +222,7 @@ export function InputSection({
             );
           })}
           {globalError && (
-            <div className="flex items-center gap-2 text-xs text-red-400">
+            <div className="flex items-center gap-2 text-xs text-destructive-foreground">
               <AlertCircle className="h-3.5 w-3.5" />
               <span className="break-all">{globalError}</span>
             </div>
@@ -240,7 +240,7 @@ export function InputSection({
             </Button>
 
             {showAddMenu && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl z-10 overflow-hidden">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-10 overflow-hidden">
                 {(Object.keys(sourceTypeInfo) as SourceType[]).map((type) => {
                   const info = sourceTypeInfo[type];
                   const Icon = info.icon;
@@ -248,11 +248,11 @@ export function InputSection({
                     <button
                       key={type}
                       onClick={() => addSource(type)}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/5 transition-colors"
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-accent transition-colors"
                     >
-                      <Icon className="h-4 w-4 text-white/65" />
+                      <Icon className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <div className="text-xs font-medium text-white">{info.label}</div>
+                        <div className="text-xs font-medium text-foreground">{info.label}</div>
                       </div>
                     </button>
                   );

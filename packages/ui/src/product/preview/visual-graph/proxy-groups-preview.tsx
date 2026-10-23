@@ -102,11 +102,11 @@ function getStrategyLabel(strategy: string | undefined) {
 function getGroupColor(category: string) {
   switch (category) {
     case "core":
-      return "border-blue-500/50 bg-blue-500/10";
+      return "border-info/30 bg-info/10";
     case "service":
-      return "border-green-500/50 bg-green-500/10";
+      return "border-success/30 bg-success/10";
     case "social":
-      return "border-purple-500/50 bg-purple-500/10";
+      return "border-info/40 bg-info/10";
     case "media":
       return "border-pink-500/50 bg-pink-500/10";
     case "game":
@@ -114,15 +114,15 @@ function getGroupColor(category: string) {
     case "tech":
       return "border-cyan-500/50 bg-cyan-500/10";
     case "finance":
-      return "border-yellow-500/50 bg-yellow-500/10";
+      return "border-warning/30 bg-warning/10";
     case "other":
-      return "border-slate-500/50 bg-slate-500/10";
+      return "border-border bg-muted";
     case "custom":
-      return "border-white/20 bg-white/8";
+      return "border-border bg-muted";
     case "dialer":
-      return "border-amber-500/50 bg-amber-500/10";
+      return "border-warning/30 bg-warning/10";
     default:
-      return "border-white/20 bg-white/5";
+      return "border-border bg-muted";
   }
 }
 
@@ -178,13 +178,13 @@ export function ProxyGroupsPreview({
               "relative rounded-lg border transition-all",
               getGroupColor(group.category),
               isDragging && "opacity-60",
-              isDragOver && "ring-2 ring-white/25",
+              isDragOver && "ring-2 focus-visible:ring-ring",
             )}
           >
             {isDragOver && dragOverPosition && (
               <div
                 className={cn(
-                  "pointer-events-none absolute left-2 right-2 h-0.5 rounded-full bg-white/70",
+                  "pointer-events-none absolute left-2 right-2 h-0.5 rounded-full bg-muted/70",
                   dragOverPosition === "before" ? "top-0" : "bottom-0",
                 )}
               />
@@ -247,7 +247,7 @@ export function ProxyGroupsPreview({
               }}
               className={cn(
                 "w-full flex items-center gap-2 p-2 text-left",
-                hasRules && "cursor-pointer hover:bg-white/5",
+                hasRules && "cursor-pointer hover:bg-accent",
               )}
             >
               <span
@@ -294,7 +294,7 @@ export function ProxyGroupsPreview({
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
                 className={cn(
-                  "flex h-4 w-4 items-center justify-center text-white/40 hover:text-white/70",
+                  "flex h-4 w-4 items-center justify-center text-muted-foreground hover:text-foreground",
                   canReorderGroups
                     ? "cursor-grab active:cursor-grabbing"
                     : "cursor-default opacity-30",
@@ -314,19 +314,19 @@ export function ProxyGroupsPreview({
 
               {hasRules ? (
                 isExpanded ? (
-                  <ChevronDown className="h-3.5 w-3.5 text-white/60" />
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                 ) : (
-                  <ChevronRight className="h-3.5 w-3.5 text-white/60" />
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
                 )
               ) : (
-                <Box className="h-3.5 w-3.5 text-white/50" />
+                <Box className="h-3.5 w-3.5 text-muted-foreground" />
               )}
 
               {emojiEnabled && <span className="text-sm">{group.emoji}</span>}
               <span className="text-xs font-medium flex-1 min-w-0 flex flex-wrap items-center gap-x-2">
                 <span className="truncate">{getDisplayName(group.name)}</span>
                 {isDialerGroup && (
-                  <span className="text-[10px] text-amber-200/80">
+                  <span className="text-[10px] text-warning-foreground">
                     中转节点: {relayNodes.length} · 落地节点:{" "}
                     {targetNodes.length}{group.dialer?.preserveRelayNames ? " · 保留入口名称（不生成中转组）" : ""}
                   </span>
@@ -335,16 +335,16 @@ export function ProxyGroupsPreview({
 
               <div className="flex items-center gap-1.5">
                 {getGroupIcon(group.groupType)}
-                <span className="text-[10px] text-white/60">
+                <span className="text-[10px] text-muted-foreground">
                   {getGroupTypeLabel(group.groupType)}
                 </span>
                 {group.groupType === "load-balance" && getStrategyLabel(group.strategy) && (
-                  <span className="text-[10px] text-white/50">
+                  <span className="text-[10px] text-muted-foreground">
                     策略：{getStrategyLabel(group.strategy)}
                   </span>
                 )}
                 {getDefaultLabelForGroup(group.name) && (
-                  <span className="text-[10px] text-white/50">
+                  <span className="text-[10px] text-muted-foreground">
                     默认：{getDefaultLabelForGroup(group.name)}
                   </span>
                 )}
@@ -352,7 +352,7 @@ export function ProxyGroupsPreview({
             </button>
 
             {isDialerGroup && (
-              <div className="border-t border-white/10 p-2">
+              <div className="border-t border-border p-2">
                 <div
                   className={cn(
                     "flex items-center gap-2",
@@ -360,7 +360,7 @@ export function ProxyGroupsPreview({
                   )}
                 >
                   <DialerStep preferVertical={preferVerticalDialerLayout}>
-                    <span className="px-2 py-1 rounded bg-white/5 text-white/70 text-[10px] whitespace-nowrap">
+                    <span className="px-2 py-1 rounded bg-muted text-muted-foreground text-[10px] whitespace-nowrap">
                       我的流量
                     </span>
                   </DialerStep>
@@ -382,7 +382,7 @@ export function ProxyGroupsPreview({
                   />
                   <DialerArrow preferVertical={preferVerticalDialerLayout} />
                   <DialerStep preferVertical={preferVerticalDialerLayout}>
-                    <span className="px-2 py-1 rounded bg-white/5 text-white/70 text-[10px] whitespace-nowrap">
+                    <span className="px-2 py-1 rounded bg-muted text-muted-foreground text-[10px] whitespace-nowrap">
                       谷歌服务
                     </span>
                   </DialerStep>
@@ -391,22 +391,22 @@ export function ProxyGroupsPreview({
             )}
 
             {isExpanded && hasRules && (
-              <div className="border-t border-white/10 p-2 space-y-1">
+              <div className="border-t border-border p-2 space-y-1">
                 {group.rules.map((rule) => (
                   <div
                     key={rule.id}
-                    className="flex items-center gap-2 text-[10px] text-white/60 pl-5"
+                    className="flex items-center gap-2 text-[10px] text-muted-foreground pl-5"
                   >
                     <div
                       className={cn(
                         "w-1.5 h-1.5 rounded-full",
                         rule.behavior === "domain"
-                          ? "bg-blue-400"
+                          ? "bg-info/10"
                           : "bg-orange-400",
                       )}
                     />
                     <span className="flex-1">{rule.name}</span>
-                    <span className="px-1 py-0.5 rounded bg-white/5">
+                    <span className="px-1 py-0.5 rounded bg-muted">
                       {rule.behavior}
                     </span>
                   </div>
@@ -444,7 +444,7 @@ function DialerArrow({ preferVertical }: { preferVertical: boolean }) {
     <DialerStep preferVertical={preferVertical}>
       <ArrowRight
         className={cn(
-          "h-3 w-3 text-white/40",
+          "h-3 w-3 text-muted-foreground",
           preferVertical ? "rotate-90" : "rotate-0",
         )}
       />
@@ -467,8 +467,8 @@ function DialerNodeList({
 }) {
   const colorClass =
     color === "blue"
-      ? "border-blue-500/30 bg-blue-500/5 text-blue-200/90"
-      : "border-green-500/30 bg-green-500/5 text-green-200/90";
+      ? "border-info/30 bg-info/10 text-info-foreground"
+      : "border-success/30 bg-success/10 text-success-foreground";
 
   return (
     <div
@@ -480,7 +480,7 @@ function DialerNodeList({
     >
       <div className="text-[10px] text-center mb-1">{title}</div>
       {nodes.length === 0 ? (
-        <div className="text-[10px] text-white/50 text-center">
+        <div className="text-[10px] text-muted-foreground text-center">
           {emptyText}
         </div>
       ) : (

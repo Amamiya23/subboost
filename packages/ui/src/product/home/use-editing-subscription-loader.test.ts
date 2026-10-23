@@ -52,7 +52,7 @@ vi.mock("@subboost/ui/store/config-store/auth-handoff", () => ({
   captureAuthConfigHandoff: mocks.captureAuthConfigHandoff,
 }));
 
-vi.mock("@subboost/ui/components/ui/toaster", () => ({
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({
   toast: mocks.toast,
 }));
 

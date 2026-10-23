@@ -22,25 +22,25 @@ vi.mock("@subboost/ui/components/subscription/smart-node-matching-help", () => (
     React.createElement("span", null, enabled ? "smart-on" : "smart-off"),
 }));
 
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     captures.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     captures.inputs.push(props);
     return React.createElement("input", props);
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/label", () => ({
+vi.mock("@subboost/ui/components/coss/compat/label", () => ({
   Label: (props: any) => React.createElement("label", props, props.children),
 }));
 
-vi.mock("@subboost/ui/components/ui/switch", () => ({
+vi.mock("@subboost/ui/components/coss/compat/switch", () => ({
   Switch: (props: any) => {
     captures.switches.push(props);
     return React.createElement("button", {
@@ -51,7 +51,7 @@ vi.mock("@subboost/ui/components/ui/switch", () => ({
   },
 }));
 
-vi.mock("@subboost/ui/components/ui/dialog", () => ({
+vi.mock("@subboost/ui/components/coss/compat/dialog", () => ({
   Dialog: (props: any) => {
     captures.dialogs.push(props);
     return React.createElement("div", null, props.children);

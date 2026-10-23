@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Check, Pencil, X } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Textarea } from "@subboost/ui/components/ui/textarea";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Textarea } from "@subboost/ui/components/coss/compat/textarea";
 import { cn } from "@subboost/ui/lib/utils";
 import { YamlHighlight } from "@subboost/ui/product/preview/diff-highlight";
 
@@ -60,10 +60,10 @@ export function YamlPreviewEditor({
           autoComplete="off"
           autoCapitalize="off"
           autoCorrect="off"
-          className="h-full min-h-0 flex-1 resize-none rounded-none border-0 bg-transparent font-mono text-xs text-white focus-visible:ring-0"
+          className="h-full min-h-0 flex-1 resize-none rounded-none border-0 bg-transparent font-mono text-xs text-foreground focus-visible:ring-0"
         />
-        <div className="flex flex-shrink-0 items-center justify-end gap-2 border-t border-white/10 bg-white/5 px-3 py-2">
-          <span className="mr-auto text-[11px] text-white/50">
+        <div className="flex flex-shrink-0 items-center justify-end gap-2 border-t border-border bg-muted px-3 py-2">
+          <span className="mr-auto text-[11px] text-muted-foreground">
             {dirty ? "有未应用的修改。" : ""}手动修改仅用于下载；订阅使用结构化配置，重新生成会覆盖此处修改。
           </span>
           <Button size="sm" variant="outline" onClick={handleCancel}>
@@ -85,7 +85,7 @@ export function YamlPreviewEditor({
       <button
         type="button"
         onClick={startEdit}
-        className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[11px] text-white/70 backdrop-blur-sm transition-colors hover:bg-white/10 hover:text-white"
+        className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-border bg-muted px-2 py-1 text-[11px] text-muted-foreground backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
       >
         <Pencil className="h-3 w-3" />
         编辑

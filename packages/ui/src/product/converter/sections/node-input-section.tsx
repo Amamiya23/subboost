@@ -13,10 +13,10 @@ import {
   X,
   Search,
 } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Textarea } from "@subboost/ui/components/ui/textarea";
-import { Badge } from "@subboost/ui/components/ui/badge";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Textarea } from "@subboost/ui/components/coss/compat/textarea";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
 import { cn } from "@subboost/ui/lib/utils";
 import { SectionHeader } from "./section-header";
 import type { SubscriptionSource, SourceType } from "@subboost/ui/store/config-store";
@@ -117,7 +117,7 @@ export function NodeInputSection({
         title="节点导入"
         badge={
           sourceCount > 0 && (
-            <Badge variant="outline" className="ml-auto border-blue-500/50 bg-blue-500/10 text-blue-300">
+            <Badge variant="outline" className="ml-auto border-info/30 bg-info/10 text-info-foreground">
               {sourceCount} 个导入源
             </Badge>
           )
@@ -143,8 +143,8 @@ export function NodeInputSection({
                               className={cn(
                                 "p-1 rounded transition-colors",
                                 source.type === type
-                                  ? "bg-white/12 text-white/65"
-                                  : "text-white/30 hover:text-white/50 hover:bg-white/5"
+                                  ? "bg-muted text-muted-foreground"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
                               )}
                               title={info.label}
                             >
@@ -154,11 +154,11 @@ export function NodeInputSection({
                         }
                       )}
                     </div>
-                    <span className="text-xs text-white/50">
+                    <span className="text-xs text-muted-foreground">
                       {typeInfo.label} {sources.length > 1 && `#${index + 1}`}
                     </span>
                     {source.parsed && source.nodeCount !== undefined && (
-                      <span className="text-xs text-green-400">
+                      <span className="text-xs text-success-foreground">
                         ✓ {source.nodeCount}
                       </span>
                     )}
@@ -173,12 +173,12 @@ export function NodeInputSection({
                       className={cn(
                         "p-1 rounded transition-colors",
                         source.parsing
-                          ? "text-white/65"
+                          ? "text-muted-foreground"
                           : source.parsed
-                          ? "text-green-400 hover:text-green-300"
+                          ? "text-success-foreground hover:text-success-foreground"
                           : source.content.trim()
-                          ? "text-white/30 hover:text-white/65 hover:bg-white/8"
-                          : "text-white/10 cursor-not-allowed"
+                          ? "text-muted-foreground hover:text-foreground hover:bg-accent"
+                          : "text-foreground/10 cursor-not-allowed"
                       )}
                       title="解析导入"
                     >
@@ -193,7 +193,7 @@ export function NodeInputSection({
                     {sources.length > 1 && (
                       <button
                         onClick={() => onRemoveSource(source.id)}
-                        className="p-1 rounded text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="p-1 rounded text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 transition-colors"
                         title="删除"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -228,11 +228,11 @@ export function NodeInputSection({
 
           {/* 已导入节点列表 */}
           {nodes.length > 0 && (
-            <div className="pt-2 border-t border-white/10">
-              <div className="text-xs text-white/40 mb-1.5">已导入节点</div>
+            <div className="pt-2 border-t border-border">
+              <div className="text-xs text-muted-foreground mb-1.5">已导入节点</div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30" />
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
                     value={nodeSearch}
                     onChange={(e) => setNodeSearch(e.target.value)}
@@ -244,7 +244,7 @@ export function NodeInputSection({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 px-2 text-xs text-white/60 hover:text-white"
+                    className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
                     onClick={() => setShowAllNodes((v) => !v)}
                     title={showAllNodes ? "仅显示部分节点" : "显示全部节点"}
                   >
@@ -254,7 +254,7 @@ export function NodeInputSection({
               </div>
 
               {!normalizedSearch && shouldLimit && (
-                <div className="text-[10px] text-white/40 mb-1">
+                <div className="text-[10px] text-muted-foreground mb-1">
                   为避免卡顿，仅显示前 {NODE_RENDER_LIMIT} 个节点；可用搜索查看其它节点
                 </div>
               )}
@@ -263,7 +263,7 @@ export function NodeInputSection({
                 {displayedNodes.map((node) => (
                   <div
                     key={node.name}
-                    className="group flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white/5 text-xs"
+                    className="group flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-muted text-xs"
                   >
                     {editingNodeName === node.name ? (
                       <div className="flex items-center gap-1">
@@ -271,7 +271,7 @@ export function NodeInputSection({
                           type="text"
                           value={editNodeValue}
                           onChange={(e) => setEditNodeValue(e.target.value)}
-                          className="w-20 px-1 py-0.5 bg-white/5 border border-white/20 rounded text-xs"
+                          className="w-20 px-1 py-0.5 bg-muted border border-border rounded text-xs"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === "Enter") handleSaveEdit(node.name);
@@ -280,32 +280,32 @@ export function NodeInputSection({
                         />
                         <button
                           onClick={() => handleSaveEdit(node.name)}
-                          className="p-0.5 text-green-400 hover:bg-green-500/20 rounded"
+                          className="p-0.5 text-success-foreground hover:bg-success/10 rounded"
                         >
                           <Check className="h-3 w-3" />
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="p-0.5 text-red-400 hover:bg-red-500/20 rounded"
+                          className="p-0.5 text-destructive-foreground hover:bg-destructive/10 rounded"
                         >
                           <X className="h-3 w-3" />
                         </button>
                       </div>
                     ) : (
                       <>
-                        <span className="text-white/70 truncate max-w-[100px]">
+                        <span className="text-muted-foreground truncate max-w-[100px]">
                           {node.name}
                         </span>
                         <button
                           onClick={() => handleStartEdit(node.name)}
-                          className="p-0.5 opacity-0 group-hover:opacity-100 text-white/30 hover:text-white/65 transition-opacity"
+                          className="p-0.5 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-opacity"
                           title="重命名"
                         >
                           <Pencil className="h-2.5 w-2.5" />
                         </button>
                         <button
                           onClick={() => onRemoveNode(node.name)}
-                          className="p-0.5 opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 transition-opacity"
+                          className="p-0.5 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive-foreground transition-opacity"
                           title="删除"
                         >
                           <X className="h-2.5 w-2.5" />
@@ -315,7 +315,7 @@ export function NodeInputSection({
                   </div>
                 ))}
                 {displayedNodes.length === 0 && (
-                  <div className="text-[10px] text-white/40 py-1">未找到匹配节点</div>
+                  <div className="text-[10px] text-muted-foreground py-1">未找到匹配节点</div>
                 )}
               </div>
             </div>

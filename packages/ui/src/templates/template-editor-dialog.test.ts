@@ -23,17 +23,17 @@ vi.mock("react/jsx-runtime", async (original) => {
     return actual.jsx(type, props, key);
   } };
 });
-vi.mock("@subboost/ui/components/ui/button", () => ({ Button: (props: any) => { mocks.buttons.push(props); return null; } }));
-vi.mock("@subboost/ui/components/ui/input", () => ({ Input: (props: any) => { mocks.inputs.push(props); return null; } }));
-vi.mock("@subboost/ui/components/ui/textarea", () => ({ Textarea: (props: any) => { mocks.textarea = props; return null; } }));
-vi.mock("@subboost/ui/components/ui/dialog", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({ Button: (props: any) => { mocks.buttons.push(props); return null; } }));
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({ Input: (props: any) => { mocks.inputs.push(props); return null; } }));
+vi.mock("@subboost/ui/components/coss/compat/textarea", () => ({ Textarea: (props: any) => { mocks.textarea = props; return null; } }));
+vi.mock("@subboost/ui/components/coss/compat/dialog", () => ({
   Dialog: (props: any) => { mocks.dialog = props; return props.children; },
   DialogContent: (props: any) => props.children, DialogHeader: (props: any) => props.children,
   DialogTitle: (props: any) => props.children, DialogDescription: (props: any) => props.children, DialogFooter: (props: any) => props.children,
 }));
-vi.mock("@subboost/ui/components/ui/tabs", () => ({ Tabs: (props: any) => props.children, TabsList: (props: any) => props.children, TabsTrigger: (props: any) => props.children, TabsContent: (props: any) => props.children }));
+vi.mock("@subboost/ui/components/coss/compat/tabs", () => ({ Tabs: (props: any) => props.children, TabsList: (props: any) => props.children, TabsTrigger: (props: any) => props.children, TabsContent: (props: any) => props.children }));
 vi.mock("@subboost/ui/components/ui/confirm-dialog", () => ({ confirmDialog: mocks.confirm }));
-vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({ toast: mocks.toast }));
 import { TemplateEditorDialog } from "./template-editor-dialog";
 
 const template = { id: "builtin-minimal", name: "精简版", description: "默认", config: buildDefaultSubBoostTemplateConfig("minimal"), isModified: true };

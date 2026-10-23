@@ -2,17 +2,17 @@
 
 import * as React from "react";
 import { Check, Loader2, Search, X } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Input } from "@subboost/ui/components/ui/input";
+import { Badge } from "@subboost/ui/components/coss/compat/badge";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Input } from "@subboost/ui/components/coss/compat/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@subboost/ui/components/ui/select";
-import { toast } from "@subboost/ui/components/ui/toaster";
+} from "@subboost/ui/components/coss/compat/select";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { cn } from "@subboost/ui/lib/utils";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
 import { isPinnedModule } from "@subboost/core/generator/rules";
@@ -95,13 +95,13 @@ export function ProxyGroupsRulesLibrary() {
   return (
     <div className="min-w-0 space-y-2">
       <div className="flex min-h-5 items-center gap-2">
-        <span className="text-xs font-medium text-white/80">
+        <span className="text-xs font-medium text-foreground/85">
           方法一：搜索规则集
         </span>
-        <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-1.5 py-0 text-[9px] font-medium leading-4 text-amber-200">
+        <span className="rounded-full border border-warning/30 bg-warning/10 px-1.5 py-0 text-[9px] font-medium leading-4 text-warning-foreground">
           推荐
         </span>
-        <span className="text-[10px] text-white/40 ml-auto">
+        <span className="text-[10px] text-muted-foreground ml-auto">
           {ruleSearchKeyword.trim() && typeof totalMatched === "number"
             ? `匹配 ${totalMatched} · ${totalRules ? `${totalRules} 规则` : "规则库"}`
             : totalRules
@@ -111,29 +111,29 @@ export function ProxyGroupsRulesLibrary() {
       </div>
       <div className="space-y-2">
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             value={ruleSearchKeyword}
             onChange={(e) => setRuleSearchKeyword(e.target.value)}
             placeholder="搜索: Netflix、Google、Steam、Telegram..."
-            className="pl-7 text-xs h-7 bg-white/5 border-white/10"
+            className="pl-7 text-xs h-7 bg-muted border-border"
           />
         </div>
 
         {rulesSearchLoading && (
-          <div className="flex items-center justify-center gap-1 text-[10px] text-white/40 py-1">
+          <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground py-1">
             <Loader2 className="h-3 w-3 animate-spin" />
             搜索中...
           </div>
         )}
         {rulesSearchError && !rulesSearchLoading && (
-          <div className="text-[10px] text-red-400 text-center py-1">
+          <div className="text-[10px] text-destructive-foreground text-center py-1">
             {rulesSearchError}
           </div>
         )}
 
         {searchResults.length > 0 && (
-          <div className="max-h-64 overflow-y-auto custom-scrollbar space-y-0.5 bg-white/5 rounded p-1.5 border border-white/10">
+          <div className="max-h-64 overflow-y-auto custom-scrollbar space-y-0.5 bg-muted rounded p-1.5 border border-border">
             {searchResults.map((rule) => {
               const categoryInfo = RULE_CATEGORIES[rule.category];
               const builtinSourceModule = visibleProxyGroupModules.find((m) =>
@@ -176,31 +176,31 @@ export function ProxyGroupsRulesLibrary() {
                     className={cn(
                       "flex items-center gap-1.5 px-1.5 py-1.5 rounded transition-colors",
                       isModuleEnabled
-                        ? "bg-green-500/10 border border-green-500/30"
-                        : "bg-yellow-500/10 border border-yellow-500/30",
+                        ? "bg-success/10 border border-success/30"
+                        : "bg-warning/10 border border-warning/30",
                     )}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1">
-                        <span className="text-[11px] font-medium truncate text-white">
+                        <span className="text-[11px] font-medium truncate text-foreground">
                           {getRuleDisplayName(rule)}
                         </span>
                         <Badge
                           variant="outline"
-                          className="text-[9px] px-1 py-0 text-white/50"
+                          className="text-[9px] px-1 py-0 text-muted-foreground"
                         >
                           {rule.behavior === "ipcidr" ? "IP" : "域名"}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-1 mt-0.5">
-                        <span className="text-[9px] text-white/50">属于</span>
-                        <span className="text-[9px] font-medium text-white/65">
+                        <span className="text-[9px] text-muted-foreground">属于</span>
+                        <span className="text-[9px] font-medium text-muted-foreground">
                           {resolveModuleFullName(belongsToModule)}
                         </span>
                       </div>
                     </div>
                     {isModuleEnabled ? (
-                      <Badge className="text-[9px] px-1.5 py-0 bg-green-500/20 text-green-400 border-green-500/30">
+                      <Badge className="text-[9px] px-1.5 py-0 bg-success/10 text-success-foreground border-success/30">
                         <Check className="h-2.5 w-2.5 mr-0.5" />
                         已启用
                       </Badge>
@@ -209,7 +209,7 @@ export function ProxyGroupsRulesLibrary() {
                         variant="outline"
                         size="sm"
                         onClick={() => toggleProxyGroup(belongsToModule.id)}
-                        className="h-5 text-[9px] px-2 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20"
+                        className="h-5 text-[9px] px-2 border-warning/30 text-warning-foreground hover:bg-warning/10"
                       >
                         开启代理组
                       </Button>
@@ -222,28 +222,28 @@ export function ProxyGroupsRulesLibrary() {
                 return (
                   <div
                     key={rule.id}
-                    className="flex items-center gap-1.5 px-1.5 py-1.5 rounded transition-colors bg-green-500/10 border border-green-500/30"
+                    className="flex items-center gap-1.5 px-1.5 py-1.5 rounded transition-colors bg-success/10 border border-success/30"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1">
-                        <span className="text-[11px] font-medium truncate text-white">
+                        <span className="text-[11px] font-medium truncate text-foreground">
                           {getRuleDisplayName(rule)}
                         </span>
                         <Badge
                           variant="outline"
-                          className="text-[9px] px-1 py-0 text-white/50"
+                          className="text-[9px] px-1 py-0 text-muted-foreground"
                         >
                           {rule.behavior === "ipcidr" ? "IP" : "域名"}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-1 mt-0.5">
-                        <span className="text-[9px] text-white/50">属于</span>
-                        <span className="text-[9px] font-medium text-white/65">
+                        <span className="text-[9px] text-muted-foreground">属于</span>
+                        <span className="text-[9px] font-medium text-muted-foreground">
                           {belongsToCustom.name}
                         </span>
                       </div>
                     </div>
-                    <Badge className="text-[9px] px-1.5 py-0 bg-green-500/20 text-green-400 border-green-500/30">
+                    <Badge className="text-[9px] px-1.5 py-0 bg-success/10 text-success-foreground border-success/30">
                       <Check className="h-2.5 w-2.5 mr-0.5" />
                       已添加
                     </Badge>
@@ -266,26 +266,26 @@ export function ProxyGroupsRulesLibrary() {
                   className={cn(
                     "flex items-center gap-1.5 px-1.5 py-1 rounded cursor-pointer transition-colors",
                     isSelected
-                      ? "bg-white/12 text-white/65"
-                      : "hover:bg-white/5 text-white/70",
+                      ? "bg-muted text-muted-foreground"
+                      : "hover:bg-accent text-muted-foreground",
                   )}
                 >
                   <div
                     className={cn(
                       "h-3.5 w-3.5 rounded border flex items-center justify-center flex-shrink-0",
                       isSelected
-                        ? "bg-white/15 border-white/25"
-                        : "border-white/30",
+                        ? "bg-muted border-border"
+                        : "border-border",
                     )}
                   >
-                    {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
+                    {isSelected && <Check className="h-2.5 w-2.5 text-foreground" />}
                   </div>
                   <span className="text-[11px] font-medium truncate">
                     {getRuleDisplayName(rule)}
                   </span>
                   <Badge
                     variant="outline"
-                    className="text-[9px] px-1 py-0 text-white/40 flex-shrink-0"
+                    className="text-[9px] px-1 py-0 text-muted-foreground flex-shrink-0"
                   >
                     {categoryInfo?.name || rule.category}
                   </Badge>
@@ -307,14 +307,14 @@ export function ProxyGroupsRulesLibrary() {
           searchResults.length === 0 &&
           typeof totalMatched === "number" &&
           totalMatched === 0 && (
-            <p className="text-[10px] text-white/40 text-center py-2">
+            <p className="text-[10px] text-muted-foreground text-center py-2">
               未找到相关规则
             </p>
           )}
 
         {ruleSearchKeyword.trim() && searchResults.length > 0 && (
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-white/40">
+            <span className="text-[10px] text-muted-foreground">
               {typeof totalMatched === "number"
                 ? `显示 ${searchResults.length}/${totalMatched}`
                 : `显示 ${searchResults.length}`}
@@ -327,7 +327,7 @@ export function ProxyGroupsRulesLibrary() {
                 size="sm"
                 onClick={handleLoadMore}
                 disabled={rulesSearchLoadingMore || rulesSearchLoading}
-                className="h-6 text-[10px] px-2 border-white/20 text-white/70 hover:bg-white/10"
+                className="h-6 text-[10px] px-2 border-border text-muted-foreground hover:bg-accent"
               >
                 {rulesSearchLoadingMore && (
                   <Loader2 className="h-3 w-3 animate-spin mr-1" />
@@ -339,18 +339,18 @@ export function ProxyGroupsRulesLibrary() {
         )}
 
         {selectedRules.length > 0 && (
-          <div className="space-y-2 bg-white/8 rounded p-2 border border-white/20">
+          <div className="space-y-2 bg-muted rounded p-2 border border-border">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-white/70">
+              <span className="text-[10px] text-muted-foreground">
                 已选择{" "}
-                <span className="text-white/65 font-medium">
+                <span className="text-muted-foreground font-medium">
                   {selectedRules.length}
                 </span>{" "}
                 条未分配的规则
               </span>
               <button
                 onClick={() => setSelectedRules([])}
-                className="text-[10px] text-white/40 hover:text-white/60"
+                className="text-[10px] text-muted-foreground hover:text-foreground"
               >
                 清空
               </button>
@@ -360,7 +360,7 @@ export function ProxyGroupsRulesLibrary() {
                 <Badge
                   key={rule.id}
                   variant="secondary"
-                  className="text-[10px] cursor-pointer hover:bg-white/20 px-1.5 py-0"
+                  className="text-[10px] cursor-pointer hover:bg-accent px-1.5 py-0"
                   onClick={() =>
                     setSelectedRules(
                       selectedRules.filter((r) => r.id !== rule.id),
@@ -379,7 +379,7 @@ export function ProxyGroupsRulesLibrary() {
             </div>
 
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-white/50 flex-shrink-0">
+              <span className="text-[10px] text-muted-foreground flex-shrink-0">
                 添加到:
               </span>
               <Select value={addToGroupId} onValueChange={setAddToGroupId}>

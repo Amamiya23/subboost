@@ -3,11 +3,19 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FileCode, Loader2, Plus, Search, Upload } from "lucide-react";
-import { Button } from "@subboost/ui/components/ui/button";
-import { Input } from "@subboost/ui/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@subboost/ui/components/ui/tabs";
+import { Button } from "@subboost/ui/components/coss/compat/button";
+import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@subboost/ui/components/coss/compat/tabs";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@subboost/ui/components/coss/empty";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
-import { toast } from "@subboost/ui/components/ui/toaster";
+import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { useUserStore } from "@subboost/ui/store/user-store";
 import { useConfigStore, type SubBoostTemplateConfig } from "@subboost/ui/store/config-store";
 import { builtinIdToType } from "@subboost/core/templates/builtin";
@@ -369,15 +377,15 @@ function TemplateLibraryInner({ adapter }: Props) {
   const enabledTabLabelText = tabValues.map(tabLabel).join(" / ");
 
   return (
-    <div className="container mx-auto px-4 py-8 text-[var(--gray-12)]">
-      <div className="flex items-center justify-between mb-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold mb-1">模板库</h1>
-          <p className="text-[var(--gray-11)]">{enabledTabLabelText}</p>
+          <h1 className="font-heading text-2xl font-semibold">模板库</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{enabledTabLabelText}</p>
         </div>
         {canUpload && (
-          <Button className={`gap-2 ${templatePrimaryButtonClass}`} onClick={() => openUploadDialog("templatesPage")}>
-            <Upload className="h-4 w-4" />
+          <Button onClick={() => openUploadDialog("templatesPage")}>
+            <Upload aria-hidden="true" />
             上传模板
           </Button>
         )}
@@ -385,8 +393,9 @@ function TemplateLibraryInner({ adapter }: Props) {
 
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--gray-11)]" />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            aria-label="搜索模板"
             placeholder="搜索模板..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
@@ -406,15 +415,15 @@ function TemplateLibraryInner({ adapter }: Props) {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="space-y-6">
-        <TabsList className="bg-[var(--gray-3)] text-[var(--gray-11)]">
-          {tabValues.map((tab) => <TabsTrigger key={tab} value={tab} className="text-[var(--gray-11)] data-[state=active]:bg-[var(--gray-5)] data-[state=active]:text-[var(--gray-12)]">{tabLabel(tab)}</TabsTrigger>)}
+        <TabsList>
+          {tabValues.map((tab) => <TabsTrigger key={tab} value={tab}>{tabLabel(tab)}</TabsTrigger>)}
         </TabsList>
 
         {tabValues.map((tab) => (
           <TabsContent key={tab} value={tab}>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-[var(--lime-11)]" />
+                <Loader2 className="size-8 animate-spin text-muted-foreground" />
               </div>
             ) : filteredTemplates.length === 0 ? (
               <EmptyTemplates tab={tab} canUpload={canUpload} onUpload={() => openUploadDialog("templatesPage")} />
@@ -504,24 +513,25 @@ function EmptyTemplates({
 }) {
   if (tab === "my" && canUpload) {
     return (
-      <div className="text-center py-12">
-        <Plus className="h-12 w-12 mx-auto text-[var(--gray-11)] mb-4" />
-        <h3 className="text-lg font-medium mb-2">暂无模板</h3>
-        <p className="text-[var(--gray-11)] mb-4">创建您的第一个配置模板</p>
-        <Button onClick={onUpload} className={templatePrimaryButtonClass}>
-          <Plus className="mr-2 h-4 w-4" />
-          创建模板
-        </Button>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon"><Plus aria-hidden="true" /></EmptyMedia>
+          <EmptyTitle>暂无模板</EmptyTitle>
+          <EmptyDescription>创建您的第一个配置模板</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent><Button onClick={onUpload}><Plus aria-hidden="true" />创建模板</Button></EmptyContent>
+      </Empty>
     );
   }
 
   return (
-    <div className="text-center py-12">
-      <FileCode className="h-12 w-12 mx-auto text-[var(--gray-11)] mb-4" />
-      <h3 className="text-lg font-medium mb-2">{tab === "catalog" ? "没有找到模板" : "暂无模板"}</h3>
-      <p className="text-[var(--gray-11)]">尝试调整搜索条件</p>
-    </div>
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon"><FileCode aria-hidden="true" /></EmptyMedia>
+        <EmptyTitle>{tab === "catalog" ? "没有找到模板" : "暂无模板"}</EmptyTitle>
+        <EmptyDescription>尝试调整搜索条件</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   );
 }
 

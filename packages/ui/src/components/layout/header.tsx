@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   Library,
   HelpCircle,
-  Menu,
+  Menu as MenuIcon,
   X,
   LogIn,
   Settings2,
@@ -16,7 +16,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@subboost/ui/lib/utils";
-import { UserMenu, type AccountMenuItem } from "@subboost/ui/components/auth/user-menu";
+import { UserMenu, type AccountMenuItem } from "@subboost/ui/components/auth/user-menu-coss";
+import { Badge } from "@subboost/ui/components/coss/badge";
+import { Button } from "@subboost/ui/components/coss/button";
+import { ThemeToggle } from "@subboost/ui/components/layout/theme-toggle";
 import { captureAuthConfigHandoff } from "@subboost/ui/store/config-store/auth-handoff";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 import { useUserStore } from "@subboost/ui/store/user-store";
@@ -59,45 +62,45 @@ function isNavItemActive(pathname: string, href: string): boolean {
 }
 
 function BrandBadge({ badge, tone = "default" }: { badge: HeaderBrandBadge; tone?: "default" | "new" }) {
-  const className = cn(
-    "inline-flex w-fit items-center rounded-full border px-1.5 py-[2px] text-[0.68rem] font-medium leading-none backdrop-blur-sm",
-    tone === "new"
-      ? "border-emerald-300/30 bg-emerald-400/12 text-emerald-100/90 shadow-[0_0_12px_rgba(52,211,153,0.16)]"
-      : "border-sky-300/25 bg-sky-400/10 text-sky-100/80 shadow-[0_0_12px_rgba(56,189,248,0.16)]"
-  );
+  const className = cn("rounded-full px-2 py-0.5 text-[0.68rem] leading-none", tone === "new" ? "border-success/24" : "border-info/24");
 
   if (badge.href) {
     if (badge.external) {
       return (
-        <a
-          href={badge.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(className, "transition-colors hover:text-white")}
+        <Badge
+          className={className}
+          variant={tone === "new" ? "success" : "info"}
+          render={<a href={badge.href} target="_blank" rel="noopener noreferrer" />}
           title={badge.title}
           aria-label={badge.ariaLabel}
         >
           {badge.label}
-        </a>
+        </Badge>
       );
     }
 
     return (
-      <Link
-        href={badge.href}
-        className={cn(className, "transition-colors hover:text-white")}
+      <Badge
+        className={className}
+        variant={tone === "new" ? "success" : "info"}
+        render={<Link href={badge.href} />}
         title={badge.title}
         aria-label={badge.ariaLabel}
       >
         {badge.label}
-      </Link>
+      </Badge>
     );
   }
 
   return (
-    <span className={className} title={badge.title} aria-label={badge.ariaLabel}>
+    <Badge
+      className={className}
+      variant={tone === "new" ? "success" : "info"}
+      title={badge.title}
+      aria-label={badge.ariaLabel}
+    >
       {badge.label}
-    </span>
+    </Badge>
   );
 }
 
@@ -124,9 +127,9 @@ export function Header({
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-ink/90 border-b border-white/8">
-      <div className="w-full max-w-[clamp(1200px,95vw,2400px)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
-        <div className="flex items-center justify-between h-14">
+    <header className="sticky top-0 z-50 border-b bg-background/88 backdrop-blur-xl">
+      <div className="mx-auto w-full max-w-[clamp(1120px,94vw,1800px)] px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex items-center gap-2">
             <Link href="/" className="group flex items-center gap-2">
@@ -138,7 +141,7 @@ export function Header({
                 priority
                 className="rounded-md transition-opacity group-hover:opacity-90"
               />
-              <span className="hidden font-display text-[16px] font-semibold leading-none tracking-tight text-bone sm:inline-flex">
+              <span className="hidden font-display text-base font-semibold leading-none text-foreground sm:inline-flex">
                 SubBoost
               </span>
             </Link>
@@ -149,21 +152,22 @@ export function Header({
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-0.5 rounded-md border border-white/8 bg-white/[0.03] p-0.5">
+          <nav aria-label="主导航" className="hidden items-center gap-1 rounded-lg border bg-card p-1 md:flex">
             {visibleNavItems.map((item, index) => {
               const isActive = isNavItemActive(pathname, item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "inline-flex items-center gap-1.5 whitespace-nowrap rounded px-2.5 py-1.5 text-[13px] font-medium transition-colors",
+                    "inline-flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
                     isActive
-                      ? "bg-white/10 text-white"
-                      : "text-white/55 hover:bg-white/8 hover:text-white"
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                   )}
                 >
-                  <span className={cn("mono-label", isActive ? "text-acid" : "text-white/30")}>
+                  <span className={cn("mono-label", isActive ? "text-success-foreground" : "text-muted-foreground/56")}>
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   {item.label}
@@ -174,10 +178,10 @@ export function Header({
               <Link
                 href={visiblePrivilegedItem.href}
                 className={cn(
-                  "ml-0.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded px-2.5 py-1.5 text-[13px] font-medium transition-colors",
+                  "ml-0.5 inline-flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
                   isNavItemActive(pathname, visiblePrivilegedItem.href)
-                    ? "bg-white/10 text-white"
-                    : "text-white/55 hover:bg-white/8 hover:text-white"
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                 )}
               >
                 <Shield className="h-3.5 w-3.5" />
@@ -188,26 +192,32 @@ export function Header({
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             {/* User Menu */}
             <UserMenu privilegedMenuItem={privilegedMenuItem} />
 
             {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 rounded hover:bg-white/8 transition-colors"
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              aria-label={mobileMenuOpen ? "收起导航" : "展开导航"}
+              aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
-                <X className="w-5 h-5 text-white/60" />
+                <X aria-hidden="true" />
               ) : (
-                <Menu className="w-5 h-5 text-white/60" />
+                <MenuIcon aria-hidden="true" />
               )}
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/8 py-3">
+          <div className="border-t py-3 md:hidden">
             <nav className="flex flex-col gap-0.5">
               {visibleNavItems.map((item) => {
                 const isActive = isNavItemActive(pathname, item.href);
@@ -216,12 +226,12 @@ export function Header({
                     key={item.href}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded text-[13px] transition-colors",
-                      isActive
-                        ? "text-white bg-white/8"
-                        : "text-white/60 hover:text-white hover:bg-white/8"
-                    )}
+                      className={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                        isActive
+                          ? "bg-accent text-foreground"
+                          : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                      )}
                   >
                     <item.icon className="w-4 h-4" />
                     {item.label}
@@ -233,10 +243,10 @@ export function Header({
                   href={visiblePrivilegedItem.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded text-[13px] transition-colors",
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
                     isNavItemActive(pathname, visiblePrivilegedItem.href)
-                      ? "text-white bg-white/8"
-                      : "text-white/60 hover:text-white hover:bg-white/8"
+                      ? "bg-accent text-foreground"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                   )}
                 >
                   <Shield className="w-4 h-4" />
@@ -250,7 +260,7 @@ export function Header({
                     captureAuthConfigHandoff(useConfigStore.getState());
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 px-3 py-2 rounded text-[13px] text-white/70 hover:text-white hover:bg-white/8 transition-colors"
+                  className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent/60 transition-colors"
                 >
                   <LogIn className="w-4 h-4" />
                   登录

@@ -76,19 +76,19 @@ vi.mock("lucide-react", () => ({
   Search: () => null,
   X: () => null,
 }));
-vi.mock("@subboost/ui/components/ui/badge", () => ({
+vi.mock("@subboost/ui/components/coss/compat/badge", () => ({
   Badge: (props: any) => {
     mocks.captures.badges.push(props);
     return React.createElement("span", props, props.children);
   },
 }));
-vi.mock("@subboost/ui/components/ui/button", () => ({
+vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.captures.buttons.push(props);
     return React.createElement("button", props, props.children);
   },
 }));
-vi.mock("@subboost/ui/components/ui/input", () => ({
+vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => {
     mocks.captures.inputs.push(props);
     return React.createElement("input", {
@@ -98,7 +98,7 @@ vi.mock("@subboost/ui/components/ui/input", () => ({
     });
   },
 }));
-vi.mock("@subboost/ui/components/ui/select", () => ({
+vi.mock("@subboost/ui/components/coss/compat/select", () => ({
   Select: (props: any) => {
     mocks.captures.selects.push(props);
     return React.createElement("select", null, props.children);
@@ -108,7 +108,7 @@ vi.mock("@subboost/ui/components/ui/select", () => ({
   SelectTrigger: (props: any) => React.createElement(React.Fragment, null, props.children),
   SelectValue: (props: any) => React.createElement("span", null, props.placeholder),
 }));
-vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
+vi.mock("@subboost/ui/components/coss/compat/toaster", () => ({ toast: mocks.toast }));
 vi.mock("@subboost/core/generator/proxy-groups", () => ({
   PROXY_GROUP_MODULES: [
     { id: "auto", name: "Auto", rules: [{ id: "netflix" }] },
