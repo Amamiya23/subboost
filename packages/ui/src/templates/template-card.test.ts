@@ -30,6 +30,7 @@ vi.mock("lucide-react", () => ({
   CheckCircle: () => React.createElement("span", null, "check-icon"),
   Clock: () => React.createElement("span", null, "clock-icon"),
   Download: () => React.createElement("span", null, "download-icon"),
+  Eye: () => null,
   Globe: () => React.createElement("span", null, "globe-icon"),
   Heart: () => React.createElement("span", null, "heart-icon"),
   Layers: () => React.createElement("span", null, "layers-icon"),
@@ -115,7 +116,7 @@ describe("TemplateCard", () => {
 
     const engageButton = mocks.captures.nativeButtons.find((button) => button.title === "取消收藏");
     expect(engageButton.disabled).toBe(false);
-    expect(engageButton.className).toContain("text-red-400");
+    expect(engageButton.className).toContain("text-[var(--red-11)]");
     engageButton.onClick();
     expect(props.onEngage).toHaveBeenCalled();
   });
@@ -159,5 +160,13 @@ describe("TemplateCard", () => {
     expect(html).not.toContain("私有");
     expect(mocks.captures.buttons.some((button) => button.title === "删除")).toBe(false);
     expect(mocks.captures.nativeButtons).toEqual([]);
+  });
+
+  it("opens modified templates for inspection and editing", () => {
+    const onView = vi.fn();
+    const { html } = renderCard({ template: { ...baseTemplate, isModified: true }, onView, viewLabel: "查看 / 编辑" });
+    expect(html).toContain("已修改");
+    mocks.captures.buttons.find((button) => button.children?.includes?.("查看 / 编辑")).onClick();
+    expect(onView).toHaveBeenCalledOnce();
   });
 });

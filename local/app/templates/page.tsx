@@ -14,6 +14,8 @@ type TemplateListResponse = {
 
 type TemplateDetailResponse = {
   template?: {
+    name?: string;
+    description?: string;
     kind?: string;
     config?: unknown;
   };
@@ -27,6 +29,7 @@ const localTemplateAdapter: TemplateLibraryAdapter = {
   allowDelete: true,
   allowPublicTemplates: false,
   uploadSearchParam: true,
+  configuratorHref: "/builder",
   loadTemplates: async (tab: TabValue) => {
     const data = await readJsonResponse<TemplateListResponse>(
       await fetch(`/api/templates?type=${encodeURIComponent(tab)}`, { cache: "no-store" })
@@ -50,6 +53,16 @@ const localTemplateAdapter: TemplateLibraryAdapter = {
   },
   deleteTemplate: async (id: string) => {
     await readJsonResponse(await fetch(`/api/templates?id=${encodeURIComponent(id)}`, { method: "DELETE" }));
+  },
+  updateTemplate: async (id, payload) => {
+    await readJsonResponse(await fetch(`/api/templates/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }));
+  },
+  resetTemplate: async (id) => {
+    await readJsonResponse(await fetch(`/api/templates/${encodeURIComponent(id)}`, { method: "DELETE" }));
   },
 };
 

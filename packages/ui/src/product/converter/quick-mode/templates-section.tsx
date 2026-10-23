@@ -10,7 +10,7 @@ import type { TemplateType } from "@subboost/core/types/config";
 import { useUserStore } from "@subboost/ui/store/user-store";
 import { BUILTIN_TEMPLATE_IDS } from "@subboost/core/templates/builtin";
 import { toast } from "@subboost/ui/components/ui/toaster";
-import { useProductApiAdapter } from "@subboost/ui/product/api-adapter";
+import { useProductApiAdapter, type QuickTemplateSummary } from "@subboost/ui/product/api-adapter";
 import { useProductInteractionAdapter } from "@subboost/ui/product/interactions";
 import { templates } from "./constants";
 
@@ -45,6 +45,38 @@ export function TemplatesSection() {
     standard: { id: BUILTIN_TEMPLATE_IDS.standard, engagementCount: 0, isEngaged: false },
     full: { id: BUILTIN_TEMPLATE_IDS.full, engagementCount: 0, isEngaged: false },
   });
+  const [builtinApplying, setBuiltinApplying] = React.useState<TemplateType | null>(null);
+  const [builtinSummaries, setBuiltinSummaries] = React.useState<Record<string, QuickTemplateSummary>>({});
+  const loadBuiltinTemplates = templateApi?.loadBuiltinTemplates;
+
+  React.useEffect(() => {
+    if (!loadBuiltinTemplates) return;
+    let cancelled = false;
+    void loadBuiltinTemplates().then((items) => {
+      if (!cancelled) setBuiltinSummaries(Object.fromEntries(items.map((item) => [item.id, item])));
+    }).catch(() => { /* Keep the bundled labels available when the server is unreachable. */ });
+    return () => { cancelled = true; };
+  }, [loadBuiltinTemplates, user?.id]);
+
+  const selectBuiltinTemplate = async (type: TemplateType) => {
+    if (!templateApi?.loadTemplateDetail) {
+      setTemplate(type);
+      interactions.templateSelected?.({ source: "builtin", templateType: type });
+      return;
+    }
+    setBuiltinApplying(type);
+    try {
+      const detail = await templateApi.loadTemplateDetail(BUILTIN_TEMPLATE_IDS[type]);
+      if (detail?.kind !== "config" || !detail.config || typeof detail.config !== "object") throw new Error("无法读取默认模板");
+      setAppliedTemplateId(BUILTIN_TEMPLATE_IDS[type]);
+      applyTemplateConfig(detail.config as SubBoostTemplateConfig);
+      interactions.templateSelected?.({ source: "builtin", templateType: type });
+    } catch (error) {
+      toast({ title: error instanceof Error ? error.message : "应用模板失败，请稍后重试", variant: "destructive" });
+    } finally {
+      setBuiltinApplying(null);
+    }
+  };
 
   React.useEffect(() => {
     if (!loadBuiltinTemplateEngagement) return;
@@ -210,15 +242,13 @@ export function TemplatesSection() {
                     name="builtin-template"
                     id={`builtin-template-${template.id}`}
                     checked={selectedTemplate === template.id}
-                    onChange={() => {
-                      setTemplate(template.id);
-                      interactions.templateSelected?.({ source: "builtin", templateType: template.id });
-                    }}
+                    disabled={builtinApplying !== null}
+                    onChange={() => void selectBuiltinTemplate(template.id)}
                     className="size-4 shrink-0 accent-acid"
                   />
                   <div>
                     <div className="flex items-center gap-2">
-                      <label htmlFor={`builtin-template-${template.id}`} className="cursor-pointer text-sm font-medium text-white after:absolute after:inset-0">{template.name}</label>
+                      <label htmlFor={`builtin-template-${template.id}`} className="cursor-pointer text-sm font-medium text-white after:absolute after:inset-0">{builtinSummaries[BUILTIN_TEMPLATE_IDS[template.id]]?.name ?? template.name}</label>
                       {builtinEngagementEnabled && (
                         <button
                           onClick={(e) => {
@@ -238,12 +268,12 @@ export function TemplatesSection() {
                         </button>
                       )}
                     </div>
-                    <p className="text-sm leading-relaxed text-ink-600 mt-1">{template.description}</p>
+                    <p className="text-sm leading-relaxed text-ink-600 mt-1">{builtinSummaries[BUILTIN_TEMPLATE_IDS[template.id]]?.description ?? template.description}</p>
                   </div>
                 </div>
                 <div className="shrink-0 pl-3 text-right text-xs text-ink-600 tabular-nums space-y-1">
-                  <div>{template.groups} 代理组</div>
-                  <div>{template.rules} 规则集</div>
+                  <div>{builtinApplying === template.id ? <Loader2 aria-label="应用中" className="ml-auto h-4 w-4 animate-spin" /> : `${builtinSummaries[BUILTIN_TEMPLATE_IDS[template.id]]?.proxyGroupCount ?? template.groups} 代理组`}</div>
+                  <div>{builtinSummaries[BUILTIN_TEMPLATE_IDS[template.id]]?.ruleCount ?? template.rules} 规则集</div>
                 </div>
               </div>
             </Card>

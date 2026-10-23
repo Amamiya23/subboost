@@ -147,6 +147,10 @@ describe("local app pages and adapters", () => {
     await adapter.loadSubscription("sub 1");
     await adapter.subscription.saveSubscription({ isEditing: true, subscriptionId: "sub 1", payload: { name: "Sub" } });
     await adapter.subscription.saveSubscription({ isEditing: false, payload: { name: "New" } });
+    mocks.readJsonResponse.mockResolvedValueOnce({ templates: [{ id: "builtin-minimal", name: "Updated" }] });
+    await expect(adapter.productApi.templates.loadBuiltinTemplates()).resolves.toEqual([{ id: "builtin-minimal", name: "Updated" }]);
+    mocks.readJsonResponse.mockResolvedValueOnce({ template: { kind: "config", config: { mixedPort: 9999 } } });
+    await expect(adapter.productApi.templates.loadTemplateDetail("builtin-minimal")).resolves.toEqual({ kind: "config", config: { mixedPort: 9999 } });
 
     expect(adapter.subscription.autoUpdateIntervalPolicy).toEqual({
       defaultHours: 12,
@@ -216,11 +220,19 @@ describe("local app pages and adapters", () => {
     await expect(adapter.loadTemplateDetail("tpl 1")).resolves.toEqual({ kind: "yaml", config: {} });
     await expect(adapter.uploadTemplate({ name: "Tpl" })).resolves.toBeUndefined();
     await expect(adapter.deleteTemplate("tpl 1")).resolves.toBeUndefined();
+    const payload = { name: "Updated", description: "", config: { template: "minimal" } };
+    mocks.readJsonResponse.mockResolvedValueOnce({});
+    await expect(adapter.updateTemplate("builtin-minimal", payload)).resolves.toBeUndefined();
+    mocks.readJsonResponse.mockResolvedValueOnce({});
+    await expect(adapter.resetTemplate("builtin-minimal")).resolves.toBeUndefined();
 
     expect(fetchMock).toHaveBeenCalledWith("/api/templates?type=my", { cache: "no-store" });
     expect(fetchMock).toHaveBeenCalledWith("/api/templates/tpl%201", { cache: "no-store" });
     expect(fetchMock).toHaveBeenCalledWith("/api/templates", expect.objectContaining({ method: "POST" }));
     expect(fetchMock).toHaveBeenCalledWith("/api/templates?id=tpl%201", { method: "DELETE" });
+    expect(fetchMock).toHaveBeenCalledWith("/api/templates/builtin-minimal", expect.objectContaining({ method: "PUT", body: JSON.stringify(payload) }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/templates/builtin-minimal", { method: "DELETE" });
+    expect(adapter.configuratorHref).toBe("/builder");
   });
 
   it("renders local settings for anonymous and authenticated states", async () => {

@@ -203,11 +203,17 @@ describe("quick mode TemplatesSection", () => {
     };
   });
 
-  it("selects built-in templates and opens the catalog", () => {
+  it("selects saved built-in templates and opens the catalog", async () => {
+    const saved = { template: "standard", mixedPort: 9999 };
+    mocks.productApi.templates.loadTemplateDetail.mockResolvedValue({ kind: "config", config: saved });
     const { setters } = renderSection();
 
     mocks.captures.radios.find((props: any) => props.id === "builtin-template-standard").onChange();
-    expect(mocks.store.setTemplate).toHaveBeenCalledWith("standard");
+    await flushPromises();
+    expect(mocks.productApi.templates.loadTemplateDetail).toHaveBeenCalledWith("builtin-standard");
+    expect(mocks.store.applyTemplateConfig).toHaveBeenCalledWith(saved);
+    expect(mocks.store.setAppliedTemplateId).toHaveBeenCalledWith("builtin-standard");
+    expect(mocks.store.setTemplate).not.toHaveBeenCalled();
     expect(mocks.interactions.templateSelected).toHaveBeenCalledWith({
       source: "builtin",
       templateType: "standard",
@@ -216,6 +222,37 @@ describe("quick mode TemplatesSection", () => {
     mocks.captures.rawButtons.find((props: any) => props.className?.includes("border-dashed")).onClick();
     expect(setters[0]).toHaveBeenCalledWith(true);
     expect(mocks.interactions.templateCatalogOpened).toHaveBeenCalledWith({ mode: "quick" });
+  });
+
+  it("leaves the current configuration intact when loading a default template fails", async () => {
+    mocks.productApi.templates.loadTemplateDetail.mockRejectedValueOnce(new Error("offline"));
+    renderSection();
+    mocks.captures.radios[0].onChange();
+    await flushPromises();
+    expect(mocks.store.applyTemplateConfig).not.toHaveBeenCalled();
+    expect(mocks.store.setTemplate).not.toHaveBeenCalled();
+    expect(mocks.toast).toHaveBeenCalledWith({ title: "offline", variant: "destructive" });
+  });
+
+  it("supports selecting built-ins without a template API", () => {
+    mocks.productApi = {};
+    renderSection();
+    mocks.captures.radios[0].onChange();
+    expect(mocks.store.setTemplate).toHaveBeenCalledWith("minimal");
+  });
+
+  it("displays maintained default names and counts", async () => {
+    stateMock.runEffects = true;
+    const summary = { id: "builtin-minimal", name: "定制默认模板", description: "我的分流", proxyGroupCount: 8, ruleCount: 10 };
+    mocks.productApi.templates.loadBuiltinTemplates = vi.fn(async () => [summary]);
+    const { setters } = renderSection();
+    await flushPromises();
+    expect(setters[7]).toHaveBeenCalledWith({ "builtin-minimal": summary });
+    const { html } = renderSection({ 7: { "builtin-minimal": summary } });
+    expect(html).toContain("定制默认模板");
+    expect(html).toContain("我的分流");
+    expect(html).toContain("8 代理组");
+    expect(html).toContain("10 规则集");
   });
 
   it("renders catalog search, loading, empty, and filtered states", () => {

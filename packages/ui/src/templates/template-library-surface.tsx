@@ -20,8 +20,12 @@ import {
 import type { TabValue, Template } from "@subboost/ui/templates/types";
 import { TemplateCard } from "@subboost/ui/templates/template-card";
 import { TemplateUploadDialog } from "@subboost/ui/templates/template-upload-dialog";
+import { TemplateEditorDialog, type EditableTemplate, type TemplateEditPayload } from "./template-editor-dialog";
+import { templateFieldClass, templateOutlineButtonClass, templatePrimaryButtonClass } from "./template-styles";
 
 type TemplateDetail = {
+  name?: string;
+  description?: string;
   kind?: string;
   config?: unknown;
 };
@@ -47,11 +51,14 @@ export type TemplateLibraryAdapter = {
   allowDelete?: boolean;
   allowPublicTemplates?: boolean;
   uploadSearchParam?: boolean;
+  configuratorHref?: string;
   loadTemplates: (tab: TabValue) => Promise<Template[]>;
   loadTemplateDetail: (id: string) => Promise<TemplateDetail | null>;
   deleteTemplate?: (id: string) => Promise<void>;
   toggleTemplateEngagement?: (id: string) => Promise<{ engagementCount: number; isEngaged: boolean }>;
   uploadTemplate?: (payload: UploadTemplatePayload) => Promise<void>;
+  updateTemplate?: (id: string, payload: TemplateEditPayload) => Promise<void>;
+  resetTemplate?: (id: string) => Promise<void>;
 };
 
 type Props = {
@@ -94,7 +101,6 @@ function TemplateLibraryInner({ adapter }: Props) {
     ruleProviderBaseUrl,
     cnIpNoResolve,
     experimentalCnUseCnRuleSet,
-    setTemplate,
     applyTemplateConfig,
     setAppliedTemplateId,
   } = useConfigStore();
@@ -113,6 +119,9 @@ function TemplateLibraryInner({ adapter }: Props) {
   const [isUploading, setIsUploading] = React.useState(false);
   const [uploadMode, setUploadMode] = React.useState<"config" | "yaml">("config");
   const [uploadYamlContent, setUploadYamlContent] = React.useState("");
+  const [editor, setEditor] = React.useState<EditableTemplate | null>(null);
+  const [viewingId, setViewingId] = React.useState<string | null>(null);
+  const detailRequest = React.useRef(0);
   const interactions = adapter.interactions;
 
   React.useEffect(() => {
@@ -165,16 +174,6 @@ function TemplateLibraryInner({ adapter }: Props) {
 
   const handleApplyTemplate = async (templateId: string) => {
     const builtinType = builtinIdToType(templateId);
-    if (builtinType) {
-      setTemplate(builtinType);
-      interactions?.templateSelected?.({
-        source: "builtin",
-        templateType: builtinType,
-      });
-      router.push("/");
-      return;
-    }
-
     setApplyingId(templateId);
     try {
       const tpl = await adapter.loadTemplateDetail(templateId);
@@ -191,12 +190,13 @@ function TemplateLibraryInner({ adapter }: Props) {
       if (tpl.kind === "config" && tpl.config && typeof tpl.config === "object") {
         setAppliedTemplateId(templateId);
         applyTemplateConfig(tpl.config as SubBoostTemplateConfig);
+        if (builtinType) interactions?.templateSelected?.({ source: "builtin", templateType: builtinType });
         interactions?.templateApplied?.({
           source: getInteractionTemplateSource(activeTab),
           kind: "config",
           result: "success",
         });
-        router.push("/");
+        router.push(adapter.configuratorHref ?? "/");
         return;
       }
 
@@ -221,6 +221,32 @@ function TemplateLibraryInner({ adapter }: Props) {
       setApplyingId(null);
     }
   };
+
+  const handleViewTemplate = async (item: Template) => {
+    const request = ++detailRequest.current;
+    setViewingId(item.id);
+    try {
+      const detail = await adapter.loadTemplateDetail(item.id);
+      if (request !== detailRequest.current) return;
+      if (detail?.kind !== "config" || !detail.config || typeof detail.config !== "object") {
+        toast({ title: "无法读取配置模板", variant: "destructive" });
+        return;
+      }
+      setEditor({
+        id: item.id,
+        name: detail.name ?? item.name,
+        description: detail.description ?? item.description,
+        config: detail.config as SubBoostTemplateConfig,
+        isModified: item.isModified,
+      });
+    } catch (error) {
+      if (request === detailRequest.current) toast({ title: error instanceof Error ? error.message : "获取模板失败", variant: "destructive" });
+    } finally {
+      if (request === detailRequest.current) setViewingId(null);
+    }
+  };
+
+  const canEditTemplate = Boolean(user && adapter.updateTemplate && (activeTab === "default" || activeTab === "my"));
 
   const handleDeleteTemplate = async (templateId: string) => {
     if (!user || !adapter.deleteTemplate) return;
@@ -343,14 +369,14 @@ function TemplateLibraryInner({ adapter }: Props) {
   const enabledTabLabelText = tabValues.map(tabLabel).join(" / ");
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 text-[var(--gray-12)]">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold mb-1">模板库</h1>
-          <p className="text-white/50">{enabledTabLabelText}</p>
+          <p className="text-[var(--gray-11)]">{enabledTabLabelText}</p>
         </div>
         {canUpload && (
-          <Button className="gap-2" onClick={() => openUploadDialog("templatesPage")}>
+          <Button className={`gap-2 ${templatePrimaryButtonClass}`} onClick={() => openUploadDialog("templatesPage")}>
             <Upload className="h-4 w-4" />
             上传模板
           </Button>
@@ -359,20 +385,20 @@ function TemplateLibraryInner({ adapter }: Props) {
 
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--gray-11)]" />
           <Input
             placeholder="搜索模板..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="pl-10"
+            className={`pl-10 ${templateFieldClass}`}
           />
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-          <Button variant={selectedTag === null ? "default" : "outline"} size="sm" onClick={() => setSelectedTag(null)}>
+          <Button variant={selectedTag === null ? "default" : "outline"} className={selectedTag === null ? templatePrimaryButtonClass : templateOutlineButtonClass} size="sm" onClick={() => setSelectedTag(null)}>
             全部
           </Button>
           {allTags.map((tag) => (
-            <Button key={tag} variant={selectedTag === tag ? "default" : "outline"} size="sm" onClick={() => setSelectedTag(tag)}>
+            <Button key={tag} variant={selectedTag === tag ? "default" : "outline"} className={selectedTag === tag ? templatePrimaryButtonClass : templateOutlineButtonClass} size="sm" onClick={() => setSelectedTag(tag)}>
               {tag}
             </Button>
           ))}
@@ -380,17 +406,15 @@ function TemplateLibraryInner({ adapter }: Props) {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="space-y-6">
-        <TabsList>
-          {tabValues.includes("default") && <TabsTrigger value="default">默认模板</TabsTrigger>}
-          {tabValues.includes("catalog") && <TabsTrigger value="catalog">{catalogTabLabel}</TabsTrigger>}
-          {tabValues.includes("my") && <TabsTrigger value="my">我的模板</TabsTrigger>}
+        <TabsList className="bg-[var(--gray-3)] text-[var(--gray-11)]">
+          {tabValues.map((tab) => <TabsTrigger key={tab} value={tab} className="text-[var(--gray-11)] data-[state=active]:bg-[var(--gray-5)] data-[state=active]:text-[var(--gray-12)]">{tabLabel(tab)}</TabsTrigger>)}
         </TabsList>
 
         {tabValues.map((tab) => (
           <TabsContent key={tab} value={tab}>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-[var(--lime-11)]" />
               </div>
             ) : filteredTemplates.length === 0 ? (
               <EmptyTemplates tab={tab} canUpload={canUpload} onUpload={() => openUploadDialog("templatesPage")} />
@@ -407,6 +431,9 @@ function TemplateLibraryInner({ adapter }: Props) {
                     onEngage={() => void handleEngagement(item.id)}
                     onApply={() => void handleApplyTemplate(item.id)}
                     onDelete={() => void handleDeleteTemplate(item.id)}
+                    onView={() => void handleViewTemplate(item)}
+                    isViewing={viewingId === item.id}
+                    viewLabel={canEditTemplate ? "查看 / 编辑" : "查看"}
                     isLoggedIn={!!user}
                     isApplying={applyingId === item.id}
                     showDelete={tab === "my" && adapter.allowDelete !== false && Boolean(adapter.deleteTemplate)}
@@ -419,6 +446,26 @@ function TemplateLibraryInner({ adapter }: Props) {
           </TabsContent>
         ))}
       </Tabs>
+
+      {editor && <TemplateEditorDialog
+        key={editor.id}
+        template={editor}
+        canEdit={canEditTemplate}
+        onClose={() => setEditor(null)}
+        onSave={async (payload) => {
+          if (!adapter.updateTemplate || !canEditTemplate) return;
+          await adapter.updateTemplate(editor.id, payload);
+          setEditor(null);
+          toast({ title: "模板已保存", variant: "success" });
+          await loadTemplates(activeTab);
+        }}
+        onReset={builtinIdToType(editor.id) && adapter.resetTemplate ? async () => {
+          await adapter.resetTemplate!(editor.id);
+          setEditor(null);
+          toast({ title: "已恢复内置模板", variant: "success" });
+          await loadTemplates(activeTab);
+        } : undefined}
+      />}
 
       {canUpload && (
         <TemplateUploadDialog
@@ -458,10 +505,10 @@ function EmptyTemplates({
   if (tab === "my" && canUpload) {
     return (
       <div className="text-center py-12">
-        <Plus className="h-12 w-12 mx-auto text-white/40 mb-4" />
+        <Plus className="h-12 w-12 mx-auto text-[var(--gray-11)] mb-4" />
         <h3 className="text-lg font-medium mb-2">暂无模板</h3>
-        <p className="text-white/50 mb-4">创建您的第一个配置模板</p>
-        <Button onClick={onUpload}>
+        <p className="text-[var(--gray-11)] mb-4">创建您的第一个配置模板</p>
+        <Button onClick={onUpload} className={templatePrimaryButtonClass}>
           <Plus className="mr-2 h-4 w-4" />
           创建模板
         </Button>
@@ -471,9 +518,9 @@ function EmptyTemplates({
 
   return (
     <div className="text-center py-12">
-      <FileCode className="h-12 w-12 mx-auto text-white/40 mb-4" />
+      <FileCode className="h-12 w-12 mx-auto text-[var(--gray-11)] mb-4" />
       <h3 className="text-lg font-medium mb-2">{tab === "catalog" ? "没有找到模板" : "暂无模板"}</h3>
-      <p className="text-white/50">尝试调整搜索条件</p>
+      <p className="text-[var(--gray-11)]">尝试调整搜索条件</p>
     </div>
   );
 }

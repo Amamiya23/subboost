@@ -22,6 +22,8 @@ export type QuickTemplateSummary = {
   id: string;
   name: string;
   description: string;
+  proxyGroupCount?: number | null;
+  ruleCount?: number | null;
 };
 
 export type QuickTemplateDetail = {
@@ -45,6 +47,7 @@ export type ProductTemplateApi = {
   ) => Promise<Record<TemplateType, { id: string; engagementCount: number; isEngaged: boolean }>>;
   toggleTemplateEngagement?: (id: string) => Promise<{ engagementCount: number; isEngaged: boolean }>;
   loadCatalogTemplates?: () => Promise<QuickTemplateSummary[]>;
+  loadBuiltinTemplates?: () => Promise<QuickTemplateSummary[]>;
   loadTemplateDetail?: (id: string) => Promise<QuickTemplateDetail | null>;
 };
 

@@ -1,8 +1,9 @@
 "use client";
 
 import { HomeSurface, type HomeSurfaceAdapter } from "@subboost/ui/product/home/home-surface";
-import { readSourceImportResponse } from "@subboost/ui/product/client-response";
+import { readJsonResponse, readSourceImportResponse } from "@subboost/ui/product/client-response";
 import { createRulesProductApi } from "@subboost/ui/product/api-adapter";
+import type { QuickTemplateDetail, QuickTemplateSummary } from "@subboost/ui/product/api-adapter";
 import { LOCAL_AUTO_UPDATE_POLICY } from "@local/lib/auto-update-policy";
 
 const localHomeAdapter: HomeSurfaceAdapter = {
@@ -28,6 +29,18 @@ const localHomeAdapter: HomeSurfaceAdapter = {
     templates: {
       catalogEnabled: false,
       builtinEngagementEnabled: false,
+      loadBuiltinTemplates: async () => {
+        const data = await readJsonResponse<{ templates?: QuickTemplateSummary[] }>(
+          await fetch("/api/templates?type=default", { cache: "no-store" })
+        );
+        return data.templates ?? [];
+      },
+      loadTemplateDetail: async (id) => {
+        const response = await fetch(`/api/templates/${encodeURIComponent(id)}`, { cache: "no-store" });
+        if (response.status === 404) return null;
+        const data = await readJsonResponse<{ template?: QuickTemplateDetail }>(response);
+        return data.template ?? null;
+      },
     },
     rules: createRulesProductApi(),
   },

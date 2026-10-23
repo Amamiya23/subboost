@@ -6,6 +6,7 @@ import {
   deleteTemplate,
   getTemplateDetail,
   listTemplates,
+  updateTemplate,
 } from "@local/lib/template-service";
 import * as itemRoute from "../app/api/templates/[id]/route";
 import * as collectionRoute from "../app/api/templates/route";
@@ -19,6 +20,7 @@ vi.mock("@local/lib/template-service", () => ({
   deleteTemplate: vi.fn(),
   getTemplateDetail: vi.fn(),
   listTemplates: vi.fn(),
+  updateTemplate: vi.fn(),
 }));
 
 const admin = { id: "admin-1", username: "root" };
@@ -51,6 +53,7 @@ beforeEach(() => {
   vi.mocked(getTemplateDetail).mockResolvedValue({ ...template, kind: "config", config: { template: "standard" } } as never);
   vi.mocked(createTemplate).mockResolvedValue(template);
   vi.mocked(deleteTemplate).mockResolvedValue(true);
+  vi.mocked(updateTemplate).mockResolvedValue(true);
 });
 
 describe("local template routes", () => {
@@ -144,6 +147,25 @@ describe("local template routes", () => {
     await expect(response.json()).resolves.toMatchObject({ template: { id: "tpl-1", kind: "config" } });
   });
 
+  it("updates templates, validates payloads, and reports missing records", async () => {
+    const context = { params: Promise.resolve({ id: "builtin-minimal" }) };
+    const payload = { name: "Minimal", config: { template: "minimal" } };
+    expect((await itemRoute.PUT(jsonRequest("http://local.test/api/templates/builtin-minimal", payload), context)).status).toBe(200);
+    expect(updateTemplate).toHaveBeenCalledWith("admin-1", "builtin-minimal", payload);
+    vi.mocked(updateTemplate).mockResolvedValueOnce(false);
+    expect((await itemRoute.PUT(jsonRequest("http://local.test/api/templates/missing", payload), context)).status).toBe(404);
+    vi.mocked(updateTemplate).mockRejectedValueOnce(new Error("Invalid config"));
+    expect((await itemRoute.PUT(jsonRequest("http://local.test/api/templates/builtin-minimal", payload), context)).status).toBe(400);
+    expect((await itemRoute.PUT(jsonRequest("http://local.test/api/templates/builtin-minimal", null), context)).status).toBe(400);
+  });
+
+  it("restores only built-in templates", async () => {
+    const request = new Request("http://local.test/api/templates/builtin-minimal");
+    expect((await itemRoute.DELETE(request, { params: Promise.resolve({ id: "builtin-minimal" }) })).status).toBe(200);
+    expect(deleteTemplate).toHaveBeenCalledWith("admin-1", "builtin-minimal");
+    expect((await itemRoute.DELETE(request, { params: Promise.resolve({ id: "tpl-1" }) })).status).toBe(400);
+  });
+
   it("reports missing and failed template detail reads for admins", async () => {
     vi.mocked(getTemplateDetail).mockResolvedValueOnce(null);
     let response = await itemRoute.GET(new Request("http://local.test/api/templates/missing"), {
@@ -173,8 +195,10 @@ describe("local template routes", () => {
       jsonRequest("http://local.test/api/templates", { name: "Local", config: { template: "standard" } })
     );
     const deleteResponse = await collectionRoute.DELETE(new Request("http://local.test/api/templates?id=tpl-1"));
+    const updateResponse = await itemRoute.PUT(jsonRequest("http://local.test/api/templates/builtin-minimal", {}), { params: Promise.resolve({ id: "builtin-minimal" }) });
+    const resetResponse = await itemRoute.DELETE(new Request("http://local.test/api/templates/builtin-minimal"), { params: Promise.resolve({ id: "builtin-minimal" }) });
 
-    for (const response of [createResponse, deleteResponse]) {
+    for (const response of [createResponse, deleteResponse, updateResponse, resetResponse]) {
       expect(response.status).toBe(401);
       await expect(response.json()).resolves.toEqual({
         error: "Authentication required.",
@@ -184,6 +208,7 @@ describe("local template routes", () => {
 
     expect(createTemplate).not.toHaveBeenCalled();
     expect(deleteTemplate).not.toHaveBeenCalled();
+    expect(updateTemplate).not.toHaveBeenCalled();
   });
 
   it("keeps optional template reads but returns auth errors when private reads reject unauthenticated access", async () => {

@@ -1,4 +1,7 @@
 @import "tailwindcss" source("../../../..");
+@import "@radix-ui/colors/gray-dark.css";
+@import "@radix-ui/colors/lime-dark.css";
+@import "@radix-ui/colors/red-dark.css";
 
 /* ============ 自托管字体（local/public/fonts，经 CF Static Assets 分发，不计入 Worker 体积） ============ */
 /* 只保留实际使用的字重文件，最小化首屏字体负载 */

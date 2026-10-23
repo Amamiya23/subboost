@@ -89,7 +89,11 @@ vi.mock("@subboost/ui/components/ui/tabs", () => ({
 vi.mock("@subboost/ui/components/ui/confirm-dialog", () => ({ confirmDialog: mocks.confirmDialog }));
 vi.mock("@subboost/ui/components/ui/toaster", () => ({ toast: mocks.toast }));
 vi.mock("@subboost/ui/store/user-store", () => ({ useUserStore: () => mocks.userStore }));
-vi.mock("@subboost/ui/store/config-store", () => ({ useConfigStore: () => mocks.configStore }));
+vi.mock("@subboost/ui/store/config-store", () => {
+  const useConfigStore = () => mocks.configStore;
+  useConfigStore.getState = () => mocks.configStore;
+  return { useConfigStore };
+});
 vi.mock("@subboost/core/templates/builtin", () => ({ builtinIdToType: (id: string) => (id === "builtin-minimal" ? "minimal" : null) }));
 vi.mock("@subboost/core/time/beijing", () => ({ formatDateInBeijing: (iso: string) => `fmt:${iso}` }));
 vi.mock("@subboost/ui/product/interactions", () => ({
@@ -104,6 +108,12 @@ vi.mock("@subboost/ui/templates/template-card", () => ({
 vi.mock("@subboost/ui/templates/template-upload-dialog", () => ({
   TemplateUploadDialog: (props: any) => {
     mocks.captures.uploadDialog = props;
+    return null;
+  },
+}));
+vi.mock("./template-editor-dialog", () => ({
+  TemplateEditorDialog: (props: any) => {
+    mocks.captures.editor = props;
     return null;
   },
 }));
@@ -162,11 +172,14 @@ function createAdapter(overrides: Record<string, unknown> = {}) {
     uploadSearchParam: true,
     loadTemplates: vi.fn(async () => templates),
     loadTemplateDetail: vi.fn(async (id: string) => {
+      if (id === "builtin-minimal") return { kind: "config", name: "Edited minimal", config: { template: "minimal", mixedPort: 9999 } };
       if (id === "tpl-config") return { kind: "config", config: { template: "minimal" } };
       if (id === "tpl-yaml") return { kind: "yaml", config: "yaml" };
       return null;
     }),
     deleteTemplate: vi.fn(async () => undefined),
+    updateTemplate: vi.fn(async () => undefined),
+    resetTemplate: vi.fn(async () => undefined),
     toggleTemplateEngagement: vi.fn(async () => ({ engagementCount: 13, isEngaged: true })),
     uploadTemplate: vi.fn(async () => undefined),
     ...overrides,
@@ -200,6 +213,7 @@ function renderSurface(
   mocks.captures.tabTriggers = [];
   mocks.captures.cards = [];
   mocks.captures.uploadDialog = undefined;
+  mocks.captures.editor = undefined;
   try {
     const html = renderToStaticMarkup(React.createElement(TemplateLibrarySurface, { adapter }));
     return { html, setters: stateMock.setters, adapter };
@@ -275,7 +289,9 @@ describe("TemplateLibrarySurface", () => {
     renderSurface(adapter, { 2: "catalog", 3: templates });
 
     await mocks.captures.cards[0].onApply();
-    expect(mocks.configStore.setTemplate).toHaveBeenCalledWith("minimal");
+    expect(adapter.loadTemplateDetail).toHaveBeenCalledWith("builtin-minimal");
+    expect(mocks.configStore.applyTemplateConfig).toHaveBeenCalledWith({ template: "minimal", mixedPort: 9999 });
+    expect(mocks.configStore.setTemplate).not.toHaveBeenCalled();
     expect(adapter.interactions.templateSelected).toHaveBeenCalledWith({ source: "builtin", templateType: "minimal" });
     expect(mocks.router.push).toHaveBeenCalledWith("/");
 
@@ -328,6 +344,38 @@ describe("TemplateLibrarySurface", () => {
     adapter.toggleTemplateEngagement.mockRejectedValueOnce(new Error("engage failed"));
     mocks.captures.cards[1].onEngage();
     await flushPromises();
+  });
+
+  it("opens the saved detail without applying it and persists edits to the same template", async () => {
+    const adapter = createAdapter();
+    const { setters } = renderSurface(adapter, { 3: templates });
+    mocks.captures.cards[0].onView();
+    await flushPromises();
+    expect(setters[14]).toHaveBeenCalledWith(expect.objectContaining({ id: "builtin-minimal", name: "Edited minimal", config: { template: "minimal", mixedPort: 9999 } }));
+    expect(mocks.configStore.applyTemplateConfig).not.toHaveBeenCalled();
+    const editor = { id: "builtin-minimal", name: "Edited minimal", description: "desc", config: { template: "minimal" }, isModified: true };
+    renderSurface(adapter, { 14: editor });
+    expect(mocks.captures.editor.canEdit).toBe(true);
+    const payload = { name: "Updated", description: "desc", config: { template: "minimal", mixedPort: 8888 } };
+    await mocks.captures.editor.onSave(payload);
+    expect(adapter.updateTemplate).toHaveBeenCalledWith("builtin-minimal", payload);
+    expect(adapter.loadTemplates).toHaveBeenCalledWith("default");
+    await mocks.captures.editor.onReset();
+    expect(adapter.resetTemplate).toHaveBeenCalledWith("builtin-minimal");
+
+    mocks.userStore.user = null;
+    renderSurface(adapter, { 14: editor });
+    expect(mocks.captures.editor.canEdit).toBe(false);
+  });
+
+  it("reports detail failures without opening an editor", async () => {
+    const adapter = createAdapter();
+    const { setters } = renderSurface(adapter, { 3: templates });
+    adapter.loadTemplateDetail.mockRejectedValueOnce(new Error("offline"));
+    mocks.captures.cards[0].onView();
+    await flushPromises();
+    expect(mocks.toast).toHaveBeenCalledWith({ title: "offline", variant: "destructive" });
+    expect(setters[14]).not.toHaveBeenCalled();
   });
 
   it("uploads config templates, handles yaml mode, and respects visibility controls", async () => {
