@@ -59,6 +59,7 @@ export function NodeManagementSection({
     listenerPorts,
     setListenerPort,
     bulkSetListenerPorts,
+    setNodeRealityMlkemEnabled,
   } = useConfigStore();
 
   const deletedMarkedNodes = React.useMemo(() => {
@@ -505,6 +506,7 @@ export function NodeManagementSection({
             isListenerPortVisible={isListenerPortVisible}
             removeNode={removeNode}
             restoreDeletedNode={restoreDeletedNode}
+            setNodeRealityMlkemEnabled={setNodeRealityMlkemEnabled}
           />
         </div>
       )}

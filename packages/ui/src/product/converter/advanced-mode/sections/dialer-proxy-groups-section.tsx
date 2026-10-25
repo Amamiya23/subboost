@@ -5,6 +5,8 @@ import { Check, ChevronDown, ChevronRight, Link as LinkIcon, Pencil, Plus, Searc
 import { Badge } from "@subboost/ui/components/coss/compat/badge";
 import { Button } from "@subboost/ui/components/coss/compat/button";
 import { Input } from "@subboost/ui/components/coss/compat/input";
+import { ProtocolBadge } from "@subboost/ui/components/ui/protocol-badge";
+import type { NodeProtocolDetails } from "@subboost/ui/lib/node-protocol-label";
 import { Switch } from "@subboost/ui/components/coss/compat/switch";
 import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { DEFAULT_LOAD_BALANCE_STRATEGY, type ProxyGroupGroupType } from "@subboost/core/types/config";
@@ -28,9 +30,8 @@ import {
   ProxyGroupTypeMenu,
 } from "./proxy-group-type-menu";
 
-type DialerSelectableNode = {
+type DialerSelectableNode = NodeProtocolDetails & {
   name: string;
-  type: string;
 };
 
 const DIRECT_RELAY_OPTION: DialerSelectableNode = { name: "DIRECT", type: "DIRECT" };
@@ -138,11 +139,7 @@ export function DialerProxyGroupsSection({
     const available = nodes
       .filter((n) => !usedTargets.has(n.name) && (!currentGroup?.preserveRelayNames || !dialerProxyGroups.some(
         (group) => group.id !== excludeGroupId && group.enabled !== false && group.relayNodes.includes(n.name)
-      )))
-      .map((n) => ({
-        name: n.name,
-        type: n.type,
-      })) as DialerSelectableNode[];
+      ))) as DialerSelectableNode[];
 
     const availableProxyGroups = [
       ...PROXY_GROUP_MODULES.map(
@@ -503,9 +500,7 @@ export function DialerProxyGroupsSection({
                             >
                               {isSelected && <Check className="h-2 w-2 text-foreground" />}
                             </div>
-                            <Badge variant="outline" className="text-[10px] px-1 py-0">
-                              {node.type}
-                            </Badge>
+                            <ProtocolBadge type={node.type} node={node} className="max-w-full" />
                             <span className="truncate">{displayName}</span>
                           </div>
                         );
@@ -576,9 +571,7 @@ export function DialerProxyGroupsSection({
                               >
                                 {isSelected && <Check className="h-2 w-2 text-foreground" />}
                               </div>
-                              <Badge variant="outline" className="text-[10px] px-1 py-0">
-                                {node.type}
-                              </Badge>
+                              <ProtocolBadge type={node.type} node={node} className="max-w-full" />
                               <span className="truncate">{node.name}</span>
                               {usedByOther && (
                                 <span className="text-[10px] text-muted-foreground ml-auto">已被其他组使用</span>

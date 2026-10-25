@@ -101,6 +101,20 @@ function useRenderedHook(overrides: Record<string, unknown> = {}) {
 }
 
 describe("useSubscriptionLink", () => {
+  it("saves independent REALITY settings with their nodes", async () => {
+    const adapter = makeAdapter();
+    const selected = { ...makeOptions().nodes[0], _realityMlkemEnabled: true };
+    const other = { ...makeOptions().nodes[0], name: "Other" };
+    const options = { subscriptionAdapter: adapter, nodes: [selected, other] };
+    let hook = useRenderedHook(options);
+    hook.setSubscriptionName("Mixed REALITY");
+    hook = useRenderedHook(options);
+    await hook.handleCreateSubscription();
+    expect(adapter.saveSubscription).toHaveBeenCalledWith(expect.objectContaining({
+      payload: expect.objectContaining({ nodes: [selected, other] }),
+    }));
+  });
+
   let originalWindow: typeof globalThis.window | undefined;
   let originalNavigator: typeof globalThis.navigator | undefined;
 

@@ -4,11 +4,13 @@ import * as React from "react";
 import { Check, ChevronDown, ChevronUp, Pencil, RotateCcw, Trash2, X } from "lucide-react";
 import { Badge } from "@subboost/ui/components/coss/compat/badge";
 import { Input } from "@subboost/ui/components/coss/compat/input";
+import { Switch } from "@subboost/ui/components/coss/compat/switch";
 import { ProtocolBadge } from "@subboost/ui/components/ui/protocol-badge";
 import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { formatNodeNameFromTemplate } from "@subboost/core/node-name-template";
 import { cn } from "@subboost/ui/lib/utils";
 import type { ParsedNode } from "@subboost/core/types/node";
+import { hasRealityConfig, REALITY_MLKEM_ENABLED_KEY } from "@subboost/core/mihomo/reality";
 
 type NodeNameParts = {
   baseName: string;
@@ -49,6 +51,7 @@ export function NodeManagementNodeList({
   isListenerPortVisible,
   removeNode,
   restoreDeletedNode,
+  setNodeRealityMlkemEnabled,
 }: {
   nodes: ParsedNode[];
   deletedMarkedNodes: DeletedMarkedNode[];
@@ -76,6 +79,7 @@ export function NodeManagementNodeList({
   isListenerPortVisible: boolean;
   removeNode: (nodeName: string) => void;
   restoreDeletedNode: (originName: string) => void;
+  setNodeRealityMlkemEnabled: (nodeName: string, enabled: boolean) => void;
 }) {
   return (
     <>
@@ -117,11 +121,12 @@ export function NodeManagementNodeList({
                 return (
                   <div
                     key={node.name}
-                    className="flex items-center gap-2 text-xs bg-muted rounded px-2 py-1.5 group"
+                    className="space-y-1.5 text-xs bg-muted rounded px-2 py-1.5 group"
                   >
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
                     {editingNodeName === node.name ? (
                       <>
-                        <ProtocolBadge type={node.type} />
+                        <ProtocolBadge type={node.type} node={node} />
                         {primaryTag && (
                           <span
                             className="px-1.5 py-0.5 rounded bg-muted text-foreground/85 text-[10px] border border-border"
@@ -164,8 +169,8 @@ export function NodeManagementNodeList({
                       </>
                     ) : (
                       <>
-                        <ProtocolBadge type={node.type} />
-                        <span className="flex-1 min-w-0 flex items-center gap-1">
+                        <ProtocolBadge type={node.type} node={node} />
+                        <span className="flex-1 min-w-20 flex items-center gap-1">
                           {primaryTag && (
                             <span
                               className="px-1.5 py-0.5 rounded bg-muted text-foreground/85 text-[10px] border border-border"
@@ -316,6 +321,18 @@ export function NodeManagementNodeList({
                           <Trash2 className="h-3 w-3" />
                         </button>
                       </>
+                    )}
+                    </div>
+                    {hasRealityConfig(node) && (
+                      <div className="flex items-center justify-between gap-3 border-t border-border pt-1.5">
+                        <span className="text-muted-foreground">ML-KEM 兼容</span>
+                        <Switch
+                          checked={record[REALITY_MLKEM_ENABLED_KEY] === true}
+                          onCheckedChange={(checked) => setNodeRealityMlkemEnabled(node.name, checked)}
+                          aria-label={`${node.name}：ML-KEM 兼容`}
+                          title="仅为此节点启用 ML-KEM 和 Chrome 指纹；关闭后保留来源配置"
+                        />
+                      </div>
                     )}
                   </div>
                 );

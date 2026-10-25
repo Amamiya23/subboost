@@ -67,4 +67,17 @@ describe("additional basic UI components", () => {
     expect(artisticTabsTriggerClassName).toContain("data-active");
     expect(artisticTabsIconClassName).toContain("group-data-active");
   });
+
+  it("renders separate protocol, transport and security chips", () => {
+    const node = { type: "vless", tls: true, "reality-opts": { "public-key": "key" } };
+    const html = renderToStaticMarkup(React.createElement(ProtocolBadge, { type: node.type, node }));
+    expect(html).toContain("VLESS TCP REALITY");
+    expect(html).toContain(">VLESS</span>");
+    expect(html).toContain(">TCP</span>");
+    expect(html).toContain(">REALITY</span>");
+    expect(html).toContain("--green-12");
+    expect(html).toContain("--gray-12");
+    expect(html).toContain("--violet-12");
+    expect(html).not.toContain("node=");
+  });
 });

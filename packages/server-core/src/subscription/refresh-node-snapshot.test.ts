@@ -3,6 +3,9 @@ import { refreshNodeSnapshot } from "./refresh-node-snapshot";
 import type { ParsedNode } from "@subboost/core/types/node";
 import { SOURCE_IDS_KEY } from "@subboost/core/subscription/node-source-state";
 import * as parser from "@subboost/core/parser";
+import yaml from "js-yaml";
+import { generateClashYaml } from "@subboost/core/generator";
+import { buildGenerateOptionsFromConfig } from "@subboost/core/subscription/config-utils";
 
 const node: ParsedNode = {
   name: "node-a",
@@ -15,6 +18,81 @@ const node: ParsedNode = {
 describe("refreshNodeSnapshot", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it.each([false, true])("keeps per-node REALITY compatibility isolated across refresh and source renaming (node renamed: %s)", async (renameNode) => {
+    const selected: ParsedNode = {
+      name: "Selected",
+      type: "vless",
+      server: "selected.example.com",
+      port: 443,
+      uuid: "00000000-0000-4000-8000-000000000001",
+      tls: true,
+      "client-fingerprint": "firefox",
+      "reality-opts": { "public-key": "A".repeat(43), "short-id": "abcd" },
+    };
+    const untouched: ParsedNode = {
+      ...selected,
+      name: "Untouched",
+      server: "untouched.example.com",
+      uuid: "00000000-0000-4000-8000-000000000002",
+    };
+    const config = {
+      // A previously saved global option must not opt unselected nodes in.
+      realityMlkemEnabled: true,
+      dnsYaml: "mixed-port: 7897",
+      sources: [{
+        id: "reality-source",
+        type: "url",
+        content: "https://example.com/sub",
+        tag: "New",
+        lastParsedTag: "Old",
+        nameTemplate: "{tag}-{name}",
+        lastParsedNameTemplate: "{tag}-{name}",
+      }],
+    };
+
+    const result = await refreshNodeSnapshot({
+      config,
+      urls: [],
+      storedNodes: [
+        { ...selected, name: "Old-Selected", _originName: "Selected", _realityMlkemEnabled: true, [SOURCE_IDS_KEY]: ["reality-source"] },
+        { ...untouched, name: "Old-Untouched", _originName: "Untouched", [SOURCE_IDS_KEY]: ["reality-source"] },
+      ],
+      fetchUrlNodes: vi.fn(async () => ({
+        ok: true,
+        nodes: [{ ...selected, name: renameNode ? "Renamed" : "Selected" }, untouched],
+        headers: {},
+      })),
+    });
+
+    expect(result.refreshedUrlSourceCount).toBe(1);
+    expect(result.nodes).toHaveLength(2);
+    const refreshedSelected = result.nodes.find((item) => item.server === selected.server)!;
+    const refreshedUntouched = result.nodes.find((item) => item.server === untouched.server)!;
+    expect(refreshedSelected).toMatchObject({
+      name: renameNode ? "Old-Selected" : "New-Selected",
+      _originName: renameNode ? "Renamed" : "Selected",
+      _realityMlkemEnabled: true,
+      "client-fingerprint": "firefox",
+      "reality-opts": selected["reality-opts"],
+    });
+    expect(refreshedUntouched).not.toHaveProperty("_realityMlkemEnabled");
+
+    const output = generateClashYaml(buildGenerateOptionsFromConfig(config, { nodes: result.nodes }));
+    const generated = yaml.load(output) as { proxies: Array<Record<string, unknown>> };
+    const selectedProxy = generated.proxies.find((item) => item.server === selected.server)!;
+    const untouchedProxy = generated.proxies.find((item) => item.server === untouched.server)!;
+    expect(selectedProxy).toMatchObject({
+      "client-fingerprint": "chrome",
+      "reality-opts": { ...selected["reality-opts"] as object, "support-x25519mlkem768": true },
+    });
+    expect(untouchedProxy).toMatchObject({
+      "client-fingerprint": "firefox",
+      "reality-opts": untouched["reality-opts"],
+    });
+    expect(untouchedProxy["reality-opts"]).not.toHaveProperty("support-x25519mlkem768");
+    expect(output).not.toContain("_realityMlkemEnabled");
   });
 
   it("uses shared saved-source normalization for fallback URLs", async () => {

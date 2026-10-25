@@ -190,6 +190,7 @@ describe("useEditingSubscriptionLoader", () => {
             nodes: [
               node("Remote", {
                 _sourceIds: ["source-url"],
+                _realityMlkemEnabled: true,
               }),
               node("Deleted"),
             ],
@@ -264,7 +265,7 @@ describe("useEditingSubscriptionLoader", () => {
       }),
     ]);
     expect(mocks.bag.storeState).toMatchObject({
-      nodes: [expect.objectContaining({ name: "Remote", _originName: "Remote", _sourceIds: ["source-url"] })],
+      nodes: [expect.objectContaining({ name: "Remote", _originName: "Remote", _sourceIds: ["source-url"], _realityMlkemEnabled: true })],
       deletedNodeNames: ["Deleted", "Legacy"],
       template: "full",
       enabledProxyGroups: ["select", "auto", "ai"],

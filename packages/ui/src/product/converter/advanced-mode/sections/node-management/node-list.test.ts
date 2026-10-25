@@ -22,6 +22,9 @@ vi.mock("@subboost/ui/components/coss/compat/badge", () => ({
 vi.mock("@subboost/ui/components/coss/compat/input", () => ({
   Input: (props: any) => React.createElement("input", props),
 }));
+vi.mock("@subboost/ui/components/coss/compat/switch", () => ({
+  Switch: (props: any) => React.createElement("button", { role: "switch", "aria-label": props["aria-label"], "aria-checked": props.checked }),
+}));
 vi.mock("@subboost/ui/components/ui/protocol-badge", () => ({
   ProtocolBadge: (props: any) => React.createElement("span", null, `protocol:${props.type}`),
 }));
@@ -112,6 +115,7 @@ function makeProps(overrides: Partial<React.ComponentProps<typeof NodeManagement
     isListenerPortVisible: true,
     removeNode: vi.fn(),
     restoreDeletedNode: vi.fn(),
+    setNodeRealityMlkemEnabled: vi.fn(),
     ...overrides,
   };
 }
@@ -129,6 +133,20 @@ afterEach(() => {
 });
 
 describe("NodeManagementNodeList", () => {
+  it("offers independent switches only for REALITY nodes", () => {
+    const selected = { ...beta, name: "New REALITY", "reality-opts": { "public-key": "key" }, _realityMlkemEnabled: true };
+    const old = { ...beta, name: "Old REALITY", "reality-opts": { "public-key": "old-key" } };
+    const props = makeProps({ nodes: [selected, old, alpha], visibleNodes: [selected, old, alpha] });
+    const switches = collectElements(renderTree(props), (element) => typeof element.props.onCheckedChange === "function");
+    expect(switches).toHaveLength(2);
+    expect(switches[0].props.checked).toBe(true);
+    expect(switches[1].props.checked).toBe(false);
+    expect(switches[0].props["aria-label"]).toBe("New REALITY：ML-KEM 兼容");
+    switches[0].props.onCheckedChange(false);
+    switches[1].props.onCheckedChange(true);
+    expect(props.setNodeRealityMlkemEnabled.mock.calls).toEqual([["New REALITY", false], ["Old REALITY", true]]);
+  });
+
   it("renders empty and search-empty states", () => {
     expect(
       renderToStaticMarkup(

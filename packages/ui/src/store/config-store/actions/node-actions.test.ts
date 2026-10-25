@@ -39,6 +39,21 @@ function createHarness(overrides: Record<string, unknown> = {}) {
 }
 
 describe("createNodeActions", () => {
+  it("keeps per-node REALITY choices through rename, delete and restore without changing source TLS fields", () => {
+    const selected = node("New REALITY", { type: "vless", _originName: "Origin", "client-fingerprint": "firefox", "reality-opts": { "public-key": "key" } });
+    const other = { ...selected, name: "Old REALITY", _originName: "Other" };
+    const { actions, getState } = createHarness({ nodes: [selected, other, node("SS")] });
+    actions.setNodeRealityMlkemEnabled("New REALITY", true);
+    actions.setNodeRealityMlkemEnabled("SS", true);
+    expect(getState().nodes).toEqual([{ ...selected, _realityMlkemEnabled: true }, other, node("SS")]);
+    actions.renameNode("New REALITY", "Renamed");
+    actions.removeNode("Renamed");
+    actions.restoreDeletedNode("Origin");
+    expect(getState().nodes.find((item: ParsedNode) => item.name === "Renamed")).toMatchObject({ _realityMlkemEnabled: true, "client-fingerprint": "firefox" });
+    actions.setNodeRealityMlkemEnabled("Renamed", false);
+    expect(getState().nodes.find((item: ParsedNode) => item.name === "Renamed")).not.toHaveProperty("_realityMlkemEnabled");
+  });
+
   it("retains named-chain bindings on delete and restores them without duplicates", () => {
     const binding = { id: "chain", name: "Chain", type: "select", preserveRelayNames: true,
       relayNodes: ["Magebox"], targetNodes: ["Landing"] };

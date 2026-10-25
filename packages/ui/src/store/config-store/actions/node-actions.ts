@@ -1,5 +1,6 @@
 import type { ParsedNode } from "@subboost/core/types/node";
 import { formatNodeNameFromTemplate } from "@subboost/core/node-name-template";
+import { hasRealityConfig, REALITY_MLKEM_ENABLED_KEY } from "@subboost/core/mihomo/reality";
 import type { ConfigActions } from "../definitions";
 import { makeUniqueName } from "../definitions";
 import type { GetState, SetAndGenerateConfig, SetState } from "../store-types";
@@ -16,6 +17,7 @@ type NodeActions = Pick<
   | "bulkRenameNodes"
   | "setListenerPort"
   | "bulkSetListenerPorts"
+  | "setNodeRealityMlkemEnabled"
 >;
 
 export function createNodeActions(
@@ -24,6 +26,18 @@ export function createNodeActions(
   setAndGenerateConfig: SetAndGenerateConfig
 ): NodeActions {
   return {
+    setNodeRealityMlkemEnabled: (nodeName: string, value: boolean) => {
+      setAndGenerateConfig((state) => ({
+        nodes: state.nodes.map((node) => {
+          if (node.name !== nodeName || !hasRealityConfig(node)) return node;
+          const next = { ...node };
+          if (value) next[REALITY_MLKEM_ENABLED_KEY] = true;
+          else delete next[REALITY_MLKEM_ENABLED_KEY];
+          return next;
+        }),
+      }));
+    },
+
     clearNodes: () => {
       set({
         nodes: [],

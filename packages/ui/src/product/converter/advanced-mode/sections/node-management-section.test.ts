@@ -125,6 +125,14 @@ function renderSection(overrides: Record<number, unknown> = {}, props = { isExpa
 }
 
 describe("NodeManagementSection", () => {
+  it("forwards the per-node REALITY action without rendering a global switch", () => {
+    const setNodeRealityMlkemEnabled = vi.fn();
+    mocks.store.setNodeRealityMlkemEnabled = setNodeRealityMlkemEnabled;
+    const { html } = renderSection();
+    expect(html).not.toContain("REALITY ML-KEM 兼容");
+    expect(mocks.captures.nodeList.setNodeRealityMlkemEnabled).toBe(setNodeRealityMlkemEnabled);
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllGlobals();

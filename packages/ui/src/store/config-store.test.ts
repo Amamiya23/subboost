@@ -63,6 +63,23 @@ describe("useConfigStore", () => {
     });
   }, 15_000);
 
+  it("regenerates only the selected node's REALITY compatibility setting", async () => {
+    const { useConfigStore } = await loadStore();
+    const realityNode = {
+      name: "New REALITY", type: "vless", server: "example.com", port: 443,
+      uuid: "00000000-0000-4000-8000-000000000001", "reality-opts": { "public-key": "key" },
+    } as const;
+    useConfigStore.setState({ nodes: [realityNode, { ...realityNode, name: "Old REALITY" }] });
+    useConfigStore.getState().setNodeRealityMlkemEnabled("New REALITY", true);
+    expect(mocks.computeGeneratedYamlResult).toHaveBeenLastCalledWith(
+      expect.objectContaining({ nodes: [{ ...realityNode, _realityMlkemEnabled: true }, { ...realityNode, name: "Old REALITY" }] })
+    );
+    useConfigStore.getState().setNodeRealityMlkemEnabled("New REALITY", false);
+    expect(mocks.computeGeneratedYamlResult).toHaveBeenLastCalledWith(
+      expect.objectContaining({ nodes: [realityNode, { ...realityNode, name: "Old REALITY" }] })
+    );
+  });
+
   it("switches config draft storage scopes and regenerates restored drafts", async () => {
     const storage = createMemoryStorage({
       "subboost-config:user:u1": JSON.stringify({

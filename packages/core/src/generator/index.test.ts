@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BaseConfigYamlError, generateClashConfig, generateClashYaml } from "./index";
 import type { ParsedNode } from "@subboost/core/types/node";
+import { REALITY_MLKEM_ENABLED_KEY } from "../mihomo/reality";
 
 function ssNode(patch: Partial<ParsedNode> = {}): ParsedNode {
   return {
@@ -17,6 +18,134 @@ function ssNode(patch: Partial<ParsedNode> = {}): ParsedNode {
 const REALITY_PUBLIC_KEY = "A".repeat(43);
 
 describe("generateClashConfig", () => {
+  it("opts REALITY nodes into ML-KEM with Chrome while preserving their credentials and source data", () => {
+    const realityOpts = Object.freeze({
+      "public-key": REALITY_PUBLIC_KEY,
+      "short-id": "abcd",
+      "support-x25519mlkem768": false,
+      "spider-x": "/original",
+    });
+    const realityNode = Object.freeze({
+      name: "Reality",
+      type: "vless",
+      server: "reality.example.com",
+      port: 443,
+      uuid: "00000000-0000-0000-0000-000000000001",
+      tls: true,
+      "client-fingerprint": "firefox",
+      "reality-opts": realityOpts,
+      [REALITY_MLKEM_ENABLED_KEY]: true,
+    }) as unknown as ParsedNode;
+    const tlsNode = {
+      ...realityNode,
+      name: "TLS",
+      "reality-opts": undefined,
+    } as ParsedNode;
+
+    const config = generateClashConfig({
+      nodes: [realityNode, tlsNode, ssNode(), { ...realityNode, name: "Old Reality", [REALITY_MLKEM_ENABLED_KEY]: false }],
+      userConfig: { dnsYaml: "global-client-fingerprint: safari" },
+    });
+
+    expect(config.proxies?.[0]).toMatchObject({
+      "client-fingerprint": "chrome",
+      "reality-opts": { ...realityOpts, "support-x25519mlkem768": true },
+    });
+    expect(config.proxies?.[1]).toMatchObject({ "client-fingerprint": "firefox" });
+    expect(config.proxies?.[1]?.["reality-opts"]).toBeUndefined();
+    expect(config.proxies?.[2]).not.toHaveProperty("client-fingerprint");
+    expect(config.proxies?.[3]).toMatchObject({
+      "client-fingerprint": "firefox",
+      "reality-opts": { ...realityOpts, "support-x25519mlkem768": false },
+    });
+    expect(realityNode["client-fingerprint"]).toBe("firefox");
+    expect(realityOpts["support-x25519mlkem768"]).toBe(false);
+  });
+
+  it.each([undefined, false])("preserves imported REALITY options when ML-KEM compatibility is %s", (enabled) => {
+    const config = generateClashConfig({
+      nodes: [{
+        name: "Reality",
+        type: "vless",
+        server: "reality.example.com",
+        port: 443,
+        uuid: "00000000-0000-0000-0000-000000000001",
+        "client-fingerprint": "safari",
+        "reality-opts": { "public-key": REALITY_PUBLIC_KEY, "short-id": "abcd" },
+        [REALITY_MLKEM_ENABLED_KEY]: enabled,
+      } as ParsedNode],
+      userConfig: { realityMlkemEnabled: true } as never,
+    });
+
+    expect(config.proxies?.[0]).toMatchObject({ "client-fingerprint": "safari" });
+    expect(config.proxies?.[0]?.["reality-opts"]).not.toHaveProperty("support-x25519mlkem768");
+  });
+
+  it("applies ML-KEM to independent XHTTP download REALITY without changing an empty public-key override", () => {
+    const realityNode = {
+      name: "Reality",
+      type: "vless",
+      server: "reality.example.com",
+      port: 443,
+      uuid: "00000000-0000-0000-0000-000000000001",
+      tls: true,
+      network: "xhttp",
+      "reality-opts": { "public-key": REALITY_PUBLIC_KEY, "short-id": "abcd" },
+      [REALITY_MLKEM_ENABLED_KEY]: true,
+    } as ParsedNode;
+    const downloadSettings = Object.freeze({
+      server: "download.example.com",
+      "client-fingerprint": "firefox",
+      "reality-opts": Object.freeze({ "public-key": "B".repeat(43), "short-id": "ef01" }),
+    });
+    const config = generateClashConfig({
+      nodes: [
+        { ...realityNode, "xhttp-opts": { "download-settings": downloadSettings } } as ParsedNode,
+        {
+          ...realityNode,
+          name: "No download Reality",
+          "xhttp-opts": {
+            "download-settings": {
+              "client-fingerprint": "safari",
+              "reality-opts": { "public-key": "" },
+            },
+          },
+        } as ParsedNode,
+      ],
+    });
+
+    expect(config.proxies?.[0]?.["xhttp-opts"]).toMatchObject({
+      "download-settings": {
+        ...downloadSettings,
+        "client-fingerprint": "chrome",
+        "reality-opts": { ...downloadSettings["reality-opts"], "support-x25519mlkem768": true },
+      },
+    });
+    expect(config.proxies?.[1]?.["xhttp-opts"]).toMatchObject({
+      "download-settings": { "client-fingerprint": "safari", "reality-opts": { "public-key": "" } },
+    });
+    expect(downloadSettings["client-fingerprint"]).toBe("firefox");
+    expect(downloadSettings["reality-opts"]).not.toHaveProperty("support-x25519mlkem768");
+  });
+
+  it("keeps per-node compatibility metadata out of emitted YAML", () => {
+    const output = generateClashYaml({
+      nodes: [{
+        name: "Reality",
+        type: "vless",
+        server: "reality.example.com",
+        port: 443,
+        uuid: "00000000-0000-0000-0000-000000000001",
+        "reality-opts": { "public-key": REALITY_PUBLIC_KEY, "short-id": "abcd" },
+        [REALITY_MLKEM_ENABLED_KEY]: true,
+      } as ParsedNode],
+    });
+    expect(output).toContain("support-x25519mlkem768: true");
+    expect(output).toContain("client-fingerprint: chrome");
+    expect(output).not.toContain(REALITY_MLKEM_ENABLED_KEY);
+    expect(output).not.toContain("realityMlkemEnabled");
+  });
+
   it("treats explicit empty base YAML as a strict patch instead of re-adding defaults", () => {
     const config = generateClashConfig({
       nodes: [ssNode()],

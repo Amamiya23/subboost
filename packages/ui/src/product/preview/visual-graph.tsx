@@ -464,7 +464,7 @@ export function VisualGraph() {
           {nodes.slice(0, 50).map((node, idx) => (
             <div
               key={node.name + idx}
-              className="flex items-center gap-2 rounded-md px-2 py-1 text-[10px] hover:bg-accent"
+              className="flex flex-wrap items-center gap-2 rounded-md px-2 py-1 text-[10px] hover:bg-accent"
             >
               <div
                 className={cn(
@@ -485,12 +485,12 @@ export function VisualGraph() {
                 )}
               />
               <span
-                className="min-w-0 flex-1 truncate text-foreground/85 font-medium"
+                className="min-w-20 flex-1 truncate text-foreground/85 font-medium"
                 title={node.name}
               >
                 {node.name}
               </span>
-              <ProtocolBadge type={node.type} className="flex-shrink-0" />
+              <ProtocolBadge type={node.type} node={node} className="max-w-full whitespace-normal" />
             </div>
           ))}
           {nodes.length > 50 && (

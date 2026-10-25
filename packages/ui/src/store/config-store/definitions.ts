@@ -238,6 +238,7 @@ export interface ConfigActions {
   bulkRenameNodes: (renames: Array<{ oldName: string; newName: string }>) => void;
   restoreNodeName: (nodeName: string) => void;
   restoreDeletedNode: (originName: string) => void;
+  setNodeRealityMlkemEnabled: (nodeName: string, value: boolean) => void;
   moveNode: (nodeName: string, direction: "up" | "down") => void;
   setNodeOrder: (nodeName: string, order: number) => void;
 

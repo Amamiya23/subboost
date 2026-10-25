@@ -19,6 +19,11 @@ function node(patch: Partial<ParsedNode> = {}): ParsedNode {
 }
 
 describe("subscription config utils", () => {
+  it("ignores the obsolete global REALITY preference", () => {
+    expect(buildGenerateOptionsFromConfig({ realityMlkemEnabled: true }, { nodes: [node()] }).userConfig)
+      .not.toHaveProperty("realityMlkemEnabled");
+  });
+
   it("normalizes effective test options with guarded fallbacks", () => {
     expect(getEffectiveTestOptions({ testUrl: " https://cp.cloudflare.com ", testInterval: 120 })).toEqual({
       testUrl: "https://cp.cloudflare.com",

@@ -1,3 +1,22 @@
+export const REALITY_MLKEM_ENABLED_KEY = "_realityMlkemEnabled";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function hasRealityPublicKey(value: unknown): boolean {
+  return isRecord(value) && typeof value["public-key"] === "string" && Boolean(value["public-key"].trim());
+}
+
+export function hasRealityConfig(node: unknown): boolean {
+  if (!isRecord(node)) return false;
+  if (hasRealityPublicKey(node["reality-opts"])) return true;
+  if (node.type !== "vless" || node.network !== "xhttp") return false;
+  const xhttpOpts = node["xhttp-opts"];
+  const downloadSettings = isRecord(xhttpOpts) ? xhttpOpts["download-settings"] : undefined;
+  return isRecord(downloadSettings) && hasRealityPublicKey(downloadSettings["reality-opts"]);
+}
+
 export function normalizeRealityShortId(input: unknown): string | null {
   const raw = (() => {
     if (typeof input === "string") return input;

@@ -6,6 +6,8 @@ import {
   prepareSourceParsedNodes,
 } from "./source-node-refresh";
 import { ORIGIN_NAME_KEY, SOURCE_IDS_KEY } from "./node-source-state";
+import { REALITY_MLKEM_ENABLED_KEY } from "../mihomo/reality";
+import { buildNodeContentKey } from "../node-identity";
 import {
   mergeSubscriptionResponseInfo,
   normalizeSubscriptionResponseInfo,
@@ -35,6 +37,38 @@ function ssNode(name: string, patch: Record<string, unknown> = {}): ParsedNode {
 }
 
 describe("source node refresh helpers", () => {
+  it("preserves per-node REALITY preferences only for matched nodes on refresh", () => {
+    const realityNode = (name: string, extra: Record<string, unknown> = {}): ParsedNode => ({
+      name,
+      type: "vless",
+      server: `${name}.example.com`,
+      port: 443,
+      uuid: "00000000-0000-0000-0000-000000000001",
+      "client-fingerprint": "firefox",
+      "reality-opts": { "public-key": "A".repeat(43), "short-id": "abcd" },
+      ...extra,
+    } as ParsedNode);
+    const enabledNode = realityNode("Selected", {
+      [ORIGIN_NAME_KEY]: "Selected",
+      [SOURCE_IDS_KEY]: ["source-a"],
+      [REALITY_MLKEM_ENABLED_KEY]: true,
+    });
+    const disabledNode = realityNode("Old", {
+      [ORIGIN_NAME_KEY]: "Old",
+      [SOURCE_IDS_KEY]: ["source-a"],
+    });
+    expect(buildNodeContentKey(enabledNode)).toBe(buildNodeContentKey(realityNode("Selected")));
+    const result = mergeParsedSourceNodes(
+      [enabledNode, disabledNode],
+      prepareSourceParsedNodes([realityNode("Selected"), realityNode("Old"), realityNode("New")], {}),
+      [],
+      { sourceId: "source-a" }
+    );
+    expect(result.nodes.find((node) => node.name === "Selected")?.[REALITY_MLKEM_ENABLED_KEY]).toBe(true);
+    expect(result.nodes.find((node) => node.name === "Old")).not.toHaveProperty(REALITY_MLKEM_ENABLED_KEY);
+    expect(result.nodes.find((node) => node.name === "New")).not.toHaveProperty(REALITY_MLKEM_ENABLED_KEY);
+  });
+
   it("prepares parsed nodes with display names, origins, and sanitized imported-only fields", () => {
     const [prepared] = prepareSourceParsedNodes(
       [ssNode(" Alpha ", { "dialer-proxy": "private-only", dialer_proxy: "private-only" })],

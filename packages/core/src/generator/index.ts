@@ -37,6 +37,7 @@ import { collectDnsPolicyEntries, configToYaml } from "./yaml";
 import { isMihomoSupportedProxyNode, normalizeMihomoVlessForGeneration } from "../mihomo/proxy-sanitizer";
 import { chooseFallbackPolicyTarget, withBuiltinPolicyTargets } from "./policy-targets";
 import { withoutProxyGroupEmoji } from "./proxy-group-emoji";
+import { REALITY_MLKEM_ENABLED_KEY } from "../mihomo/reality";
 
 export interface GenerateOptions {
   nodes: ParsedNode[];
@@ -234,9 +235,39 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
         type === "anytls" ||
         (typeof typed.tls === "boolean" && typed.tls) ||
         (type === "vless" && Boolean(typed["reality-opts"])));
-    const nextBase = shouldApplyBaseFingerprint
+    let nextBase = shouldApplyBaseFingerprint
       ? { ...typed, "client-fingerprint": baseConfigClientFingerprint }
       : typed;
+
+    if (typed[REALITY_MLKEM_ENABLED_KEY] === true && isPlainObject(typed["reality-opts"])) {
+      nextBase = {
+        ...nextBase,
+        "client-fingerprint": "chrome",
+        "reality-opts": { ...typed["reality-opts"], "support-x25519mlkem768": true },
+      };
+    }
+
+    const xhttpOpts = typed["xhttp-opts"];
+    const downloadSettings = isPlainObject(xhttpOpts) ? xhttpOpts["download-settings"] : undefined;
+    const downloadRealityOpts = isPlainObject(downloadSettings) ? downloadSettings["reality-opts"] : undefined;
+    if (
+      typed[REALITY_MLKEM_ENABLED_KEY] === true &&
+      type === "vless" && typed.network === "xhttp" &&
+      isPlainObject(xhttpOpts) && isPlainObject(downloadSettings) && isPlainObject(downloadRealityOpts) &&
+      typeof downloadRealityOpts["public-key"] === "string" && downloadRealityOpts["public-key"].trim()
+    ) {
+      nextBase = {
+        ...nextBase,
+        "xhttp-opts": {
+          ...xhttpOpts,
+          "download-settings": {
+            ...downloadSettings,
+            "client-fingerprint": "chrome",
+            "reality-opts": { ...downloadRealityOpts, "support-x25519mlkem768": true },
+          },
+        },
+      };
+    }
 
     if (type !== "vless") return nextBase as unknown as ParsedNode;
     return normalizeMihomoVlessForGeneration(nextBase) as unknown as ParsedNode;

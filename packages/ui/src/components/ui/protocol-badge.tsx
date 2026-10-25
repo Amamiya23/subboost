@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "@subboost/ui/lib/utils";
+import { getNodeProtocolParts, type NodeProtocolDetails } from "@subboost/ui/lib/node-protocol-label";
 
 // Small labels need high-contrast step 12 text; paired Radix scales adapt to both themes.
 const PROTOCOL_BADGE_COLORS: Record<string, string> = {
@@ -29,19 +30,42 @@ export function getProtocolBadgeClass(type: string | undefined): string {
 
 type ProtocolBadgeProps = ComponentPropsWithoutRef<"span"> & {
   type: string | undefined;
+  node?: NodeProtocolDetails;
 };
 
-export function ProtocolBadge({ type, className, ...props }: ProtocolBadgeProps) {
+export function ProtocolBadge({ type, node, className, ...props }: ProtocolBadgeProps) {
+  const parts = node ? getNodeProtocolParts(node) : { protocol: type ?? "" };
+  const chips = [
+    { key: "protocol", label: parts.protocol, color: getProtocolBadgeClass(type) },
+    { key: "transport", label: parts.transport, color: DEFAULT_PROTOCOL_BADGE_CLASS },
+    {
+      key: "security",
+      label: parts.security,
+      color: parts.security === "REALITY"
+        ? "bg-[var(--violet-2)] text-[color:var(--violet-12)] border-[var(--violet-7)]"
+        : "bg-[var(--cyan-2)] text-[color:var(--cyan-12)] border-[var(--cyan-7)]",
+    },
+  ].filter((chip) => chip.label);
+  const label = chips.map((chip) => chip.label).join(" ");
   return (
     <span
-      className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded border px-1.5 py-0.5 text-[10px] font-medium text-center uppercase whitespace-nowrap",
-        getProtocolBadgeClass(type),
-        className
-      )}
+      className={cn("inline-flex max-w-full shrink-0 flex-wrap items-center gap-1 align-middle", className)}
+      role="group"
+      aria-label={label}
+      title={label}
       {...props}
     >
-      {type}
+      {chips.map((chip) => (
+        <span
+          key={chip.key}
+          className={cn(
+            "inline-flex items-center justify-center whitespace-nowrap rounded border px-1.5 py-0.5 text-center text-[10px] font-medium uppercase",
+            chip.color
+          )}
+        >
+          {chip.label}
+        </span>
+      ))}
     </span>
   );
 }
