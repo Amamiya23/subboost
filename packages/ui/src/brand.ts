@@ -8,11 +8,19 @@ export const SUBBOOST_PRODUCT_DESCRIPTION =
 export const SUBBOOST_FOOTER_DESCRIPTION =
   "Clash 订阅转换、生成和管理工具，让配置更简单";
 
-export const SUBBOOST_THEME_COLOR = "#111111";
+export const SUBBOOST_THEME_COLOR = "#202020";
 
-export const SUBBOOST_ICON_PATH = "/icon.png";
+export const SUBBOOST_ICON_PATH = "/brand/icon-512.png";
+
+export const SUBBOOST_MASKABLE_ICON_PATH = "/brand/icon-maskable-512.png";
 
 export const SUBBOOST_FAVICON_PATH = "/favicon.ico";
+
+export const SUBBOOST_FAVICON_ICO_PATH = "/brand/favicon.ico";
+
+export const SUBBOOST_FAVICON_SVG_PATH = "/brand/favicon.svg";
+
+export const SUBBOOST_APPLE_ICON_PATH = "/brand/apple-touch-icon.png";
 
 export const SUBBOOST_KEYWORDS = [
   "Clash",
@@ -56,7 +64,7 @@ export function createSubBoostManifest(): SubBoostManifest {
     description: SUBBOOST_PRODUCT_DESCRIPTION,
     start_url: "/",
     display: "standalone",
-    background_color: "#111111",
+    background_color: SUBBOOST_THEME_COLOR,
     theme_color: SUBBOOST_THEME_COLOR,
     orientation: "portrait-primary",
     icons: [
@@ -67,7 +75,7 @@ export function createSubBoostManifest(): SubBoostManifest {
         purpose: "any",
       },
       {
-        src: SUBBOOST_ICON_PATH,
+        src: SUBBOOST_MASKABLE_ICON_PATH,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

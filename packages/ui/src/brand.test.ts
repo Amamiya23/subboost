@@ -4,6 +4,7 @@ import {
   SUBBOOST_FAVICON_PATH,
   SUBBOOST_FOOTER_DESCRIPTION,
   SUBBOOST_ICON_PATH,
+  SUBBOOST_MASKABLE_ICON_PATH,
   SUBBOOST_KEYWORDS,
   SUBBOOST_MANIFEST_CATEGORIES,
   SUBBOOST_PRODUCT_DESCRIPTION,
@@ -18,8 +19,9 @@ describe("SubBoost brand constants", () => {
     expect(SUBBOOST_PRODUCT_TITLE).toContain("SubBoost");
     expect(SUBBOOST_PRODUCT_DESCRIPTION).toContain("Clash");
     expect(SUBBOOST_FOOTER_DESCRIPTION).toContain("配置");
-    expect(SUBBOOST_THEME_COLOR).toMatch(/^#[0-9a-f]{6}$/i);
-    expect(SUBBOOST_ICON_PATH).toBe("/icon.png");
+    expect(SUBBOOST_THEME_COLOR).toBe("#202020");
+    expect(SUBBOOST_ICON_PATH).toBe("/brand/icon-512.png");
+    expect(SUBBOOST_MASKABLE_ICON_PATH).toBe("/brand/icon-maskable-512.png");
     expect(SUBBOOST_FAVICON_PATH).toBe("/favicon.ico");
     expect(SUBBOOST_KEYWORDS).toContain("订阅转换");
     expect(SUBBOOST_MANIFEST_CATEGORIES).toEqual(["utilities", "productivity"]);
@@ -32,7 +34,7 @@ describe("SubBoost brand constants", () => {
       description: SUBBOOST_PRODUCT_DESCRIPTION,
       start_url: "/",
       display: "standalone",
-      background_color: "#111111",
+      background_color: SUBBOOST_THEME_COLOR,
       theme_color: SUBBOOST_THEME_COLOR,
       orientation: "portrait-primary",
       icons: [
@@ -43,7 +45,7 @@ describe("SubBoost brand constants", () => {
           purpose: "any",
         },
         {
-          src: SUBBOOST_ICON_PATH,
+          src: SUBBOOST_MASKABLE_ICON_PATH,
           sizes: "512x512",
           type: "image/png",
           purpose: "maskable",

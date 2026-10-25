@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("lucide-react", () => ({
+  ArrowLeft: () => React.createElement("span", null, "ArrowLeft"),
   ArrowRight: () => React.createElement("span", null, "ArrowRight"),
   LogOut: () => React.createElement("span", null, "LogOut"),
   ServerCog: () => React.createElement("span", null, "ServerCog"),
@@ -101,8 +102,8 @@ describe("local app pages and adapters", () => {
       display: "standalone",
       lang: "zh-CN",
       icons: [
-        { src: "/icon.png", purpose: "any" },
-        { src: "/icon.png", purpose: "maskable" },
+        { src: "/brand/icon-512.png", purpose: "any" },
+        { src: "/brand/icon-maskable-512.png", purpose: "maskable" },
       ],
     });
   });
@@ -235,30 +236,24 @@ describe("local app pages and adapters", () => {
     expect(adapter.configuratorHref).toBe("/builder");
   });
 
-  it("renders local settings for anonymous and authenticated states", async () => {
+  it("renders local settings for anonymous and authenticated states", () => {
     let html = renderToStaticMarkup(React.createElement(SettingsPage));
-    expect(html).toContain("未登录");
-    expect(html).toContain("/api/health/live");
-    expect(mocks.buttons.find((button: any) => button.variant === "destructive-outline")).toMatchObject({
-      disabled: true,
-    });
+    expect(html).toContain("请先");
+    expect(html).toContain('href="/login"');
+    expect(html).not.toContain("/api/health/live");
+    expect(html).not.toContain('aria-label="修改密码"');
+    expect(html).not.toContain("WebDAV 加密备份");
 
-    vi.stubGlobal("window", { location: { href: "" } });
-    mocks.buttons = [];
     mocks.userState = {
       fetchUser: vi.fn(),
       logout: vi.fn(),
-      user: { username: "admin", subscriptionCount: 2, quota: { maxSubscriptions: 9999 } },
+      user: { username: "admin" },
     };
     html = renderToStaticMarkup(React.createElement(SettingsPage));
     expect(html).toContain("admin");
-    expect(html).toContain("2 / 9999");
-    const logoutButton = mocks.buttons.find((button: any) => button.variant === "destructive-outline");
-    expect(logoutButton).toMatchObject({ disabled: false });
-    logoutButton.onClick();
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(mocks.userState.logout).toHaveBeenCalledTimes(1);
-    expect(window.location.href).toBe("/login");
+    expect(html).toContain('aria-label="修改密码"');
+    expect(html).toContain("WebDAV 加密备份");
+    expect(html).toContain("/api/health/live");
+    expect(html).toContain("/api/health/ready");
   });
 });

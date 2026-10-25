@@ -162,7 +162,8 @@ describe("local login component", () => {
 
     expect(html).toContain("SubBoost");
     expect(html).toContain("href=\"/\"");
-    expect(html).toContain("src=\"/logo.png\"");
+    expect(html).toContain('viewBox="0 0 256 256"');
+    expect(html).toContain('fill="currentColor"');
     expect(html).toContain("animate-skeleton");
   });
 

@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { CircleAlert, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { BrandMark } from "@subboost/ui/components/brand-mark";
 import { getLocalAdminSetupCredentialError, LOCAL_ADMIN_PASSWORD_MIN_LENGTH } from "@local/lib/admin-credentials";
 import { Alert } from "@subboost/ui/components/coss/alert";
 import { Button } from "@subboost/ui/components/coss/button";
@@ -102,7 +102,7 @@ export function LocalLogin() {
       <div className="flex w-full max-w-sm flex-col gap-6">
         <div className="flex flex-col items-center gap-4 text-center">
           <Link href="/" className="inline-flex items-center gap-3" aria-label="返回 SubBoost 首页">
-            <Image src="/logo.png" alt="" width={44} height={44} className="rounded-lg border bg-card p-1 shadow-sm" />
+            <BrandMark className="size-11 shrink-0 text-foreground" />
             <span className="font-heading text-xl font-semibold">SubBoost</span>
           </Link>
           <div className="flex flex-col gap-1">

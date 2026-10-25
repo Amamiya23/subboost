@@ -7,8 +7,10 @@ import { Toaster } from "@subboost/ui/components/coss/compat/toaster";
 import { ThemeScript } from "@subboost/ui/components/layout/theme-toggle";
 import { LocalHeader } from "@local/components/local-header";
 import {
+  SUBBOOST_APPLE_ICON_PATH,
+  SUBBOOST_FAVICON_ICO_PATH,
   SUBBOOST_FAVICON_PATH,
-  SUBBOOST_ICON_PATH,
+  SUBBOOST_FAVICON_SVG_PATH,
   SUBBOOST_KEYWORDS,
   SUBBOOST_PRODUCT_DESCRIPTION,
   SUBBOOST_PRODUCT_TITLE,
@@ -27,9 +29,12 @@ export const metadata: Metadata = {
   creator: SUBBOOST_SITE_NAME,
   publisher: SUBBOOST_SITE_NAME,
   icons: {
-    icon: SUBBOOST_ICON_PATH,
+    icon: [
+      { url: SUBBOOST_FAVICON_SVG_PATH, type: "image/svg+xml", sizes: "any" },
+      { url: SUBBOOST_FAVICON_ICO_PATH, type: "image/x-icon", sizes: "16x16 32x32 48x48 256x256" },
+    ],
     shortcut: SUBBOOST_FAVICON_PATH,
-    apple: SUBBOOST_ICON_PATH,
+    apple: { url: SUBBOOST_APPLE_ICON_PATH, type: "image/png", sizes: "180x180" },
   },
 };
 

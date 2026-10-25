@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -16,6 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@subboost/ui/lib/utils";
+import { BrandMark } from "@subboost/ui/components/brand-mark";
 import { UserMenu, type AccountMenuItem } from "@subboost/ui/components/auth/user-menu-coss";
 import { Badge } from "@subboost/ui/components/coss/badge";
 import { Button } from "@subboost/ui/components/coss/button";
@@ -134,14 +134,7 @@ export function Header({
           {/* Logo */}
           <div className="flex min-w-0 items-center gap-2">
             <Link href="/" className="group flex shrink-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background">
-              <Image
-                src="/logo.png"
-                alt=""
-                width={28}
-                height={28}
-                priority
-                className="rounded-md transition-opacity group-hover:opacity-90"
-              />
+              <BrandMark className="size-7 shrink-0 text-foreground transition-opacity group-hover:opacity-90" />
               <span className="font-display text-base font-semibold leading-none text-foreground">
                 SubBoost
               </span>
