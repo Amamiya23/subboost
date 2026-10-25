@@ -7,6 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogPanel,
   DialogTitle,
 } from "@subboost/ui/components/coss/compat/dialog";
 import { Input } from "@subboost/ui/components/coss/compat/input";
@@ -66,10 +67,12 @@ export function SubscriptionSettingsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <DialogPanel className="space-y-5" aria-busy={savingSettings}>
           <div className="space-y-2">
-            <Label>订阅名称</Label>
+            <Label htmlFor="subscription-settings-name">订阅名称</Label>
             <Input
+              id="subscription-settings-name"
+              disabled={savingSettings}
               value={settingsName}
               onChange={(e) => setSettingsName(e.target.value)}
               maxLength={100}
@@ -77,22 +80,22 @@ export function SubscriptionSettingsDialog({
             />
           </div>
 
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 border-t pt-5">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm text-muted-foreground">更新时智能匹配节点</p>
+                <Label htmlFor="subscription-smart-matching">更新时智能匹配节点</Label>
                 <SmartNodeMatchingHelp enabled={smartNodeMatchingEnabled} />
               </div>
             </div>
-            <Switch checked={smartNodeMatchingEnabled} onCheckedChange={setSmartNodeMatchingEnabled} />
+            <Switch id="subscription-smart-matching" checked={smartNodeMatchingEnabled} onCheckedChange={setSmartNodeMatchingEnabled} disabled={savingSettings} />
           </div>
 
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-sm text-muted-foreground">启用自动更新</p>
-              <p className="text-xs text-muted-foreground mt-1">开启后服务器会按间隔刷新缓存</p>
+              <Label htmlFor="subscription-auto-update">启用自动更新</Label>
+              <p id="subscription-auto-update-hint" className="mt-1 text-xs leading-5 text-muted-foreground">开启后服务器会按间隔刷新缓存</p>
             </div>
-            <Switch checked={autoUpdateEnabled} onCheckedChange={setAutoUpdateEnabled} />
+            <Switch id="subscription-auto-update" aria-describedby="subscription-auto-update-hint" checked={autoUpdateEnabled} onCheckedChange={setAutoUpdateEnabled} disabled={savingSettings} />
           </div>
 
           {!autoUpdateEnabled && subscription?.autoUpdateState.disabledAt && subscription.autoUpdateState.disabledReason && (
@@ -103,8 +106,10 @@ export function SubscriptionSettingsDialog({
 
           {autoUpdateEnabled && (
             <div className="space-y-2">
-              <Label>自动更新间隔（小时）</Label>
+              <Label htmlFor="subscription-update-hours">自动更新间隔（小时）</Label>
               <Input
+                id="subscription-update-hours"
+                disabled={savingSettings}
                 type="number"
                 min={policy.minHours}
                 step={policy.stepHours}
@@ -113,7 +118,7 @@ export function SubscriptionSettingsDialog({
               />
             </div>
           )}
-        </div>
+        </DialogPanel>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={savingSettings}>

@@ -4,18 +4,15 @@ import * as React from "react";
 import Link from "next/link";
 import {
   ChevronDown,
-  LayoutDashboard,
   LogIn,
   LogOut,
   Settings,
-  Shield,
   User as UserIcon,
 } from "lucide-react";
 import { Button } from "@subboost/ui/components/coss/button";
 import { Badge } from "@subboost/ui/components/coss/badge";
 import {
   Menu,
-  MenuGroup,
   MenuItem,
   MenuLinkItem,
   MenuPopup,
@@ -62,7 +59,7 @@ export function UserMenu({ privilegedMenuItem }: { privilegedMenuItem?: AccountM
     <Menu>
       <MenuTrigger
         render={
-          <Button variant="ghost" className="h-auto gap-2 px-2 py-1.5" aria-label="打开账户菜单" />
+          <Button variant="ghost" className="h-9 gap-2 px-1.5 sm:px-2" aria-label="打开账户菜单" />
         }
       >
         <SafeImage
@@ -75,56 +72,50 @@ export function UserMenu({ privilegedMenuItem }: { privilegedMenuItem?: AccountM
             </span>
           }
         />
-        <span className="hidden max-w-32 truncate sm:block">{displayName}</span>
-        <ChevronDown aria-hidden="true" className="hidden sm:block" />
+        <span className="hidden max-w-24 truncate lg:block">{displayName}</span>
+        <ChevronDown aria-hidden="true" className="hidden size-3.5 text-muted-foreground lg:block" />
       </MenuTrigger>
-      <MenuPopup align="end" className="min-w-64">
+      <MenuPopup align="end" sideOffset={8} className="w-72 max-w-[calc(100vw-2rem)] rounded-xl">
         <div className="flex items-center gap-3 px-3 py-3">
           <SafeImage
             src={user.avatarUrl}
             alt={displayName}
-            className="size-10 rounded-full border"
+            className="size-10 shrink-0 rounded-full border"
             fallback={
-              <span className="flex size-10 items-center justify-center rounded-full bg-muted">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
                 <UserIcon aria-hidden="true" />
               </span>
             }
           />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-medium">{displayName}</p>
-            <p className="truncate text-xs text-muted-foreground">@{user.username}</p>
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="truncate text-sm font-semibold" title={displayName}>{displayName}</p>
+              {user.isAdmin && !user.isBanned ? <Badge variant="info" className="shrink-0">管理员</Badge> : null}
+            </div>
+            <p className="mt-1 truncate text-xs text-muted-foreground" title={`@${user.username}`}>@{user.username}</p>
           </div>
-        </div>
-        <div className="flex flex-wrap gap-1.5 px-3 pb-3">
-          <Badge variant="secondary">
-            <Shield aria-hidden="true" />
-            Lv.{user.trustLevel}
-          </Badge>
-          {user.isAdmin && !user.isBanned ? <Badge variant="info">管理员</Badge> : null}
-          <Badge variant="outline">
-            {user.subscriptionCount}/{user.quota.maxSubscriptions} 订阅
-          </Badge>
+          <MenuLinkItem
+            render={<Link href="/dashboard/settings" />}
+            aria-label="账户设置"
+            title="账户设置"
+            className="size-8 shrink-0 self-start justify-center rounded-md p-0 text-muted-foreground data-highlighted:text-foreground"
+          >
+            <Settings aria-hidden="true" className="size-4" />
+          </MenuLinkItem>
         </div>
         <MenuSeparator />
-        <MenuGroup>
-          {privilegedMenuItem && user.isAdmin && !user.isBanned ? (
+        {privilegedMenuItem && user.isAdmin && !user.isBanned ? (
+          <>
             <MenuLinkItem render={<Link href={privilegedMenuItem.href} />}>
               <Settings aria-hidden="true" />
               {privilegedMenuItem.label}
             </MenuLinkItem>
-          ) : null}
-          <MenuLinkItem render={<Link href="/dashboard" />}>
-            <LayoutDashboard aria-hidden="true" />
-            我的订阅
-          </MenuLinkItem>
-          <MenuLinkItem render={<Link href="/dashboard/settings" />}>
-            <Settings aria-hidden="true" />
-            账户设置
-          </MenuLinkItem>
-        </MenuGroup>
-        <MenuSeparator />
+            <MenuSeparator />
+          </>
+        ) : null}
         <MenuItem
           variant="destructive"
+          className="min-h-9 rounded-md px-3 sm:min-h-9"
           onClick={() => {
             void logout().finally(() => {
               window.location.href = "/";

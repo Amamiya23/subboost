@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Button } from "@subboost/ui/components/coss/compat/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@subboost/ui/components/coss/compat/card";
 import { Input } from "@subboost/ui/components/coss/compat/input";
 import { Alert, AlertDescription, AlertTitle } from "@subboost/ui/components/coss/alert";
 import { useUserStore } from "@subboost/ui/store/user-store";
@@ -74,33 +73,35 @@ export function WebDavBackupCard() {
   const disabled = !!busy || !loaded;
 
   return (
-    <Card className="lg:col-span-2">
-      <CardHeader><CardTitle className="text-base">WebDAV 加密备份</CardTitle></CardHeader>
-      <CardContent className="space-y-5">
-        <p className="text-sm text-muted-foreground">备份已保存的订阅、节点、配置、自动更新状态和个人模板。可用同一备份密码恢复到新部署。管理员账号和浏览器中的未保存草稿不包含在内。</p>
+    <section aria-labelledby="webdav-backup-title" className="grid min-w-0 gap-6 py-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-12">
+      <div className="min-w-0">
+        <h2 id="webdav-backup-title" className="font-medium">WebDAV 加密备份</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">备份已保存的订阅、节点、配置、自动更新状态和个人模板。可用同一备份密码恢复到新部署。管理员账号和浏览器中的未保存草稿不包含在内。</p>
+      </div>
+      <div className="min-w-0 max-w-xl space-y-5" aria-busy={!!busy || !loaded}>
         <fieldset disabled={disabled} className="grid gap-4 sm:grid-cols-2 disabled:opacity-60">
           <legend className="sr-only">WebDAV 连接设置</legend>
-          <label className="space-y-2 text-sm sm:col-span-2" htmlFor="webdav-url"><span>WebDAV 地址</span>
+          <label className="flex min-w-0 flex-col gap-2 text-sm sm:col-span-2" htmlFor="webdav-url"><span>WebDAV 地址</span>
             <Input id="webdav-url" type="url" placeholder="https://dav.example.com/dav/" value={config.url} onChange={(event) => setConfig({ ...config, url: event.target.value })} autoComplete="off" /></label>
-          <label className="space-y-2 text-sm" htmlFor="webdav-username"><span>用户名</span>
+          <label className="flex min-w-0 flex-col gap-2 text-sm" htmlFor="webdav-username"><span>用户名</span>
             <Input id="webdav-username" value={config.username} onChange={(event) => setConfig({ ...config, username: event.target.value })} autoComplete="off" /></label>
-          <label className="space-y-2 text-sm" htmlFor="webdav-password"><span>WebDAV 密码 / 应用专用密码</span>
+          <label className="flex min-w-0 flex-col gap-2 text-sm" htmlFor="webdav-password"><span>WebDAV 密码 / 应用专用密码</span>
             <Input id="webdav-password" type="password" value={config.password} placeholder={hasPassword ? "已保存，留空保留原密码" : "输入 WebDAV 密码"} onChange={(event) => setConfig({ ...config, password: event.target.value })} autoComplete="new-password" /></label>
-          <label className="space-y-2 text-sm sm:col-span-2" htmlFor="webdav-path"><span>备份文件路径（相对于 WebDAV 地址）</span>
-            <Input id="webdav-path" value={config.path} onChange={(event) => setConfig({ ...config, path: event.target.value })} placeholder="subboost/backup.enc.json" autoComplete="off" />
-            <span className="block text-xs text-muted-foreground">每次备份覆盖此文件；修改文件名可保留多份备份。地址需为公网 HTTPS，基础目录需已存在。</span></label>
+          <div className="flex min-w-0 flex-col gap-2 text-sm sm:col-span-2"><label htmlFor="webdav-path">备份文件路径（相对于 WebDAV 地址）</label>
+            <Input id="webdav-path" aria-describedby="webdav-path-hint" value={config.path} onChange={(event) => setConfig({ ...config, path: event.target.value })} placeholder="subboost/backup.enc.json" autoComplete="off" />
+            <span id="webdav-path-hint" className="block text-xs leading-5 text-muted-foreground">每次备份覆盖此文件；修改文件名可保留多份备份。地址需为公网 HTTPS，基础目录需已存在。</span></div>
         </fieldset>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" disabled={disabled} onClick={() => void run("test")}>{busy === "test" ? "测试中…" : "测试连接"}</Button>
           <Button variant="outline" disabled={disabled} onClick={() => void run("save")}>{busy === "save" ? "保存中…" : "保存连接设置"}</Button>
         </div>
-        <div className="border-t pt-5 space-y-4">
-          <p className="text-sm text-muted-foreground">备份使用 AES-256-GCM 加密。请单独保管备份密码；密码不会保存，遗忘后无法恢复。</p>
+        <div className="space-y-5 border-t pt-6">
+          <p className="text-sm leading-6 text-muted-foreground">备份使用 AES-256-GCM 加密。请单独保管备份密码；密码不会保存，遗忘后无法恢复。</p>
           <fieldset disabled={disabled} className="grid gap-4 sm:grid-cols-2 disabled:opacity-60">
             <legend className="sr-only">备份加密密码</legend>
-            <label className="space-y-2 text-sm" htmlFor="backup-password"><span>备份密码（至少 10 个字符）</span>
+            <label className="flex min-w-0 flex-col gap-2 text-sm" htmlFor="backup-password"><span>备份密码（至少 10 个字符）</span>
               <Input id="backup-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} maxLength={1024} autoComplete="new-password" /></label>
-            <label className="space-y-2 text-sm" htmlFor="backup-password-confirm"><span>确认备份密码（创建备份时填写）</span>
+            <label className="flex min-w-0 flex-col gap-2 text-sm" htmlFor="backup-password-confirm"><span>确认备份密码（创建备份时填写）</span>
               <Input id="backup-password-confirm" type="password" value={passwordConfirm} onChange={(event) => setPasswordConfirm(event.target.value)} maxLength={1024} autoComplete="new-password" /></label>
           </fieldset>
           <div className="flex flex-wrap gap-2">
@@ -127,7 +128,7 @@ export function WebDavBackupCard() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

@@ -25,7 +25,7 @@ export function SubscriptionQrCodeDialog({
         <Button
           variant="outline"
           size="sm"
-          className="gap-2"
+          className="h-9 gap-1.5 text-xs sm:h-8 sm:text-sm"
           aria-label={`显示${subscriptionName}的订阅二维码`}
           disabled={!subscriptionUrl}
         >

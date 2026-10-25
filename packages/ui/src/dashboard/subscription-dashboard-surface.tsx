@@ -358,13 +358,13 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
   const copySubscriptionHref = adapter.copySubscriptionHref ?? ((sub: Subscription) => `/builder?copySubscriptionId=${encodeURIComponent(sub.id)}`);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
       {adapter.renderAnnouncement?.({ user })}
 
-      <div className="mb-10 flex items-center justify-between gap-4 sm:mt-4">
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-baseline gap-3">
           <h1 className="font-heading text-2xl font-semibold">我的订阅</h1>
-          {!isLoading && !loadError && <span className="text-sm tabular-nums text-muted-foreground">{subscriptions.length}</span>}
+          {!isLoading && !loadError && <span className="rounded-md bg-muted px-2 py-0.5 text-sm tabular-nums text-muted-foreground">{subscriptions.length}</span>}
         </div>
         <div className="flex items-center gap-2">
           {adapter.renderHeaderActions?.({ user })}
@@ -381,8 +381,8 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
           {isLoading ? (
             <div className="divide-y" aria-label="正在加载订阅" aria-busy="true">
               {[1, 2].map((i) => (
-                <div key={i} className="flex h-28 animate-pulse items-center justify-between gap-6 px-2">
-                  <div className="space-y-3"><div className="h-4 w-32 rounded bg-muted" /><div className="h-3 w-52 rounded bg-muted" /></div>
+                <div key={i} className="flex min-h-36 animate-pulse flex-wrap items-center justify-between gap-6 py-6 sm:min-h-28 sm:px-3">
+                  <div className="space-y-3"><div className="h-4 w-32 rounded bg-muted" /><div className="h-3 w-44 rounded bg-muted" /></div>
                   <div className="h-8 w-24 rounded bg-muted" />
                 </div>
               ))}
@@ -415,7 +415,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
             </Empty>
           ) : (
             <>
-              <div aria-hidden="true" className="hidden grid-cols-[minmax(0,1fr)_11rem_8rem_18rem] items-center gap-6 border-b px-2 py-3 text-xs text-muted-foreground xl:grid">
+              <div aria-hidden="true" className="hidden grid-cols-[minmax(0,1fr)_10rem_7rem_19rem] items-center gap-6 border-b bg-[var(--gray-2)] px-3 py-3 text-xs font-medium text-muted-foreground xl:grid">
                 <span>订阅名称</span><span>最近更新</span><span>自动更新</span><span className="text-right">操作</span>
               </div>
               <ul className="divide-y border-b">
@@ -464,7 +464,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
 
 function DashboardSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8" aria-label="正在加载订阅" aria-busy="true">
       <div className="animate-pulse space-y-6">
         <div className="h-8 w-48 bg-muted rounded" />
         <div className="h-28 border-y bg-muted/30" />
@@ -512,10 +512,10 @@ function SubscriptionRow({
   onSettings: (sub: Subscription) => void;
 }) {
   return (
-    <li className="grid min-w-0 gap-x-6 gap-y-4 px-2 py-6 transition-colors hover:bg-muted/30 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center xl:grid-cols-[minmax(0,1fr)_11rem_8rem_18rem]">
+    <li className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-4 py-5 transition-colors hover:bg-[var(--gray-2)] focus-within:bg-[var(--gray-2)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-3 sm:py-6 xl:grid-cols-[minmax(0,1fr)_10rem_7rem_19rem]">
       <div className="min-w-0">
         <div className="min-w-0">
-          <h2 className="truncate font-medium"><Link href={editHref} className="rounded-sm hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring" title={sub.name}>{sub.name}</Link></h2>
+          <h2 className="truncate text-sm font-semibold"><Link href={editHref} className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring" title={sub.name}>{sub.name}</Link></h2>
           <p className="mt-1.5 text-xs leading-5 text-muted-foreground tabular-nums">创建于 {formatDashboardDate(sub.createdAt)}</p>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground xl:hidden">
             <span>更新于 {formatDashboardDate(sub.lastUpdatedAt)}</span>
@@ -525,14 +525,15 @@ function SubscriptionRow({
       </div>
       <time dateTime={sub.lastUpdatedAt ?? undefined} className="hidden text-xs text-muted-foreground tabular-nums xl:block">{formatDashboardDate(sub.lastUpdatedAt)}</time>
       <span className="hidden text-sm text-muted-foreground xl:block">{sub.autoUpdateInterval ? `每 ${formatIntervalLabel(sub.autoUpdateInterval)}` : "已关闭"}</span>
-      <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
-        <Button variant="ghost" size="sm" title="进入配置生成器编辑该订阅（更新后链接不变）" render={<Link href={editHref} />}>
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:justify-end">
+        <Button variant="ghost" size="sm" className="h-9 px-2 text-xs sm:h-8 sm:text-sm" title="进入配置生成器编辑该订阅（更新后链接不变）" render={<Link href={editHref} />}>
           <Settings aria-hidden="true" />
           编辑
         </Button>
         <Button
           variant="outline"
           size="sm"
+          className="h-9 min-w-22 text-xs sm:h-8 sm:min-w-24 sm:text-sm"
           onClick={() => void onCopy(sub.subscriptionUrl, sub.id)}
           title="复制订阅链接"
         >
@@ -554,7 +555,7 @@ function SubscriptionRow({
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label={`${sub.name}的更多操作`}><MoreVertical aria-hidden="true" /></Button>
+            <Button variant="ghost" size="icon-sm" className="size-8" aria-label={`${sub.name}的更多操作`}><MoreVertical aria-hidden="true" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild><Link href={copyHref}><CopyPlus className="mr-2 h-4 w-4" />复制配置</Link></DropdownMenuItem>

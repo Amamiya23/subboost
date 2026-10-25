@@ -123,21 +123,26 @@ export function Header({
   const visiblePrivilegedItem = showPrivilegedLink && canShowPrivilegedItem ? privilegedMenuItem : null;
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/88 backdrop-blur-xl">
+    <header
+      className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-sm"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") setMobileMenuOpen(false);
+      }}
+    >
       <div className="mx-auto w-full max-w-[clamp(1120px,94vw,1800px)] px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
+        <div className="flex h-16 items-center justify-between gap-3 md:grid md:grid-cols-[1fr_auto_1fr] md:gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <Link href="/" className="group flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <Link href="/" className="group flex shrink-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background">
               <Image
                 src="/logo.png"
-                alt="SubBoost"
+                alt=""
                 width={28}
                 height={28}
                 priority
                 className="rounded-md transition-opacity group-hover:opacity-90"
               />
-              <span className="hidden font-display text-base font-semibold leading-none text-foreground sm:inline-flex">
+              <span className="font-display text-base font-semibold leading-none text-foreground">
                 SubBoost
               </span>
             </Link>
@@ -145,8 +150,8 @@ export function Header({
           </div>
 
           {/* Desktop Navigation */}
-          <nav aria-label="主导航" className="hidden items-center gap-1 rounded-lg border bg-card p-1 md:flex">
-            {visibleNavItems.map((item, index) => {
+          <nav aria-label="主导航" className="hidden items-center gap-1 rounded-lg bg-muted p-1 md:flex">
+            {visibleNavItems.map((item) => {
               const isActive = isNavItemActive(pathname, item.href);
               return (
                 <Link
@@ -154,15 +159,13 @@ export function Header({
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "inline-flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
+                    "inline-flex h-8 items-center gap-2 whitespace-nowrap rounded-md px-3 text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                     isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                      ? "bg-[var(--gray-5)] text-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   )}
                 >
-                  <span className={cn("mono-label", isActive ? "text-success-foreground" : "text-muted-foreground/56")}>
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
+                  <item.icon aria-hidden="true" className="size-3.5" />
                   {item.label}
                 </Link>
               );
@@ -170,21 +173,22 @@ export function Header({
             {visiblePrivilegedItem && (
               <Link
                 href={visiblePrivilegedItem.href}
+                aria-current={isNavItemActive(pathname, visiblePrivilegedItem.href) ? "page" : undefined}
                 className={cn(
-                  "ml-0.5 inline-flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
+                  "ml-0.5 inline-flex h-8 items-center gap-2 whitespace-nowrap rounded-md px-3 text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                   isNavItemActive(pathname, visiblePrivilegedItem.href)
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                    ? "bg-[var(--gray-5)] text-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >
-                <Shield className="h-3.5 w-3.5" />
+                <Shield aria-hidden="true" className="size-3.5" />
                 {visiblePrivilegedItem.label}
               </Link>
             )}
           </nav>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
             <ThemeToggle />
             {/* User Menu */}
             <UserMenu privilegedMenuItem={privilegedMenuItem} />
@@ -197,6 +201,7 @@ export function Header({
               className="md:hidden"
               aria-label={mobileMenuOpen ? "收起导航" : "展开导航"}
               aria-expanded={mobileMenuOpen}
+              aria-controls={mobileMenuOpen ? "mobile-header-navigation" : undefined}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
@@ -210,23 +215,24 @@ export function Header({
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="border-t py-3 md:hidden">
-            <nav className="flex flex-col gap-0.5">
+          <div id="mobile-header-navigation" className="border-t py-3 md:hidden">
+            <nav aria-label="移动主导航" className="flex flex-col gap-1">
               {visibleNavItems.map((item) => {
                 const isActive = isNavItemActive(pathname, item.href);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
+                    aria-current={isActive ? "page" : undefined}
                     onClick={() => setMobileMenuOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                        isActive
-                          ? "bg-accent text-foreground"
-                          : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-                      )}
+                    className={cn(
+                      "flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                      isActive
+                        ? "bg-[var(--gray-5)] text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
                   >
-                    <item.icon className="w-4 h-4" />
+                    <item.icon aria-hidden="true" className="size-4" />
                     {item.label}
                   </Link>
                 );
@@ -234,15 +240,16 @@ export function Header({
               {visiblePrivilegedItem && (
                 <Link
                   href={visiblePrivilegedItem.href}
+                    aria-current={isNavItemActive(pathname, visiblePrivilegedItem.href) ? "page" : undefined}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                    "flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                     isNavItemActive(pathname, visiblePrivilegedItem.href)
-                      ? "bg-accent text-foreground"
-                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                      ? "bg-[var(--gray-5)] text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
-                  <Shield className="w-4 h-4" />
+                  <Shield aria-hidden="true" className="size-4" />
                   {visiblePrivilegedItem.label}
                 </Link>
               )}
@@ -253,7 +260,7 @@ export function Header({
                     captureAuthConfigHandoff(useConfigStore.getState());
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent/60 transition-colors"
+                  className="flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <LogIn className="w-4 h-4" />
                   登录

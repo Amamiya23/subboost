@@ -43,7 +43,7 @@ export function ChangePasswordForm({ username }: { username: string }) {
   }
 
   return (
-    <form onSubmit={(event) => void submit(event)} className="max-w-sm space-y-5" aria-label="修改密码">
+    <form onSubmit={(event) => void submit(event)} className="w-full max-w-xl space-y-5" aria-label="修改密码" aria-busy={saving}>
       <input type="text" name="username" value={username} autoComplete="username" readOnly hidden />
       <fieldset disabled={saving} className="space-y-5 disabled:opacity-60">
         <legend className="sr-only">修改密码</legend>
