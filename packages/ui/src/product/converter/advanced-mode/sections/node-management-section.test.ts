@@ -43,7 +43,8 @@ vi.mock("react", async (importOriginal) => {
   };
 });
 
-vi.mock("lucide-react", () => ({
+vi.mock("lucide-react", async (importOriginal) => ({
+  ...await importOriginal<typeof import("lucide-react")>(),
   List: () => null,
   Search: () => null,
 }));
@@ -51,8 +52,18 @@ vi.mock("@subboost/ui/components/coss/compat/badge", () => ({ Badge: () => null 
 vi.mock("@subboost/ui/components/coss/compat/button", () => ({
   Button: (props: any) => {
     mocks.captures.button = props;
+    (mocks.captures.buttons ??= []).push(props);
     return null;
   },
+}));
+vi.mock("@subboost/ui/components/coss/compat/dialog", () => ({
+  Dialog: (props: any) => {
+    mocks.captures.sourceDialog = props;
+    return props.open ? props.children : null;
+  },
+  DialogContent: (props: any) => props.children,
+  DialogHeader: (props: any) => props.children,
+  DialogTitle: (props: any) => props.children,
 }));
 vi.mock("@subboost/ui/components/ui/confirm-dialog", () => ({ confirmDialog: mocks.confirmDialog }));
 vi.mock("@subboost/ui/components/coss/compat/input", () => ({
@@ -89,6 +100,18 @@ vi.mock("./node-management/node-list", () => ({
     return null;
   },
 }));
+vi.mock("./node-management/node-editor-panel", () => ({
+  NodeEditorPanel: (props: any) => {
+    mocks.captures.editor = props;
+    return null;
+  },
+}));
+vi.mock("./input-section", () => ({
+  InputSection: (props: any) => {
+    mocks.captures.sourceInput = props;
+    return null;
+  },
+}));
 
 import { NodeManagementSection } from "./node-management-section";
 
@@ -116,12 +139,26 @@ function renderSection(overrides: Record<number, unknown> = {}, props = { isExpa
   stateMock.callIndex = 0;
   stateMock.overrides = overrides;
   stateMock.setters = [];
+  mocks.captures.buttons = [];
   try {
     const html = renderToStaticMarkup(React.createElement(NodeManagementSection, props));
     return { html, setters: stateMock.setters, props };
   } finally {
     stateMock.enabled = false;
   }
+}
+
+function textOf(node: React.ReactNode): string {
+  return React.Children.toArray(node).map((child) => {
+    if (typeof child === "string" || typeof child === "number") return String(child);
+    return React.isValidElement<{ children?: React.ReactNode }>(child) ? textOf(child.props.children) : "";
+  }).join("");
+}
+
+function buttonNamed(label: string) {
+  const button = mocks.captures.buttons.find((props: any) => textOf(props.children).includes(label));
+  expect(button, `button ${label}`).toBeDefined();
+  return button;
 }
 
 describe("NodeManagementSection", () => {
@@ -312,7 +349,7 @@ describe("NodeManagementSection", () => {
 
     mocks.captures.input.onChange({ target: { value: "alpha" } });
     expect(setters[3]).toHaveBeenCalledWith("alpha");
-    mocks.captures.button.onClick();
+    buttonNamed("批量编辑").onClick();
     expect(setters[2]).toHaveBeenCalledWith(true);
 
     expect(mocks.captures.nodeList.resolveNodeNameParts(null)).toEqual({
@@ -408,5 +445,34 @@ describe("NodeManagementSection", () => {
     renderSection();
     expect(mocks.captures.input).toEqual(expect.objectContaining({ disabled: true }));
     expect(mocks.captures.switch).toEqual(expect.objectContaining({ disabled: true, checked: false }));
+  });
+
+  it("opens a blank editor from the add action and the selected node from its edit action", () => {
+    let result = renderSection();
+    buttonNamed("添加节点").onClick();
+    expect(result.setters[0]).toHaveBeenCalledWith(null);
+    expect(result.setters[1]).toHaveBeenCalledWith(true);
+
+    result = renderSection();
+    mocks.captures.nodeList.onEditNode(nodes[0]);
+    expect(result.setters[0]).toHaveBeenCalledWith(nodes[0]);
+    expect(result.setters[1]).toHaveBeenCalledWith(true);
+  });
+
+  it("passes the original node and sources into the editor and closes it on completion", () => {
+    const { setters } = renderSection({ 0: nodes[0], 1: true });
+    expect(mocks.captures.editor).toEqual(expect.objectContaining({ node: nodes[0], sources: mocks.store.sources }));
+    mocks.captures.editor.onClose();
+    expect(setters[1]).toHaveBeenCalledWith(false);
+  });
+
+  it("keeps source imports behind the secondary import action", () => {
+    const { setters } = renderSection();
+    expect(mocks.captures.sourceInput).toBeUndefined();
+    buttonNamed("更多导入").onClick();
+    expect(setters[8]).toHaveBeenCalledWith(true);
+
+    renderSection({ 8: true });
+    expect(mocks.captures.sourceInput).toEqual(expect.objectContaining({ isExpanded: true }));
   });
 });

@@ -37,6 +37,52 @@ function ssNode(name: string, patch: Record<string, unknown> = {}): ParsedNode {
 }
 
 describe("source node refresh helpers", () => {
+  it.each([true, false])("preserves reordered duplicate-origin node identities after a link edit (has source ids: %s)", (hasSourceIds) => {
+    const originName = "Hong Kong";
+    const realityNode = (server: string): ParsedNode => ({
+      name: originName,
+      type: "vless",
+      server,
+      port: 443,
+      uuid: "00000000-0000-4000-8000-000000000001",
+      "reality-opts": { "public-key": "A".repeat(43), "short-id": "abcd" },
+    } as ParsedNode);
+    // The source keeps its input order after editing the first link, while the
+    // user has moved the second displayed node above it.
+    const updatedFirst = realityNode("new-hk.example.com");
+    const second = realityNode("other-hk.example.com");
+    const storedNodes = [
+      {
+        ...second,
+        name: "Hong Kong (2)",
+        [ORIGIN_NAME_KEY]: originName,
+        ...(hasSourceIds ? { [SOURCE_IDS_KEY]: ["source-a"] } : {}),
+        [REALITY_MLKEM_ENABLED_KEY]: true,
+      },
+      {
+        ...updatedFirst,
+        [ORIGIN_NAME_KEY]: originName,
+        ...(hasSourceIds ? { [SOURCE_IDS_KEY]: ["source-a"] } : {}),
+      },
+    ];
+    const result = mergeParsedSourceNodes(
+      storedNodes,
+      prepareSourceParsedNodes([updatedFirst, second], {}),
+      [],
+      { sourceId: "source-a" }
+    );
+
+    expect(result.nodes.map((node) => ({ name: node.name, server: node.server }))).toEqual([
+      { name: "Hong Kong (2)", server: "other-hk.example.com" },
+      { name: "Hong Kong", server: "new-hk.example.com" },
+    ]);
+    expect(result.nodes[0][REALITY_MLKEM_ENABLED_KEY]).toBe(true);
+    expect(result.nodes[1]).not.toHaveProperty(REALITY_MLKEM_ENABLED_KEY);
+    expect(result.nodes.every((node) => (node[SOURCE_IDS_KEY] as string[]).includes("source-a"))).toBe(true);
+    // No reference remapping is needed for listeners and dialer groups.
+    expect(result.renameMap.size).toBe(0);
+  });
+
   it("preserves per-node REALITY preferences only for matched nodes on refresh", () => {
     const realityNode = (name: string, extra: Record<string, unknown> = {}): ParsedNode => ({
       name,

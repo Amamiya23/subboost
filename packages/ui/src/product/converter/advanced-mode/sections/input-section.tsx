@@ -19,9 +19,11 @@ import { InputSourceEditorDialog } from "./input-source-editor-dialog";
 export function InputSection({
   isExpanded,
   onToggle,
+  title = "节点导入",
 }: {
   isExpanded: boolean;
   onToggle: () => void;
+  title?: string;
 }) {
   const {
     addSource,
@@ -47,7 +49,7 @@ export function InputSection({
     <div>
       <SectionHeader
         icon={Server}
-        title="节点导入"
+        title={title}
         isExpanded={isExpanded}
         onToggle={onToggle}
         badge={

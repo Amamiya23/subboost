@@ -1,13 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronDown, ChevronUp, Pencil, RotateCcw, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { Badge } from "@subboost/ui/components/coss/compat/badge";
 import { Input } from "@subboost/ui/components/coss/compat/input";
 import { Switch } from "@subboost/ui/components/coss/compat/switch";
 import { ProtocolBadge } from "@subboost/ui/components/ui/protocol-badge";
-import { toast } from "@subboost/ui/components/coss/compat/toaster";
-import { formatNodeNameFromTemplate } from "@subboost/core/node-name-template";
 import { cn } from "@subboost/ui/lib/utils";
 import type { ParsedNode } from "@subboost/core/types/node";
 import { hasRealityConfig, REALITY_MLKEM_ENABLED_KEY } from "@subboost/core/mihomo/reality";
@@ -31,11 +29,7 @@ export function NodeManagementNodeList({
   visibleDeletedMarkedNodes,
   nodeSearchKeyword,
   resolveNodeNameParts,
-  editingNodeName,
-  setEditingNodeName,
-  editNodeValue,
-  setEditNodeValue,
-  renameNode,
+  onEditNode,
   restoreNodeName,
   listenerPortDrafts,
   setListenerPortDrafts,
@@ -59,11 +53,7 @@ export function NodeManagementNodeList({
   visibleDeletedMarkedNodes: DeletedMarkedNode[];
   nodeSearchKeyword: string;
   resolveNodeNameParts: (node: ParsedNode) => NodeNameParts;
-  editingNodeName: string | null;
-  setEditingNodeName: (name: string | null) => void;
-  editNodeValue: string;
-  setEditNodeValue: (value: string) => void;
-  renameNode: (oldName: string, newName: string) => void;
+  onEditNode: (node: ParsedNode) => void;
   restoreNodeName: (name: string) => void;
   listenerPortDrafts: Record<string, string>;
   setListenerPortDrafts: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -84,7 +74,7 @@ export function NodeManagementNodeList({
   return (
     <>
           {nodes.length === 0 && deletedMarkedNodes.length === 0 ? (
-            <div className="text-xs text-muted-foreground py-4 text-center">请先在上方导入节点</div>
+            <div className="text-sm text-muted-foreground py-6 text-center">暂无节点，点击「添加节点」粘贴分享链接</div>
           ) : nodeSearchKeyword.trim() && visibleNodes.length === 0 && visibleDeletedMarkedNodes.length === 0 ? (
             <div className="text-xs text-muted-foreground py-4 text-center">未找到匹配节点</div>
           ) : (
@@ -98,83 +88,18 @@ export function NodeManagementNodeList({
                   : "";
                 const isRenamed = originName && originName !== parts.baseName;
 
-                const commitRename = () => {
-                  const base = editNodeValue.trim();
-                  if (!base) return;
-
-                  if (parts.tag && !parts.canEditBase) {
-                    toast({
-                      title: "无法重命名该节点",
-                      description:
-                        "当前节点命名模板无法解析 {name}；请在导入源高级编辑中调整模板并重新导入后再重命名",
-                      variant: "warning",
-                    });
-                    return;
-                  }
-
-                  const nextName = parts.tag
-                    ? formatNodeNameFromTemplate({ originName: base, tag: parts.tag, template: parts.template })
-                    : base;
-                  renameNode(node.name, nextName);
-                };
-
                 return (
                   <div
                     key={node.name}
                     className="space-y-1.5 text-xs bg-muted rounded px-2 py-1.5 group"
                   >
                     <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    {editingNodeName === node.name ? (
-                      <>
-                        <ProtocolBadge type={node.type} node={node} />
-                        {primaryTag && (
-                          <span
-                            className="px-1.5 py-0.5 rounded bg-muted text-foreground/85 text-[10px] border border-border"
-                            title={`导入源 tag：${primaryTag}（不可在节点管理修改）`}
-                          >
-                            {primaryTag}
-                          </span>
-                        )}
-                        <Input
-                          value={editNodeValue}
-                          onChange={(e) => setEditNodeValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              commitRename();
-                              setEditingNodeName(null);
-                            } else if (e.key === "Escape") {
-                              setEditingNodeName(null);
-                            }
-                          }}
-                          className="flex-1 h-6 text-xs bg-muted"
-                          autoFocus
-                        />
-                        <button
-                          onClick={() => {
-                            commitRename();
-                            setEditingNodeName(null);
-                          }}
-                          className="p-1 text-success-foreground hover:text-success-foreground"
-                          title="保存"
-                        >
-                          <Check className="h-3 w-3" />
-                        </button>
-                        <button
-                          onClick={() => setEditingNodeName(null)}
-                          className="p-1 text-muted-foreground hover:text-foreground"
-                          title="取消"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </>
-                    ) : (
-                      <>
                         <ProtocolBadge type={node.type} node={node} />
                         <span className="flex-1 min-w-20 flex items-center gap-1">
                           {primaryTag && (
                             <span
                               className="px-1.5 py-0.5 rounded bg-muted text-foreground/85 text-[10px] border border-border"
-                              title={`导入源 tag：${primaryTag}（不可在节点管理修改）`}
+                              title={`来源标签：${primaryTag}`}
                             >
                               {primaryTag}
                             </span>
@@ -184,6 +109,7 @@ export function NodeManagementNodeList({
                           </span>
                           {isRenamed && (
                             <button
+                              type="button"
                               onClick={() => restoreNodeName(node.name)}
                               className="p-0.5 text-muted-foreground hover:text-warning-foreground transition-colors"
                               title={`恢复原名: ${originName}`}
@@ -277,6 +203,7 @@ export function NodeManagementNodeList({
                           />
                           <div className="flex flex-col">
                             <button
+                              type="button"
                               onClick={() => moveNode(node.name, "up")}
                               disabled={(nodeIndexByName.get(node.name) ?? 0) <= 0}
                               className="h-3 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
@@ -285,6 +212,7 @@ export function NodeManagementNodeList({
                               <ChevronUp className="h-2.5 w-2.5" />
                             </button>
                             <button
+                              type="button"
                               onClick={() => moveNode(node.name, "down")}
                               disabled={(nodeIndexByName.get(node.name) ?? 0) >= nodes.length - 1}
                               className="h-3 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
@@ -295,33 +223,23 @@ export function NodeManagementNodeList({
                           </div>
                         </div>
                         <button
-                          onClick={() => {
-                            if (parts.tag && !parts.canEditBase) {
-                              toast({
-                                title: "无法重命名该节点",
-                                description:
-                                  "当前节点命名模板无法解析 {name}；请在导入源高级编辑中调整模板并重新导入后再重命名",
-                                variant: "warning",
-                              });
-                              return;
-                            }
-                            setEditingNodeName(node.name);
-                            setEditNodeValue(parts.baseName);
-                          }}
-                          className="p-1 text-muted-foreground hover:text-foreground transition-colors"
-                          title="重命名"
+                          type="button"
+                          onClick={() => onEditNode(node)}
+                          className="inline-flex min-h-9 items-center gap-1 rounded px-2 text-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:min-h-8"
+                          title="编辑节点"
+                          aria-label={`编辑节点：${node.name}`}
                         >
                           <Pencil className="h-3 w-3" />
+                          编辑
                         </button>
                         <button
+                          type="button"
                           onClick={() => removeNode(node.name)}
                           className="p-1 text-muted-foreground hover:text-destructive-foreground transition-colors"
                           title="删除"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
-                      </>
-                    )}
                     </div>
                     {hasRealityConfig(node) && (
                       <div className="flex items-center justify-between gap-3 border-t border-border pt-1.5">
@@ -345,7 +263,7 @@ export function NodeManagementNodeList({
                     visibleNodes.length === 0 && "pt-0 mt-0 border-t-0"
                   )}
                 >
-                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded text-sm text-muted-foreground hover:text-foreground/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acid [&::-webkit-details-marker]:hidden">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded text-sm text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
                     <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
                     已删除节点（{visibleDeletedMarkedNodes.length}）
                   </summary>
@@ -376,6 +294,7 @@ export function NodeManagementNodeList({
                           已删除
                         </Badge>
                         <button
+                          type="button"
                           onClick={() => restoreDeletedNode(originName)}
                           className="p-1 text-muted-foreground hover:text-foreground"
                           title="恢复"

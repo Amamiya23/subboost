@@ -1,19 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { List, Search } from "lucide-react";
+import { List, Plus, Search } from "lucide-react";
 import { Badge } from "@subboost/ui/components/coss/compat/badge";
 import { Button } from "@subboost/ui/components/coss/compat/button";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
 import { Input } from "@subboost/ui/components/coss/compat/input";
 import { Switch } from "@subboost/ui/components/coss/compat/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@subboost/ui/components/coss/compat/dialog";
 import { toast } from "@subboost/ui/components/coss/compat/toaster";
 import { DEFAULT_NODE_NAME_TEMPLATE } from "@subboost/core/node-name-template";
+import type { ParsedNode } from "@subboost/core/types/node";
 import { useConfigStore, type SubscriptionSource } from "@subboost/ui/store/config-store";
 import { useProductInteractionAdapter } from "@subboost/ui/product/interactions";
 import { SectionHeader } from "../section-header";
 import { NodeManagementBulkEditDialog } from "./node-management/bulk-edit-dialog";
 import { NodeManagementNodeList } from "./node-management/node-list";
+import { NodeEditorPanel } from "./node-management/node-editor-panel";
+import { InputSection } from "./input-section";
 
 const NODE_SOURCE_IDS_KEY = "_sourceIds";
 const ORIGIN_NAME_KEY = "_originName";
@@ -51,7 +55,6 @@ export function NodeManagementSection({
     deletedNodes,
     removeNode,
     restoreDeletedNode,
-    renameNode,
     restoreNodeName,
     bulkRenameNodes,
     moveNode,
@@ -92,8 +95,8 @@ export function NodeManagementSection({
     return Array.from(byOrigin.values());
   }, [deletedNodeNames, deletedNodes, nodes]);
 
-  const [editingNodeName, setEditingNodeName] = React.useState<string | null>(null);
-  const [editNodeValue, setEditNodeValue] = React.useState("");
+  const [editorNode, setEditorNode] = React.useState<ParsedNode | null>(null);
+  const [editorOpen, setEditorOpen] = React.useState(false);
   const [nameRulesOpen, setNameRulesOpen] = React.useState(false);
   const [nodeSearchKeyword, setNodeSearchKeyword] = React.useState("");
   const [listenerPortEnabled, setListenerPortEnabled] = React.useState(false);
@@ -103,6 +106,7 @@ export function NodeManagementSection({
   const [listenerPortDrafts, setListenerPortDrafts] = React.useState<Record<string, string>>({});
   const [listenerPortErrors, setListenerPortErrors] = React.useState<Record<string, string>>({});
   const [orderDrafts, setOrderDrafts] = React.useState<Record<string, string>>({});
+  const [sourcesOpen, setSourcesOpen] = React.useState(false);
 
   const hasConfiguredListenerPorts = React.useMemo(
     () => Object.values(listenerPorts).some((port) => Number.isInteger(port) && port >= 1 && port <= 65535),
@@ -429,20 +433,36 @@ export function NodeManagementSection({
       />
 
       {isExpanded && (
-        <div className="mt-2 pl-6">
-          <div className="flex items-center gap-2 pb-2 pr-2">
-            <div className="relative flex-1 min-w-0">
+        <div className="mt-3 space-y-3 sm:pl-6">
+          <div className="flex items-center gap-2">
+            <div className="relative min-w-0 flex-1">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 value={nodeSearchKeyword}
                 onChange={(e) => setNodeSearchKeyword(e.target.value)}
                 placeholder="搜索节点..."
                 disabled={nodes.length === 0 && deletedMarkedNodes.length === 0}
-                className="pl-7 text-xs h-7 bg-muted border-border"
+                aria-label="搜索节点"
+                className="pl-7 text-sm h-9 bg-muted border-border"
               />
             </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                setEditorNode(null);
+                setEditorOpen(true);
+              }}
+              className="h-9 shrink-0 gap-1.5"
+              title="添加节点"
+            >
+              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+              添加节点
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <div
-              className="flex h-7 shrink-0 items-center gap-2 rounded-md border border-border bg-muted px-2"
+              className="flex h-9 shrink-0 items-center gap-2 rounded-md border border-border bg-muted px-2"
               title="为节点配置 socks5/http 协议的本地监听端口"
             >
               <Switch
@@ -457,15 +477,38 @@ export function NodeManagementSection({
               </label>
             </div>
             <Button
+              type="button"
               variant="secondary"
               size="sm"
               onClick={() => setNameRulesOpen(true)}
               disabled={nodes.length === 0}
-              className="h-7 px-2 text-xs"
+              className="h-9 px-2 text-xs"
             >
               批量编辑
             </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setSourcesOpen(true)}
+              className="ml-auto h-9 px-2 text-xs text-muted-foreground"
+              title="更多导入"
+            >
+              更多导入
+            </Button>
           </div>
+
+          {editorOpen && (
+            <NodeEditorPanel
+              key={editorNode?.name ?? "add"}
+              node={editorNode}
+              sources={sources}
+              onClose={() => setEditorOpen(false)}
+              onEditSource={editorNode && getNodeSourceIds(editorNode).some((id) => sources.some((source) => source.id === id))
+                ? () => setSourcesOpen(true)
+                : undefined}
+            />
+          )}
 
           <NodeManagementBulkEditDialog
             open={nameRulesOpen}
@@ -486,11 +529,10 @@ export function NodeManagementSection({
             visibleDeletedMarkedNodes={visibleDeletedMarkedNodes}
             nodeSearchKeyword={nodeSearchKeyword}
             resolveNodeNameParts={resolveNodeNameParts}
-            editingNodeName={editingNodeName}
-            setEditingNodeName={setEditingNodeName}
-            editNodeValue={editNodeValue}
-            setEditNodeValue={setEditNodeValue}
-            renameNode={renameNode}
+            onEditNode={(node) => {
+              setEditorNode(node);
+              setEditorOpen(true);
+            }}
             restoreNodeName={restoreNodeName}
             listenerPortDrafts={listenerPortDrafts}
             setListenerPortDrafts={setListenerPortDrafts}
@@ -510,6 +552,14 @@ export function NodeManagementSection({
           />
         </div>
       )}
+      <Dialog open={sourcesOpen} onOpenChange={setSourcesOpen}>
+        <DialogContent className="max-h-[85dvh] w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>订阅与配置来源</DialogTitle>
+          </DialogHeader>
+          {sourcesOpen && <InputSection title="导入来源" isExpanded onToggle={() => {}} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

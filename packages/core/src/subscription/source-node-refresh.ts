@@ -300,14 +300,13 @@ export function mergeParsedSourceNodes(
   };
 
   const consumedFreshKeys = new Set<string>();
-  const originConsumed = new Map<string, number>();
-  const takeFresh = (originName: string): ParsedNode | null => {
+  const takeFresh = (originName: string, stored?: ParsedNode): ParsedNode | null => {
     const list = freshByOrigin.get(originName);
     if (!list || list.length === 0) return null;
-    const idx = originConsumed.get(originName) ?? 0;
-    if (idx >= list.length) return null;
-    originConsumed.set(originName, idx + 1);
-    const fresh = list[idx];
+    const available = list.filter((node) => !consumedFreshKeys.has(keyOf(node)));
+    const storedContentKey = stored ? buildNodeContentKey(stored) : null;
+    const fresh = available.find((node) => buildNodeContentKey(node) === storedContentKey) ?? available[0];
+    if (!fresh) return null;
     consumedFreshKeys.add(keyOf(fresh));
     return fresh;
   };
@@ -333,7 +332,7 @@ export function mergeParsedSourceNodes(
     if (sourceIds.includes(sourceId)) {
       hadExistingSourceNodes = true;
       const originName = resolveOriginName(node, { allowDisplayNameFallback }) ?? originOf(node);
-      const fresh = originName ? takeFresh(originName) : null;
+      const fresh = originName ? takeFresh(originName, node) : null;
 
       const base = withoutNodeSourceIds(node, removed);
       if (!fresh) {
@@ -360,7 +359,7 @@ export function mergeParsedSourceNodes(
       const originName = resolveOriginName(node, { allowDisplayNameFallback });
       if (originName && freshOriginNames.has(originName)) {
         hadExistingSourceNodes = true;
-        const fresh = takeFresh(originName);
+        const fresh = takeFresh(originName, node);
         if (!fresh) {
           continue;
         }

@@ -56,15 +56,15 @@ describe("AdvancedMode", () => {
     captures.lastSections = undefined;
   });
 
-  it("renders all advanced sections expanded by default", () => {
+  it("renders a unified node section and the other advanced sections expanded by default", () => {
     const html = renderToStaticMarkup(React.createElement(AdvancedMode));
 
-    expect(html).toContain("input");
+    expect(html).toContain("filter");
+    expect(captures.sections.input).toBeUndefined();
     expect(Object.keys(captures.sections).sort()).toEqual([
       "chain",
       "dns",
       "filter",
-      "input",
       "proxy",
       "rules",
     ]);
@@ -77,9 +77,9 @@ describe("AdvancedMode", () => {
   it("toggles sections through the captured callback", () => {
     renderToStaticMarkup(React.createElement(AdvancedMode));
 
-    captures.sections.input.onToggle();
+    captures.sections.filter.onToggle();
     expect(captures.stateSetter).toHaveBeenCalled();
-    expect(captures.lastSections?.has("input")).toBe(false);
+    expect(captures.lastSections?.has("filter")).toBe(false);
     expect(captures.lastSections?.has("dns")).toBe(true);
   });
 
@@ -87,10 +87,10 @@ describe("AdvancedMode", () => {
     captures.initialSections = new Set(["dns"]);
     renderToStaticMarkup(React.createElement(AdvancedMode));
 
-    expect(captures.sections.input.isExpanded).toBe(false);
-    captures.sections.input.onToggle();
+    expect(captures.sections.filter.isExpanded).toBe(false);
+    captures.sections.filter.onToggle();
 
-    expect(captures.lastSections?.has("input")).toBe(true);
+    expect(captures.lastSections?.has("filter")).toBe(true);
     expect(captures.lastSections?.has("dns")).toBe(true);
   });
 });

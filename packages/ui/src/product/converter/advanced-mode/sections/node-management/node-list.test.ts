@@ -92,11 +92,7 @@ function makeProps(overrides: Partial<React.ComponentProps<typeof NodeManagement
         ? { baseName: "Alpha", tag: "HK", template: "[{tag}] {name}", canEditBase: true }
         : { baseName: "Beta", tag: "LOCK", template: "[{tag}]", canEditBase: false }
     ),
-    editingNodeName: null,
-    setEditingNodeName: vi.fn(),
-    editNodeValue: "Alpha",
-    setEditNodeValue: vi.fn(),
-    renameNode: vi.fn(),
+    onEditNode: vi.fn(),
     restoreNodeName: vi.fn(),
     listenerPortDrafts: { [alpha.name]: "7001" },
     setListenerPortDrafts: callSetter<Record<string, string>>({ [alpha.name]: "7001" }),
@@ -159,7 +155,7 @@ describe("NodeManagementNodeList", () => {
           }),
         })
       )
-    ).toContain("请先在上方导入节点");
+    ).toContain("添加节点");
 
     expect(
       renderToStaticMarkup(
@@ -185,7 +181,7 @@ describe("NodeManagementNodeList", () => {
     expect(html).toContain("源名: Deleted");
   });
 
-  it("handles list actions for rename, listener ports, ordering, delete, and restore", () => {
+  it("handles list actions for editing, listener ports, ordering, delete, and restore", () => {
     const props = makeProps();
     const tree = renderTree(props);
     const buttons = collectElements(tree, (element) => element.type === "button");
@@ -194,13 +190,11 @@ describe("NodeManagementNodeList", () => {
     buttons.find((button) => button.props.title === "恢复原名: Original Alpha")?.props.onClick();
     expect(props.restoreNodeName).toHaveBeenCalledWith(alpha.name);
 
-    const renameButtons = buttons.filter((button) => button.props.title === "重命名");
-    renameButtons[0].props.onClick();
-    expect(props.setEditingNodeName).toHaveBeenCalledWith(alpha.name);
-    expect(props.setEditNodeValue).toHaveBeenCalledWith("Alpha");
-
-    renameButtons[1].props.onClick();
-    expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "无法重命名该节点" }));
+    const editButtons = buttons.filter((button) => button.props.title === "编辑节点");
+    expect(editButtons).toHaveLength(2);
+    editButtons[0].props.onClick();
+    editButtons[1].props.onClick();
+    expect(props.onEditNode.mock.calls).toEqual([[alpha], [beta]]);
 
     const listenerInput = inputs[0];
     listenerInput.props.onChange({ target: { value: "7002" } });
@@ -231,38 +225,12 @@ describe("NodeManagementNodeList", () => {
     expect(props.restoreDeletedNode).toHaveBeenCalledWith("Deleted");
   });
 
-  it("commits and cancels rename while editing a node", () => {
-    const props = makeProps({ editingNodeName: alpha.name, editNodeValue: " Gamma " });
+  it("offers one explicit edit action per node without showing an inline rename field", () => {
+    const props = makeProps({ isListenerPortVisible: false });
     const tree = renderTree(props);
     const buttons = collectElements(tree, (element) => element.type === "button");
-    const input = collectInputs(tree).find((element) => element.props.autoFocus);
-    expect(input).toBeDefined();
-
-    input!.props.onChange({ target: { value: "Gamma" } });
-    expect(props.setEditNodeValue).toHaveBeenCalledWith("Gamma");
-
-    input!.props.onKeyDown({ key: "Enter" });
-    expect(props.renameNode).toHaveBeenCalledWith(alpha.name, "[HK] Gamma");
-    expect(props.setEditingNodeName).toHaveBeenCalledWith(null);
-
-    input!.props.onKeyDown({ key: "Escape" });
-    expect(props.setEditingNodeName).toHaveBeenCalledWith(null);
-
-    buttons.find((button) => button.props.title === "保存")?.props.onClick();
-    expect(props.renameNode).toHaveBeenCalledWith(alpha.name, "[HK] Gamma");
-
-    buttons.find((button) => button.props.title === "取消")?.props.onClick();
-    expect(props.setEditingNodeName).toHaveBeenCalledWith(null);
-  });
-
-  it("warns instead of committing rename when the template hides the base name", () => {
-    const props = makeProps({ editingNodeName: beta.name, editNodeValue: "New Beta" });
-    const input = collectInputs(renderTree(props)).find((element) => element.props.autoFocus);
-    expect(input).toBeDefined();
-
-    input!.props.onKeyDown({ key: "Enter" });
-
-    expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "无法重命名该节点" }));
-    expect(props.renameNode).not.toHaveBeenCalled();
+    expect(buttons.filter((button) => button.props.title === "编辑节点")).toHaveLength(2);
+    expect(collectInputs(tree).every((input) => input.props.inputMode === "numeric")).toBe(true);
+    expect(renderToStaticMarkup(React.createElement(NodeManagementNodeList, props))).toContain("编辑");
   });
 });

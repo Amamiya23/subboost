@@ -232,6 +232,8 @@ export interface ConfigActions {
   parseContent: (content: string) => void;
   parseMultipleSources: (sources: SubscriptionSource[]) => Promise<void>;
   parseSingleSource: (sourceId: string) => Promise<void>;
+  addManualNodes: (content: string) => number;
+  updateManualNode: (nodeName: string, patch: { name: string; link?: string }) => void;
   clearNodes: () => void;
   removeNode: (name: string) => void;
   renameNode: (oldName: string, newName: string) => void;
