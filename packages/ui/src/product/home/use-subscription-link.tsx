@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { getConfigSnapshot } from "./config-save-state";
+import { getConfigSnapshot, hasUnappliedBaseConfig } from "./config-save-state";
 import { computeGeneratedYaml } from "@subboost/ui/store/config-store/generated-yaml";
 import { toast, ToastAction } from "@subboost/ui/components/coss/compat/toaster";
 import type { ParsedNode } from "@subboost/core/types/node";
@@ -201,6 +201,10 @@ export function useSubscriptionLink({
 
   // 打开订阅链接对话框
   const handleGenerateSubscription = React.useCallback((mode: ProductMode) => {
+    if (hasUnappliedBaseConfig(useConfigStore.getState())) {
+      toast({ title: "请先应用或取消基础与 DNS 的修改", variant: "warning" });
+      return;
+    }
     setSubscriptionFlowMode(mode);
 
     if (!authChecked) {
@@ -261,6 +265,10 @@ export function useSubscriptionLink({
 
   // 创建订阅链接
   const handleCreateSubscription = React.useCallback(async () => {
+    if (hasUnappliedBaseConfig(useConfigStore.getState())) {
+      toast({ title: "请先应用或取消基础与 DNS 的修改", variant: "warning" });
+      return;
+    }
     if (!subscriptionName.trim() || !generatedYaml) {
       trackSubscriptionMutation(!generatedYaml ? "noInput" : "validationError");
       return;

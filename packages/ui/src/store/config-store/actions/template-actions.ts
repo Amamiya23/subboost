@@ -168,6 +168,7 @@ export function createTemplateActions(
               ? (config.proxyGroupNameOverrides as Record<string, string>)
               : state.proxyGroupNameOverrides,
           dnsYaml: typeof config.dnsYaml === "string" ? config.dnsYaml : state.dnsYaml,
+          baseConfigDraft: null,
           mixedPort: typeof config.mixedPort === "number" ? config.mixedPort : state.mixedPort,
           allowLan: typeof config.allowLan === "boolean" ? config.allowLan : state.allowLan,
           testUrl: typeof config.testUrl === "string" ? config.testUrl : state.testUrl,

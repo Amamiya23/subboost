@@ -294,7 +294,7 @@ export function HomeLayout({
                         <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
                           <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                           <div>
-                            <div className="font-medium">基础和 DNS 配置有错误</div>
+                            <div className="font-medium">配置生成失败</div>
                             <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
                               {generatedYamlError}
                             </pre>

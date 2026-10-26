@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { BaseConfigYamlError, generateClashConfig, generateClashYaml } from "./index";
 import type { ParsedNode } from "@subboost/core/types/node";
 import { REALITY_MLKEM_ENABLED_KEY } from "../mihomo/reality";
+import { DEFAULT_BASE_CONFIG_YAML } from "../config/defaults";
+import { SUBBOOST_DNS_PROXY_NAME } from "./dns-proxy";
 
 function ssNode(patch: Partial<ParsedNode> = {}): ParsedNode {
   return {
@@ -18,6 +20,77 @@ function ssNode(patch: Partial<ParsedNode> = {}): ParsedNode {
 const REALITY_PUBLIC_KEY = "A".repeat(43);
 
 describe("generateClashConfig", () => {
+  it.each([true, false])("creates the proxy-only DNS group referenced by the default YAML (emoji enabled: %s)", (proxyGroupEmojiEnabled) => {
+    const config = generateClashConfig({
+      nodes: [ssNode(), { name: "Local Direct", type: "direct" } as ParsedNode],
+      userConfig: { dnsYaml: DEFAULT_BASE_CONFIG_YAML, proxyGroupEmojiEnabled },
+    });
+    const nameservers = config.dns?.nameserver ?? [];
+    expect(nameservers.length).toBeGreaterThan(0);
+    expect(nameservers.every((server) => server.split("#")[1]?.split("&").map(decodeURIComponent).includes(SUBBOOST_DNS_PROXY_NAME))).toBe(true);
+    const group = config["proxy-groups"]?.find((candidate) => candidate.name === SUBBOOST_DNS_PROXY_NAME);
+    expect(group).toMatchObject({ name: SUBBOOST_DNS_PROXY_NAME, type: "url-test", proxies: ["Node"] });
+    expect(group?.proxies).not.toContain("DIRECT");
+    expect(group?.proxies).not.toContain("Local Direct");
+    expect(group?.["empty-fallback"]).toBe("REJECT");
+    expect(config).not.toHaveProperty("tun");
+    expect(config.rules?.at(-1)).not.toBe(`MATCH,${SUBBOOST_DNS_PROXY_NAME}`);
+  });
+
+  it("does not add a DNS group or change custom DNS without the reserved marker", () => {
+    const config = generateClashConfig({
+      nodes: [ssNode()],
+      userConfig: { dnsYaml: "dns:\n  enable: true\n  nameserver: ['https://dns.example.com/dns-query#h3=true']" },
+    });
+    expect(config.dns).toEqual({ enable: true, nameserver: ["https://dns.example.com/dns-query#h3=true"] });
+    expect(config["proxy-groups"]?.some((group) => group.name === SUBBOOST_DNS_PROXY_NAME)).toBe(false);
+  });
+
+  it("does not turn the DNS-only group into the business fallback when other groups are disabled", () => {
+    const config = generateClashConfig({
+      nodes: [ssNode()],
+      userConfig: { dnsYaml: DEFAULT_BASE_CONFIG_YAML, enabledGroups: [], enabledRules: [] },
+    });
+    expect(config["proxy-groups"]?.map((group) => group.name)).toEqual([SUBBOOST_DNS_PROXY_NAME]);
+    expect(config.rules?.at(-1)).toBe("MATCH,Node");
+  });
+
+  it("respects saved DNS group ordering without making it the business fallback", () => {
+    const config = generateClashConfig({
+      nodes: [ssNode()],
+      userConfig: { dnsYaml: DEFAULT_BASE_CONFIG_YAML, enabledGroups: ["select", "auto"], enabledRules: ["select", "auto"] },
+      proxyGroupOrder: [`name:${SUBBOOST_DNS_PROXY_NAME}`, "module:auto", "module:select"],
+    });
+    expect(config["proxy-groups"]?.map((group) => group.name)).toEqual([
+      SUBBOOST_DNS_PROXY_NAME, "⚡ 自动选择", "🚀 节点选择",
+    ]);
+    expect(config.rules?.at(-1)).toBe("MATCH,⚡ 自动选择");
+  });
+
+  it("includes proxy providers in the dedicated DNS group while excluding direct fallbacks", () => {
+    const config = generateClashConfig({
+      nodes: [],
+      proxyProviders: { remote: { type: "http", url: "https://example.com/proxies", path: "./remote.yaml" } },
+      userConfig: { dnsYaml: DEFAULT_BASE_CONFIG_YAML },
+    });
+    const group = config["proxy-groups"]?.find((candidate) => candidate.name === SUBBOOST_DNS_PROXY_NAME);
+    expect(group?.use).toEqual(["remote"]);
+    expect(group?.["empty-fallback"]).toBe("REJECT");
+    expect(group?.["exclude-type"]).toMatch(/direct/i);
+  });
+
+  it("rejects node and group collisions with the reserved DNS policy name", () => {
+    expect(() => generateClashConfig({
+      nodes: [ssNode({ name: SUBBOOST_DNS_PROXY_NAME })],
+      userConfig: { dnsYaml: DEFAULT_BASE_CONFIG_YAML },
+    })).toThrow(SUBBOOST_DNS_PROXY_NAME);
+    expect(() => generateClashConfig({
+      nodes: [ssNode()],
+      customProxyGroups: [{ id: "collision", name: SUBBOOST_DNS_PROXY_NAME, emoji: "", groupType: "select" }],
+      userConfig: { dnsYaml: DEFAULT_BASE_CONFIG_YAML },
+    })).toThrow(SUBBOOST_DNS_PROXY_NAME);
+  });
+
   it("opts REALITY nodes into ML-KEM with Chrome while preserving their credentials and source data", () => {
     const realityOpts = Object.freeze({
       "public-key": REALITY_PUBLIC_KEY,

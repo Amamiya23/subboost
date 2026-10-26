@@ -24,7 +24,12 @@ export function getConfigSnapshot(state: ConfigState): string {
   });
 }
 
+export function hasUnappliedBaseConfig(state: Pick<ConfigState, "dnsYaml" | "baseConfigDraft">): boolean {
+  return typeof state.baseConfigDraft === "string" && state.baseConfigDraft !== state.dnsYaml;
+}
+
 export function hasUnsavedConfig(state: ConfigState): boolean {
+  if (hasUnappliedBaseConfig(state)) return true;
   if (state.savedConfigSnapshot == null) {
     return Boolean(state.nodes?.length || state.sources?.some((source) => source.content?.trim()));
   }

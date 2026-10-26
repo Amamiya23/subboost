@@ -200,6 +200,8 @@ export interface ConfigState {
 
   // DNS 配置 (YAML 文本)
   dnsYaml: string;
+  // 尚未应用的基础配置编辑；仅驻留当前工作区，不参与生成或持久化。
+  baseConfigDraft: string | null;
 
   // 其他设置
   mixedPort: number;
@@ -294,6 +296,7 @@ export interface ConfigActions {
 
   // DNS
   setDnsYaml: (yaml: string) => void;
+  setBaseConfigDraft: (yaml: string | null) => void;
 
   // 其他设置
   setMixedPort: (port: number) => void;
@@ -360,6 +363,7 @@ export const initialState: ConfigState = {
   moduleRuleEditWarningAccepted: false,
   appliedTemplateId: getBuiltinTemplateId("minimal"),
   dnsYaml: DEFAULT_BASE_CONFIG_YAML,
+  baseConfigDraft: null,
   mixedPort: DEFAULT_SUBBOOST_CONFIG.mixedPort,
   allowLan: DEFAULT_SUBBOOST_CONFIG.allowLan,
   testUrl: DEFAULT_SUBBOOST_CONFIG.testUrl,

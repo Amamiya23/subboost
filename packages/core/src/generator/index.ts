@@ -2,7 +2,6 @@
  * Clash 配置生成器 - 浏览器端运行
  */
 
-import yaml from "js-yaml";
 import {
   buildDefaultBaseConfigPatch,
   buildDefaultUserConfig,
@@ -38,6 +37,10 @@ import { isMihomoSupportedProxyNode, normalizeMihomoVlessForGeneration } from ".
 import { chooseFallbackPolicyTarget, withBuiltinPolicyTargets } from "./policy-targets";
 import { withoutProxyGroupEmoji } from "./proxy-group-emoji";
 import { REALITY_MLKEM_ENABLED_KEY } from "../mihomo/reality";
+import { BaseConfigYamlError, GENERATED_CONFIG_SECTION_KEYS, parseBaseConfigYaml } from "./base-config";
+import { buildDnsProxyGroup } from "./dns-proxy";
+
+export { BaseConfigYamlError } from "./base-config";
 
 export interface GenerateOptions {
   nodes: ParsedNode[];
@@ -53,62 +56,8 @@ export interface GenerateOptions {
   proxyGroupOrder?: string[];
 }
 
-type BaseConfig = Record<string, unknown>;
-
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-export class BaseConfigYamlError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "BaseConfigYamlError";
-  }
-}
-
-function formatYamlParseError(error: unknown): string {
-  if (error && typeof error === "object") {
-    const record = error as {
-      reason?: unknown;
-      message?: unknown;
-      mark?: { line?: unknown; column?: unknown };
-    };
-    const reason = typeof record.reason === "string"
-      ? record.reason
-      : typeof record.message === "string"
-        ? record.message
-        : String(error);
-    const line = typeof record.mark?.line === "number" ? record.mark.line + 1 : null;
-    const column = typeof record.mark?.column === "number" ? record.mark.column + 1 : null;
-    return line && column ? `${reason}（第 ${line} 行，第 ${column} 列）` : reason;
-  }
-  return String(error);
-}
-
-/**
- * 解析用户自定义的基础和DNS配置 YAML
- */
-function parseBaseConfigYaml(configYaml: string): BaseConfig {
-  try {
-    const parsed = yaml.load(configYaml) as unknown;
-    if (!isPlainObject(parsed)) {
-      throw new BaseConfigYamlError("基础和 DNS 配置必须是 YAML 对象（顶层 key/value 映射），不能是字符串、数组、数字、布尔值或 null。");
-    }
-    return parsed as BaseConfig;
-  } catch (error) {
-    if (error instanceof BaseConfigYamlError) throw error;
-    throw new BaseConfigYamlError(`基础和 DNS 配置 YAML 解析失败：${formatYamlParseError(error)}`);
-  }
-}
-
-const GENERATED_CONFIG_SECTION_KEYS = new Set(["proxies", "proxy-groups", "rule-providers", "rules"]);
-
-function assertNoGeneratedSectionsInBaseConfig(baseConfig: Record<string, unknown>) {
-  const conflicts = [...GENERATED_CONFIG_SECTION_KEYS].filter((key) => baseConfig[key] !== undefined);
-  if (conflicts.length === 0) return;
-  throw new BaseConfigYamlError(
-    `基础和 DNS 配置不能包含 ${conflicts.join(", ")}；这些段由 SubBoost 根据节点、代理组和规则生成。`
-  );
 }
 
 function omitGeneratedSections(baseConfig: Record<string, unknown>): Record<string, unknown> {
@@ -210,7 +159,6 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
   // 解析用户自定义的基础配置（提前解析：用于规范化补齐）
   const baseConfigYaml = (hasExplicitBaseConfigYaml ? userConfig.dnsYaml : config.dnsYaml) ?? "";
   const baseConfig = baseConfigYaml.trim() ? parseBaseConfigYaml(baseConfigYaml) : {};
-  assertNoGeneratedSectionsInBaseConfig(baseConfig);
   const baseConfigRecord = baseConfig as unknown as Record<string, unknown>;
   const shouldUseDefaultBaseSections = !hasExplicitBaseConfigYaml;
   const baseConfigClientFingerprint =
@@ -441,7 +389,7 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
     ? defaultBaseConfigPatch
     : normalizeBaseConfigPatch(baseConfigRecord);
 
-  const proxyGroups = (() => {
+  const { proxyGroups, dnsProxyGroup } = (() => {
     const allGroups = generateProxyGroups(generateOpts);
 
     const mergedGroups = (() => {
@@ -466,6 +414,16 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
       return [...dialerGroups, ...allGroups];
     })();
 
+    const dnsProxyGroup = buildDnsProxyGroup({
+      dns: baseTopLevelPatch.dns,
+      selectionNodes: namedChains.selectionNodes.filter((node) => !isSubscriptionInfoNodeName(node.name)),
+      providerNames: proxyProviderNames,
+      testUrl: config.testUrl,
+      testInterval: config.testInterval,
+      existingPolicyNames: [...mergedGroups.map((group) => group.name), ...outputNodes.map((node) => node.name)],
+    });
+    const completeGroups = dnsProxyGroup ? [...mergedGroups, dnsProxyGroup] : mergedGroups;
+
     const orderKeys = Array.isArray(options.proxyGroupOrder)
       ? options.proxyGroupOrder
           .filter((k) => typeof k === "string")
@@ -474,7 +432,7 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
       : [];
 
     if (orderKeys.length === 0) {
-      return mergedGroups;
+      return { proxyGroups: completeGroups, dnsProxyGroup };
     }
 
     const moduleNameToKey = new Map<string, string>();
@@ -508,7 +466,7 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
 
     const byKey = new Map<string, ProxyGroup>();
     const defaultKeys: string[] = [];
-    for (const g of mergedGroups) {
+    for (const g of completeGroups) {
       const key = getKeyByName(g.name);
       defaultKeys.push(key);
       byKey.set(key, g);
@@ -529,8 +487,10 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
       nextKeys.push(key);
     }
 
-    return nextKeys.map((key) => byKey.get(key)).filter(Boolean) as ProxyGroup[];
+    return { proxyGroups: nextKeys.map((key) => byKey.get(key)).filter(Boolean) as ProxyGroup[], dnsProxyGroup };
   })();
+
+  const fallbackProxyGroupName = proxyGroups.find((group) => group !== dnsProxyGroup)?.name;
 
   const availablePolicyTargets = withBuiltinPolicyTargets([
     ...proxyGroups.map((group) => group.name),
@@ -538,7 +498,7 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
   ]);
   const fallbackPolicyTarget = chooseFallbackPolicyTarget(
     [
-      proxyGroups[0]?.name,
+      fallbackProxyGroupName,
       namedChains.selectionNodes.find((node) => !isSubscriptionInfoNodeName(node.name))?.name,
       "DIRECT",
     ],

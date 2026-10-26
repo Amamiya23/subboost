@@ -12,6 +12,7 @@ import {
 import { getCompactDateStampInBeijing } from "@subboost/core/time/beijing";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 import { toast } from "@subboost/ui/components/coss/compat/toaster";
+import { hasUnappliedBaseConfig } from "./config-save-state";
 
 type UseHomeActionsOptions = {
   generatedYaml: string;
@@ -39,6 +40,10 @@ export function useHomeActions({
   const interactions = useProductInteractionAdapter();
 
   const handleDownload = React.useCallback((mode: ProductMode) => {
+    if (hasUnappliedBaseConfig(useConfigStore.getState())) {
+      toast({ title: "请先应用或取消基础与 DNS 的修改", variant: "warning" });
+      return;
+    }
     if (!generatedYaml || generatedYamlError) return;
 
     recordConfigDownload?.(appliedTemplateId);
@@ -112,6 +117,10 @@ export function useHomeActions({
   }, [interactions]);
 
   const handleGenerate = React.useCallback(async (mode: ProductMode, importPending = true) => {
+    if (hasUnappliedBaseConfig(useConfigStore.getState())) {
+      toast({ title: "请先应用或取消基础与 DNS 的修改", variant: "warning" });
+      return;
+    }
     const pendingSources = storeSources.filter(isSourcePendingImport);
 
     if (useConfigStore.getState().isLoading || storeSources.some((source) => source.parsing)) return;

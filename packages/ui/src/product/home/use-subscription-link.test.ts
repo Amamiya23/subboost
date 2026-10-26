@@ -101,6 +101,18 @@ function useRenderedHook(overrides: Record<string, unknown> = {}) {
 }
 
 describe("useSubscriptionLink", () => {
+  it("does not open or save a subscription while base YAML has unapplied edits", async () => {
+    mocks.bag.storeState = { dnsYaml: "mixed-port: 7897", baseConfigDraft: "mixed-port: bad" };
+    const adapter = makeAdapter();
+    let hook = useRenderedHook({ subscriptionAdapter: adapter });
+    hook.handleGenerateSubscription("advanced");
+    expect(hook.subscriptionDialog).toBe(false);
+    hook.setSubscriptionName("Draft");
+    hook = useRenderedHook({ subscriptionAdapter: adapter });
+    await hook.handleCreateSubscription();
+    expect(adapter.saveSubscription).not.toHaveBeenCalled();
+    expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "请先应用或取消基础与 DNS 的修改" }));
+  });
   it("saves independent REALITY settings with their nodes", async () => {
     const adapter = makeAdapter();
     const selected = { ...makeOptions().nodes[0], _realityMlkemEnabled: true };

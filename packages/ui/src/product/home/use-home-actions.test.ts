@@ -126,6 +126,17 @@ describe("useHomeActions", () => {
     expect(mocks.bag.storeState.isLoading).toBe(false);
   });
 
+  it("does not generate or download an older configuration while base YAML has unapplied edits", async () => {
+    Object.assign(mocks.bag.storeState, { baseConfigDraft: "mixed-port: bad" });
+    const options = makeOptions();
+    const actions = useHomeActions(options);
+    await actions.handleGenerate("advanced");
+    actions.handleDownload("advanced");
+    expect(options.generateConfig).not.toHaveBeenCalled();
+    expect(options.recordConfigDownload).not.toHaveBeenCalled();
+    expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "请先应用或取消基础与 DNS 的修改" }));
+  });
+
   it("keeps failed pending sources visible and does not report successful generation", async () => {
     const pending = makeSource();
     mocks.bag.storeState.sources = [pending];

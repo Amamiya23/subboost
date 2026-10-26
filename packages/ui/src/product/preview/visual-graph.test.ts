@@ -96,6 +96,17 @@ vi.mock("@subboost/core/generator/module-rules", () => ({
   getModuleRuleOrderKey: (moduleId: string, ruleId: string) => `module:${moduleId}:${ruleId}`,
   getEffectiveModuleRules: vi.fn(() => mocks.effectiveRules),
 }));
+vi.mock("@subboost/core/generator/dns-proxy", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@subboost/core/generator/dns-proxy")>();
+  return {
+    ...actual,
+    buildDnsProxyGroup: vi.fn((options: Parameters<typeof actual.buildDnsProxyGroup>[0]) => {
+      const group = actual.buildDnsProxyGroup(options);
+      mocks.captures.dnsGroup = group;
+      return group;
+    }),
+  };
+});
 vi.mock("@subboost/core/proxy-group-name", () => ({
   resolveProxyGroupModuleName: (module: { id: string; name: string }, override?: string) => override || module.name,
 }));
@@ -132,6 +143,7 @@ function renderGraph(overrides: Record<number, unknown> = {}) {
   mocks.captures.protocolBadges = [];
   mocks.captures.proxyGroupsPreview = undefined;
   mocks.captures.customRulesPreview = undefined;
+  mocks.captures.dnsGroup = undefined;
   try {
     const html = renderToStaticMarkup(React.createElement(VisualGraph));
     return { html, setters: stateMock.setters };
@@ -241,6 +253,51 @@ describe("VisualGraph", () => {
       customRules: [],
       ruleSets: [],
     });
+  });
+
+  it("includes the applied DNS proxy group, its proxy members and the updated group count", () => {
+    const proxy = {
+      name: "Hong Kong", type: "ss", server: "hk.example.com", port: 443,
+      cipher: "aes-128-gcm", password: "secret",
+    };
+    mocks.store.nodes = [
+      { name: "Local Direct", type: "direct" }, proxy,
+      { ...proxy, name: "Japan", server: "jp.example.com" },
+      { ...proxy, name: "剩余流量：10 GB" },
+    ];
+    mocks.store.dnsYaml = "dns:\n  nameserver: ['https://1.1.1.1/dns-query#SubBoost DNS']";
+    mocks.store.baseConfigDraft = "dns: []";
+
+    const { html } = renderGraph();
+    const preview = mocks.captures.proxyGroupsPreview;
+    expect(preview.displayGroups).toHaveLength(7);
+    expect(preview.displayGroups.find((group: any) => group.name === "SubBoost DNS")).toMatchObject({
+      id: "name:SubBoost DNS", groupType: "url-test", rules: [],
+    });
+    expect(mocks.captures.dnsGroup.proxies).toEqual(["Hong Kong", "Japan"]);
+    expect(preview.defaultProxyByGroupName.get("SubBoost DNS")).toBe("Hong Kong");
+    expect(html).toMatch(/>7<\/div><div[^>]*>代理组/);
+  });
+
+  it("does not let an unapplied DNS draft change the graph or add a DNS group to legacy settings", () => {
+    mocks.store.dnsYaml = "dns:\n  nameserver: ['https://dns.example.com/dns-query']";
+    mocks.store.baseConfigDraft = "dns:\n  nameserver: ['https://1.1.1.1/dns-query#SubBoost DNS']";
+    renderGraph();
+
+    expect(mocks.captures.proxyGroupsPreview.displayGroups).toHaveLength(6);
+    expect(mocks.captures.proxyGroupsPreview.displayGroups.some((group: any) => group.name === "SubBoost DNS")).toBe(false);
+    expect(mocks.captures.dnsGroup).toBeNull();
+  });
+
+  it("keeps the existing graph available when applied YAML is invalid or the DNS name collides", () => {
+    mocks.store.dnsYaml = "dns: []";
+    expect(() => renderGraph()).not.toThrow();
+    expect(mocks.captures.proxyGroupsPreview.displayGroups).toHaveLength(6);
+
+    mocks.store.dnsYaml = "dns:\n  nameserver: ['https://1.1.1.1/dns-query#SubBoost DNS']";
+    mocks.store.nodes = [{ name: "SubBoost DNS", type: "direct" }];
+    expect(() => renderGraph()).not.toThrow();
+    expect(mocks.captures.proxyGroupsPreview.displayGroups).toHaveLength(6);
   });
 
   it("shows builtin rules moved from another module into the target module", () => {

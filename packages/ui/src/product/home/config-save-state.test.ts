@@ -43,4 +43,17 @@ describe("configuration save state", () => {
     config.sources[0]!.content = "https://example.com/changed";
     expect(hasUnsavedConfig(config)).toBe(true);
   });
+
+  it("treats unapplied base YAML as unsaved without changing the saved configuration snapshot", () => {
+    const config = state();
+    const saved = getConfigSnapshot(config);
+    config.savedConfigSnapshot = saved;
+    config.baseConfigDraft = "dns: [unfinished";
+    expect(hasUnsavedConfig(config)).toBe(true);
+    expect(getConfigSnapshot(config)).toBe(saved);
+    config.baseConfigDraft = null;
+    expect(hasUnsavedConfig(config)).toBe(false);
+    config.baseConfigDraft = config.dnsYaml;
+    expect(hasUnsavedConfig(config)).toBe(false);
+  });
 });

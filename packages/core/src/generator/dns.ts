@@ -3,6 +3,7 @@
  */
 
 import type { DNSConfig } from "@subboost/core/types/config";
+import { SUBBOOST_DNS_PROXY_NAME } from "./dns-proxy";
 
 export const DEFAULT_DNS_CONFIG: DNSConfig = {
   enable: true,
@@ -11,49 +12,17 @@ export const DEFAULT_DNS_CONFIG: DNSConfig = {
   "fake-ip-range": "198.18.0.1/16",
   "use-system-hosts": false,
   "default-nameserver": [
-    "180.76.76.76",
-    "182.254.118.118",
-    "8.8.8.8",
-    "180.184.2.2",
+    "https://223.5.5.5/dns-query",
+    "https://1.1.1.1/dns-query",
+  ],
+  "proxy-server-nameserver": [
+    "https://223.5.5.5/dns-query",
+    "https://1.1.1.1/dns-query",
   ],
   nameserver: [
-    "180.76.76.76",
-    "119.29.29.29",
-    "180.184.1.1",
-    "223.5.5.5",
-    "8.8.8.8",
-    "https://223.6.6.6/dns-query#h3=true",
-    "https://dns.alidns.com/dns-query",
-    "https://cloudflare-dns.com/dns-query",
-    "https://doh.pub/dns-query",
+    `https://1.1.1.1/dns-query#${SUBBOOST_DNS_PROXY_NAME}`,
+    `https://8.8.8.8/dns-query#${SUBBOOST_DNS_PROXY_NAME}`,
   ],
-  fallback: [
-    "https://000000.dns.nextdns.io/dns-query#h3=true",
-    "https://dns.alidns.com/dns-query",
-    "https://doh.pub/dns-query",
-    "https://public.dns.iij.jp/dns-query",
-    "https://101.101.101.101/dns-query",
-    "https://208.67.220.220/dns-query",
-    "tls://8.8.4.4",
-    "tls://1.0.0.1:853",
-    "https://cloudflare-dns.com/dns-query",
-    "https://dns.google/dns-query",
-  ],
-  "fallback-filter": {
-    geoip: true,
-    ipcidr: ["240.0.0.0/4", "0.0.0.0/32", "127.0.0.1/32"],
-    domain: [
-      "+.google.com",
-      "+.facebook.com",
-      "+.twitter.com",
-      "+.youtube.com",
-      "+.xn--ngstr-lra8j.com",
-      "+.google.cn",
-      "+.googleapis.cn",
-      "+.googleapis.com",
-      "+.gvt1.com",
-    ],
-  },
   "fake-ip-filter": [
     "*.lan",
     "stun.*.*.*",

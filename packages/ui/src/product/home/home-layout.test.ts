@@ -339,7 +339,7 @@ describe("HomeLayout", () => {
       })
     );
 
-    expect(html).toContain("基础和 DNS 配置有错误");
+    expect(html).toContain("配置生成失败");
     expect(html).toContain("dns is invalid");
     expect(mocks.yamlPreviewEditor).toBeUndefined();
   });

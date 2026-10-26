@@ -12,6 +12,10 @@ import {
 } from "@subboost/core/generator/proxy-groups";
 import { getModuleRuleOrderKey } from "@subboost/core/generator/module-rules";
 import { getRelayNamedSelectionNodes } from "@subboost/core/generator/relay-named-chain";
+import { parseBaseConfigYaml } from "@subboost/core/generator/base-config";
+import { buildDnsProxyGroup } from "@subboost/core/generator/dns-proxy";
+import { isSubscriptionInfoNodeName } from "@subboost/core/subscription/info-node-name";
+import { isMihomoSupportedProxyNode } from "@subboost/core/mihomo/proxy-sanitizer";
 import { resolveProxyGroupModuleName } from "@subboost/core/proxy-group-name";
 import { resolveProxyGroupTargetName } from "@subboost/core/proxy-group-targets";
 import { collectCustomRoutingRuleSets } from "@subboost/core/rules/custom-routing-rule-sets";
@@ -42,6 +46,7 @@ export function VisualGraph() {
     testUrl,
     testInterval,
     ruleProviderBaseUrl,
+    dnsYaml,
     setProxyGroupOrder,
   } = useConfigStore(
     useShallow((state) => ({
@@ -59,6 +64,7 @@ export function VisualGraph() {
       testUrl: state.testUrl,
       testInterval: state.testInterval,
       ruleProviderBaseUrl: state.ruleProviderBaseUrl,
+      dnsYaml: state.dnsYaml ?? "",
       setProxyGroupOrder: state.setProxyGroupOrder,
     })),
   );
@@ -119,7 +125,7 @@ export function VisualGraph() {
   // 生成当前配置下的代理组（用于显示“默认选中项”）
   const generatedProxyGroups = React.useMemo(() => {
     if (nodes.length === 0) return [];
-    return generateProxyGroups({
+    const groups = generateProxyGroups({
       nodes: selectionNodes,
       enabledModules: enabledProxyGroups,
       ruleProviderBaseUrl,
@@ -131,6 +137,19 @@ export function VisualGraph() {
       builtinRuleEdits,
       proxyGroupNameOverrides,
     });
+    try {
+      const dnsGroup = buildDnsProxyGroup({
+        dns: parseBaseConfigYaml(dnsYaml).dns,
+        selectionNodes: selectionNodes.filter((node) => isMihomoSupportedProxyNode(node) && !isSubscriptionInfoNodeName(node.name)),
+        testUrl,
+        testInterval,
+        existingPolicyNames: [...groups.map((group) => group.name), ...nodes.map((node) => node.name), ...enabledDialerProxyGroups.map((group) => group.name)],
+      });
+      return dnsGroup ? [...groups, dnsGroup] : groups;
+    } catch {
+      // The shared generation error is shown outside the graph.
+      return groups;
+    }
   }, [
     nodes,
     selectionNodes,
@@ -143,6 +162,8 @@ export function VisualGraph() {
     proxyGroupAdvanced,
     builtinRuleEdits,
     proxyGroupNameOverrides,
+    dnsYaml,
+    enabledDialerProxyGroups,
   ]);
 
   // 按生成后的 proxy-groups 顺序展示（更贴近 Clash 实际 UI）
