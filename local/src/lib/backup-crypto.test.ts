@@ -1,27 +1,33 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { decryptBackup, encryptBackup } from "./backup-crypto";
 
-describe("portable encrypted backups", () => {
-  const password = "独立的备份密码-with-spaces ";
+describe("account-bound encrypted backups", () => {
+  const ownerId = "account-1";
   const data = { url: "https://secret.test/token", nodes: [{ password: "node-secret" }] };
-  it("round trips Unicode data using only the backup password, with fresh salt and IV", async () => {
-    const first = await encryptBackup(data, password);
-    const second = await encryptBackup(data, password);
+  beforeEach(() => { vi.stubEnv("ENCRYPTION_KEY", "instance-key"); });
+  afterEach(() => { vi.unstubAllEnvs(); });
+  it("round trips encrypted data for its owner without a backup password", async () => {
+    const first = await encryptBackup(data, ownerId);
+    const second = await encryptBackup(data, ownerId);
     expect(first).not.toContain("secret");
+    expect(first).not.toContain(ownerId);
     expect(first).not.toBe(second);
-    expect(JSON.parse(first).salt).not.toBe(JSON.parse(second).salt);
-    expect(JSON.parse(first).iv).not.toBe(JSON.parse(second).iv);
-    await expect(decryptBackup(first, password)).resolves.toEqual(data);
+    await expect(decryptBackup(first, ownerId)).resolves.toEqual(data);
   });
-  it("rejects wrong passwords, modified ciphertext, unsupported parameters and plaintext files", async () => {
-    const encrypted = await encryptBackup(data, password);
-    await expect(decryptBackup(encrypted, "wrong-password")).rejects.toThrow("解密失败");
+  it("rejects another account even when it has the complete backup file", async () => {
+    const encrypted = await encryptBackup(data, ownerId);
+    const copied = { ...JSON.parse(encrypted), ownerId: "account-2" };
+    await expect(decryptBackup(JSON.stringify(copied), "account-2")).rejects.toThrow("属于其他账号");
+  });
+  it("rejects a different deployment key, damaged ciphertext, legacy and plaintext files", async () => {
+    const encrypted = await encryptBackup(data, ownerId);
+    vi.stubEnv("ENCRYPTION_KEY", "replacement-key");
+    await expect(decryptBackup(encrypted, ownerId)).rejects.toThrow("解密失败");
+    vi.stubEnv("ENCRYPTION_KEY", "instance-key");
     const envelope = JSON.parse(encrypted);
-    envelope.ciphertext = (envelope.ciphertext[0] === "A" ? "B" : "A") + envelope.ciphertext.slice(1);
-    await expect(decryptBackup(JSON.stringify(envelope), password)).rejects.toThrow("解密失败");
-    envelope.iterations = 1000000000;
-    await expect(decryptBackup(JSON.stringify(envelope), password)).rejects.toThrow("不支持");
-    await expect(decryptBackup(JSON.stringify(data), password)).rejects.toThrow("不支持");
-    await expect(encryptBackup(data, "short")).rejects.toThrow("10 至");
+    envelope.ciphertext = "damaged-ciphertext";
+    await expect(decryptBackup(JSON.stringify(envelope), ownerId)).rejects.toThrow("解密失败");
+    await expect(decryptBackup(JSON.stringify({ format: "subboost-encrypted-backup", version: 1 }), ownerId)).rejects.toThrow("旧密码备份");
+    await expect(decryptBackup(JSON.stringify(data), ownerId)).rejects.toThrow("不支持");
   });
 });

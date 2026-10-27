@@ -76,6 +76,9 @@ model SubscriptionAutoUpdateState {
 model WebDavBackupSettings {
   ownerId         String   @id
   encryptedConfig String
+  lastBackupAt    DateTime?
+  lastAttemptedAt DateTime?
+  lastError       String?
   updatedAt       DateTime @updatedAt
 
   owner LocalAdmin @relation(fields: [ownerId], references: [id], onDelete: Cascade)

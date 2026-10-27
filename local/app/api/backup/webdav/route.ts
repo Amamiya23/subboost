@@ -5,7 +5,7 @@ import { createWebDavBackup, getBackupSettings, restoreWebDavBackup, saveBackupS
 
 function failure(error: unknown) {
   const message = error instanceof Error ? error.message : "WebDAV 备份操作失败";
-  if (message.includes("no such table: WebDavBackupSettings")) {
+  if (message.includes("no such table: WebDavBackupSettings") || /no such column: (lastBackupAt|lastAttemptedAt|lastError)/.test(message)) {
     return apiError("请先应用 D1 数据库迁移以启用 WebDAV 备份", "CONFIGURATION_ERROR", 503);
   }
   return apiError(message, "BAD_REQUEST", 400);
@@ -36,12 +36,9 @@ export async function POST(request: Request) {
         case "test": await testBackupConnection(admin.id, body.config); result = { success: true }; break;
         case "backup":
         case "restore": {
-          if (typeof body.password !== "string" || body.password.length < 10 || body.password.length > 1024) {
-            return apiError("备份密码需为 10 至 1024 个字符", "VALIDATION_ERROR", 400);
-          }
           if (body.action === "restore" && body.confirmRestore !== true) return apiError("请先确认覆盖当前订阅和个人模板", "VALIDATION_ERROR", 400);
-          result = body.action === "backup" ? await createWebDavBackup(admin.id, body.config, body.password)
-            : await restoreWebDavBackup(admin.id, body.config, body.password);
+          result = body.action === "backup" ? await createWebDavBackup(admin.id, body.config)
+            : await restoreWebDavBackup(admin.id, body.config);
           break;
         }
         default: return apiError("不支持的备份操作", "BAD_REQUEST", 400);

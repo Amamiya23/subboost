@@ -1,16 +1,20 @@
 import type { ScheduledController } from "./worker-types";
-import { runUpdateRuleIndexJob, runUpdateSubscriptionsJob } from "../src/lib/cron-jobs";
+import { runUpdateRuleIndexJob, runUpdateSubscriptionsJob, runWebDavAutoBackupJob } from "../src/lib/cron-jobs";
 
 const UPDATE_SUBSCRIPTIONS_CRON = "*/5 * * * *";
 const UPDATE_RULE_INDEX_CRON = "0 3 * * *";
 
 export async function runScheduledJob(controller: ScheduledController): Promise<void> {
   if (controller.cron === UPDATE_SUBSCRIPTIONS_CRON) {
-    const summary = await runUpdateSubscriptionsJob();
+    const [updates, backups] = await Promise.allSettled([runUpdateSubscriptionsJob(), runWebDavAutoBackupJob()]);
+    if (updates.status === "rejected") throw updates.reason;
+    if (backups.status === "rejected") throw backups.reason;
+    const summary = updates.value;
     const results = "results" in summary ? summary.results : summary;
     console.info("[scheduled] update-subscriptions complete", {
       results,
     });
+    console.info("[scheduled] webdav-backups complete", backups.value);
     return;
   }
   if (controller.cron === UPDATE_RULE_INDEX_CRON) {

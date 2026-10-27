@@ -17,10 +17,9 @@ describe("WebDAV backup API", () => {
     expect((await POST(request({ action: "backup" }))).status).toBe(401);
     expect(mocks.settings).not.toHaveBeenCalled(); expect(mocks.backup).not.toHaveBeenCalled();
   });
-  it("blocks cross-origin requests and requires a password and explicit restore confirmation", async () => {
+  it("blocks cross-origin requests and requires explicit restore confirmation", async () => {
     expect((await POST(request({ action: "test" }, "https://evil.test"))).status).toBe(403);
-    expect((await POST(request({ action: "backup", password: "short" }))).status).toBe(400);
-    expect((await POST(request({ action: "restore", password: "backup-password" }))).status).toBe(400);
+    expect((await POST(request({ action: "restore" }))).status).toBe(400);
     expect(mocks.test).not.toHaveBeenCalled(); expect(mocks.backup).not.toHaveBeenCalled(); expect(mocks.restore).not.toHaveBeenCalled();
   });
   it("dispatches authenticated operations and disables response caching", async () => {
@@ -30,10 +29,17 @@ describe("WebDAV backup API", () => {
     expect(await response.json()).toMatchObject({ settings: { hasPassword: true } });
     mocks.restore.mockResolvedValue({ subscriptions: 1, templates: 2 });
     const config = { url: "https://dav.test/" };
-    const restored = await POST(request({ action: "restore", config, password: "backup-password", confirmRestore: true }));
+    const restored = await POST(request({ action: "restore", config, ownerId: "another-owner", confirmRestore: true }));
     expect(restored.status).toBe(200);
-    expect(mocks.restore).toHaveBeenCalledWith("owner", config, "backup-password");
+    expect(mocks.restore).toHaveBeenCalledWith("owner", config);
     expect(restored.headers.get("cache-control")).toBe("no-store");
+  });
+  it("creates backups without a backup password using the authenticated account", async () => {
+    const config = { url: "https://dav.test/" };
+    mocks.backup.mockResolvedValue({ subscriptions: 1, templates: 0 });
+    const response = await POST(request({ action: "backup", config, ownerId: "another-owner" }));
+    expect(response.status).toBe(200);
+    expect(mocks.backup).toHaveBeenCalledWith("owner", config);
   });
   it("handles invalid JSON, unknown actions and missing database migrations", async () => {
     expect((await POST(new Request("https://app.test/api/backup/webdav", { method: "POST", body: "{" }))).status).toBe(400);
