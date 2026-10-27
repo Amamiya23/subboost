@@ -26,7 +26,7 @@ import { useProductInteractionAdapter } from "@subboost/ui/product/interactions"
 import { ProxyGroupsAddedRuleSets } from "./proxy-groups-added-rule-sets";
 import { getRuleDisplayName, useRulesLibrarySearch } from "./proxy-groups-rules-search";
 
-export function ProxyGroupsRulesLibrary() {
+export function ProxyGroupsRulesLibrary({ searchKeyword = "" }: { searchKeyword?: string }) {
   const {
     enabledProxyGroups,
     hiddenProxyGroups,
@@ -647,6 +647,7 @@ export function ProxyGroupsRulesLibrary() {
         <ProxyGroupsAddedRuleSets
           showSearchHint={!ruleSearchKeyword && selectedRules.length === 0}
           totalRules={totalRules}
+          searchKeyword={searchKeyword}
         />
       </div>
     </div>

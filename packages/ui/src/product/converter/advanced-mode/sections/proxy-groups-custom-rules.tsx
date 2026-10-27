@@ -88,7 +88,7 @@ function getTargetOptions(enabledGroupNames: string[], selected?: string) {
   return Array.from(new Set(options));
 }
 
-export function ProxyGroupsCustomRules() {
+export function ProxyGroupsCustomRules({ searchKeyword = "" }: { searchKeyword?: string }) {
   const {
     customRules,
     addCustomRule,
@@ -157,6 +157,21 @@ export function ProxyGroupsCustomRules() {
     () => getTargetOptions(enabledGroupNames, newRuleTarget),
     [enabledGroupNames, newRuleTarget],
   );
+
+  const normalizedSearch = searchKeyword.trim().toLowerCase();
+  const visibleRules = customRules
+    .map((rule, index) => ({ rule, index }))
+    .filter(({ rule }) =>
+      !normalizedSearch ||
+      rule.id === editingRuleId ||
+      [
+        rule.type,
+        CUSTOM_RULE_TYPE_LABELS[rule.type],
+        rule.value,
+        resolveTargetName(rule.target),
+        rule.noResolve ? "no-resolve" : "",
+      ].some((value) => value.toLowerCase().includes(normalizedSearch)),
+    );
 
   React.useEffect(() => {
     if (!editingRuleId) return;
@@ -320,10 +335,15 @@ export function ProxyGroupsCustomRules() {
               已添加规则
             </span>
             <span className="ml-auto text-[10px] text-muted-foreground">
-              已添加 {customRules.length}
+              {normalizedSearch
+                ? `匹配 ${visibleRules.length} / ${customRules.length}`
+                : `已添加 ${customRules.length}`}
             </span>
           </div>
-          {customRules.map((rule, index) => {
+          {visibleRules.length === 0 && (
+            <p className="py-1 text-center text-[10px] text-muted-foreground">未找到匹配的手动规则</p>
+          )}
+          {visibleRules.map(({ rule, index }) => {
             const isEditing = editingRuleId === rule.id && editingRuleDraft;
 
             if (isEditing) {

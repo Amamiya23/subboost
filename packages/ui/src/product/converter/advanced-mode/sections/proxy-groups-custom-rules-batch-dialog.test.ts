@@ -58,6 +58,8 @@ vi.mock("@subboost/ui/components/coss/compat/dialog", () => ({
     return React.createElement("div", null, props.children);
   },
   DialogContent: (props: any) => React.createElement("section", props, props.children),
+  DialogPanel: (props: any) => React.createElement("div", null, props.children),
+  DialogFooter: (props: any) => React.createElement("footer", null, props.children),
   DialogHeader: (props: any) => React.createElement("header", props, props.children),
   DialogTitle: (props: any) => React.createElement("h2", props, props.children),
 }));

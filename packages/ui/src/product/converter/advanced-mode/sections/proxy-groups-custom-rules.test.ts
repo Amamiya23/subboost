@@ -162,6 +162,7 @@ import {
 function renderRules(
   overrides: Record<number, unknown> = {},
   options: { runEffects?: boolean } = {},
+  searchKeyword = "",
 ) {
   stateMock.enabled = true;
   stateMock.callIndex = 0;
@@ -178,7 +179,7 @@ function renderRules(
   };
   try {
     const html = renderToStaticMarkup(
-      React.createElement(ProxyGroupsCustomRules),
+      React.createElement(ProxyGroupsCustomRules, { searchKeyword }),
     );
     return { html, setters: stateMock.setters };
   } finally {
@@ -427,6 +428,29 @@ describe("ProxyGroupsCustomRules", () => {
       .find((props) => props.title === "删除规则")
       .onClick();
     expect(mocks.store.removeCustomRule).toHaveBeenCalledWith(0);
+  });
+
+  it("filters manual rules without changing the index used for deletion", () => {
+    mocks.store.customRules = [
+      { id: "first", type: "DOMAIN", value: "first.example", target: "DIRECT" },
+      { id: "second", type: "IP-CIDR", value: "10.0.0.0/8", target: "Custom Group", noResolve: true },
+    ];
+
+    const { html } = renderRules({}, {}, "  CUSTOM GROUP  ");
+    expect(html).not.toContain("first.example");
+    expect(html).toContain("10.0.0.0/8");
+    expect(html).toContain("匹配 1 / 2");
+    expect(renderRules({}, {}, "no-resolve").html).toContain("10.0.0.0/8");
+    expect(renderRules({}, {}, "missing").html).toContain("未找到匹配的手动规则");
+
+    const editing = renderRules({ 5: "second", 6: mocks.store.customRules[1] }, {}, "10.0");
+    expect(editing.html).not.toContain("first.example");
+    mocks.captures.buttons.find((props) => props.title === "删除规则").onClick();
+    expect(mocks.store.removeCustomRule).toHaveBeenCalledWith(1);
+
+    const draft = renderRules({ 5: "first", 6: mocks.store.customRules[0] }, {}, "10.0");
+    expect(draft.html).toContain("10.0.0.0/8");
+    expect(mocks.captures.inputs.some((props) => props.value === "first.example")).toBe(true);
   });
 
   it("ignores incomplete additions and exits stale edits", () => {

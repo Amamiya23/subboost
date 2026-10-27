@@ -60,9 +60,11 @@ function createDraft(item: CustomRoutingRuleSetItem): RuleSetDraft {
 
 export function ProxyGroupsAddedRuleSets({
   showSearchHint = false,
+  searchKeyword = "",
   totalRules,
 }: {
   showSearchHint?: boolean;
+  searchKeyword?: string;
   totalRules: number | null;
 }) {
   const {
@@ -100,6 +102,17 @@ export function ProxyGroupsAddedRuleSets({
       (item) => !(item.target.kind === "module" && hidden.has(item.target.id)),
     );
   }, [addedRuleSets, hiddenProxyGroups]);
+  const normalizedSearchKeyword = searchKeyword.trim().toLowerCase();
+  const filteredRuleSets = visibleAddedRuleSets.filter((item) => {
+    if (!normalizedSearchKeyword || item.key === editingKey) return true;
+    return [
+      item.name,
+      item.path,
+      item.target.name,
+      "RULE-SET",
+      ...(item.noResolve ? ["no-resolve"] : []),
+    ].some((value) => value.toLowerCase().includes(normalizedSearchKeyword));
+  });
 
   const targetOptions = React.useMemo(
     () => [
@@ -249,6 +262,13 @@ export function ProxyGroupsAddedRuleSets({
   };
 
   if (visibleAddedRuleSets.length === 0) {
+    if (normalizedSearchKeyword) {
+      return (
+        <p className="py-2 text-center text-xs text-muted-foreground">
+          未找到匹配的已添加规则集
+        </p>
+      );
+    }
     if (!showSearchHint) return null;
     return (
       <p className="py-2 text-center text-xs leading-5 text-muted-foreground">
@@ -279,7 +299,12 @@ export function ProxyGroupsAddedRuleSets({
       </div>
 
       <div className="space-y-1">
-        {visibleAddedRuleSets.map((item) => {
+        {filteredRuleSets.length === 0 && (
+          <p className="py-2 text-center text-xs text-muted-foreground">
+            未找到匹配的已添加规则集
+          </p>
+        )}
+        {filteredRuleSets.map((item) => {
           const isEditing = editingKey === item.key && draft;
 
           if (isEditing) {

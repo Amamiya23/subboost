@@ -6,7 +6,9 @@ import { Button } from "@subboost/ui/components/coss/compat/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
+  DialogPanel,
   DialogTitle,
 } from "@subboost/ui/components/coss/compat/dialog";
 import { Textarea } from "@subboost/ui/components/coss/compat/textarea";
@@ -142,7 +144,7 @@ export function ProxyGroupsCustomRulesBatchDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <DialogPanel className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
               <div className="text-xs text-muted-foreground">规则行</div>
@@ -239,21 +241,21 @@ export function ProxyGroupsCustomRulesBatchDialog({
               </div>
             )}
           </div>
+        </DialogPanel>
 
-          <div className="flex justify-end gap-2 pt-1">
-            <Button variant="secondary" onClick={close} className="h-8">
-              取消
-            </Button>
-            <Button
-              onClick={handleImport}
-              disabled={!importPlan.canImport}
-              className="h-8"
-            >
-              <Upload className="mr-2 h-3.5 w-3.5" />
-              导入
-            </Button>
-          </div>
-        </div>
+        <DialogFooter variant="bare">
+          <Button variant="secondary" onClick={close} className="h-8">
+            取消
+          </Button>
+          <Button
+            onClick={handleImport}
+            disabled={!importPlan.canImport}
+            className="h-8"
+          >
+            <Upload className="mr-2 h-3.5 w-3.5" />
+            导入
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

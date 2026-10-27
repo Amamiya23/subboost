@@ -209,7 +209,10 @@ const customItem = {
 
 function renderAdded(
   overrides: Record<number, unknown> = {},
-  props = { showSearchHint: false, totalRules: null as number | null },
+  props: { showSearchHint?: boolean; searchKeyword?: string; totalRules: number | null } = {
+    showSearchHint: false,
+    totalRules: null,
+  },
   options: { runEffects?: boolean } = {},
 ) {
   stateMock.enabled = true;
@@ -296,6 +299,55 @@ describe("ProxyGroupsAddedRuleSets", () => {
     expect(html).not.toContain("Rule B");
     expect(html).not.toContain("域名");
     expect(html).not.toContain("IP");
+  });
+
+  it.each([
+    ["rUlE a", "geosite/rule-a", "geoip/rule-b"],
+    ["  GEOIP/RULE-B.MRS  ", "geoip/rule-b", "geosite/rule-a"],
+    ["cUsToM", "geoip/rule-b", "geosite/rule-a"],
+    ["NO-RESOLVE", "geosite/rule-a", "geoip/rule-b"],
+  ])("filters rule sets by %s without changing their total", (keyword, matching, excluded) => {
+    const { html } = renderAdded({}, { totalRules: null, searchKeyword: keyword });
+
+    expect(html).toContain(matching);
+    expect(html).not.toContain(excluded);
+    expect(html).toContain("已添加 2");
+  });
+
+  it("matches the RULE-SET label and treats whitespace as an empty search", () => {
+    for (const searchKeyword of ["rUlE-SeT", "   "]) {
+      const { html } = renderAdded({}, { totalRules: null, searchKeyword });
+      expect(html).toContain("geosite/rule-a");
+      expect(html).toContain("geoip/rule-b");
+    }
+  });
+
+  it("shows a search empty state without changing the default empty hint", () => {
+    expect(renderAdded({}, { totalRules: null, searchKeyword: "missing" }).html)
+      .toContain("未找到匹配的已添加规则集");
+
+    mocks.ruleSets = [];
+    expect(renderAdded({}, { totalRules: 12, showSearchHint: true, searchKeyword: "missing" }).html)
+      .toContain("未找到匹配的已添加规则集");
+    expect(renderAdded({}, { totalRules: 12, showSearchHint: true }).html)
+      .toContain("12");
+  });
+
+  it("keeps an unmatched editing draft visible and does not clear it", () => {
+    const { html, setters } = renderAdded(
+      {
+        0: moduleItem.key,
+        1: { path: moduleItem.path, targetValue: "module:auto", noResolve: true },
+      },
+      { totalRules: null, searchKeyword: "rule b" },
+      { runEffects: true },
+    );
+
+    expect(html).toContain("geosite/rule-a");
+    expect(html).toContain("geoip/rule-b");
+    expect(html).not.toContain("未找到匹配的已添加规则集");
+    expect(setters[0]).not.toHaveBeenCalled();
+    expect(setters[1]).not.toHaveBeenCalled();
   });
 
   it("renders empty search hints and editing controls", () => {
